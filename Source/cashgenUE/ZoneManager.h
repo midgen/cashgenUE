@@ -4,16 +4,23 @@
 
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
+#include "WorldGenerator.h"
 #include "ZoneManager.generated.h"
+
 
 
 UCLASS()
 class CASHGENUE_API AZoneManager : public AActor
 {
 	GENERATED_BODY()
-		UProceduralMeshComponent* MyProcMesh;
+	UProceduralMeshComponent* MyProcMesh;
+
+	WorldGenerator* worldGen;
+	TArray<GridRow>* worldGrid;
+	float gridSize;
 	
 	void CreateSection();
+	void AddQuad(ZoneBlock* block, int32 aX, int32 aY);
 
 	TArray<FVector> MyVertices;
 	TArray<int32> MyTriangles;
@@ -22,16 +29,15 @@ class CASHGENUE_API AZoneManager : public AActor
 	TArray<FColor> MyVertexColors;
 	TArray<FProcMeshTangent> MyTangents;
 
+	UFUNCTION(BlueprintCallable, Category = "Zone Manager")
+	void SetupZone(int32 aX, int32 aY, float aUnitSize);
 public:	
 	// Sets default values for this actor's properties
 	AZoneManager();
-
-	// Called when the game starts or when spawned
+	~AZoneManager();
 	virtual void BeginPlay() override;
-	
-	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
-	
+	void LoadTerrainGridAndGenerateMesh();
 	
 };
