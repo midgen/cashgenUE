@@ -47,12 +47,12 @@ void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
 	topRightHeight = (block->GetUpHeight() + block->GetRightHeight()) * 0.5f;
 
 
-	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), topRightHeight));//BL
+	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), bottomLeftHeight));//BL
 	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), topLeftHeight));//BR
 	MyVertices.Add(FVector((aX * gridSize) + (gridSize * 0.5), (aY * gridSize) - (gridSize*0.5), bottomRightHeight));//TL
 
 	MyVertices.Add(FVector((aX * gridSize) - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), topLeftHeight));//BR
-	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), bottomLeftHeight));//TR
+	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), topRightHeight));//TR
 	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), bottomRightHeight));//TL
 	
 	MyTriangles.Add(numTriangles);

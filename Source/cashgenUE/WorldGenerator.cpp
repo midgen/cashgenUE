@@ -16,7 +16,7 @@ void WorldGenerator::InitialiseTerrainGrid(int aX, int aY)
 		GridRow row;
 		for (int y = 0; y < aY; ++y)
 		{
-			row.blocks.Add(ZoneBlock(x*50.0f, FColor::Cyan));
+			row.blocks.Add(ZoneBlock(x*20.0f + y*20.0f, FColor::Cyan));
 		}
 		MyGrid.Add(row);
 	}
