@@ -36,13 +36,24 @@ void AZoneManager::LoadTerrainGridAndGenerateMesh()
 void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
 {
 	int32 numTriangles = MyVertices.Num();
-	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), block->Height));
-	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->Height));
-	MyVertices.Add(FVector((aX * gridSize) + (gridSize * 0.5), (aY * gridSize) - (gridSize*0.5), block->Height));
+	float bottomLeftHeight;
+	float bottomRightHeight;
+	float topRightHeight;
+	float topLeftHeight;
 
-	MyVertices.Add(FVector((aX * gridSize) - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->Height));
-	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->Height));
-	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), block->Height));
+	bottomLeftHeight = (block->GetDownHeight() + block->GetLeftHeight()) * 0.5f;
+	bottomRightHeight = (block->GetDownHeight() + block->GetRightHeight()) * 0.5f;
+	topLeftHeight = (block->GetUpHeight() + block->GetLeftHeight()) * 0.5f;
+	topRightHeight = (block->GetUpHeight() + block->GetRightHeight()) * 0.5f;
+
+
+	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), topRightHeight));//BL
+	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), topLeftHeight));//BR
+	MyVertices.Add(FVector((aX * gridSize) + (gridSize * 0.5), (aY * gridSize) - (gridSize*0.5), bottomRightHeight));//TL
+
+	MyVertices.Add(FVector((aX * gridSize) - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), topLeftHeight));//BR
+	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), bottomLeftHeight));//TR
+	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), bottomRightHeight));//TL
 	
 	MyTriangles.Add(numTriangles);
 	MyTriangles.Add(numTriangles + 1);
