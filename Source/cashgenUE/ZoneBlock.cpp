@@ -4,10 +4,13 @@
 
 
 
-ZoneBlock::ZoneBlock(float aHeight, FColor aColor)
+ZoneBlock::ZoneBlock(float aHeight, FColor aColor, int aX, int aY)
 {
+	ZoneBlock();
 	Height = aHeight;
 	Color = aColor;
+	MyX = aX;
+	MyY = aY;
 }
 
 
@@ -17,41 +20,15 @@ ZoneBlock::ZoneBlock()
 
 }
 
-
-float ZoneBlock::GetUpHeight()
+void ZoneBlock::ProcessCorners()
 {
-	if (up) {
-		return up->Height;
-	}
-	else {
-		return this->Height;
-	}
-}
-float ZoneBlock::GetDownHeight()
-{
-	if (down) {
-		return down->Height;
-	}
-	else {
-		return this->Height;
-	}
-}
-float ZoneBlock::GetLeftHeight()
-{
-	if (left) {
-		return left->Height;
-	}
-	else {
-		return this->Height;
-	}
-}
-float ZoneBlock::GetRightHeight()
-{
-	if (right) {
-		return right->Height;
-	}
-	else {
-		return this->Height;
-	}
+	topLeftCorner.CalcHeight();
+	topRightCorner.CalcHeight();
+	bottomLeftCorner.CalcHeight();
+	bottomRightCorner.CalcHeight();
 }
 
+ZoneBlock::~ZoneBlock()
+{
+
+}

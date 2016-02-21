@@ -1,26 +1,25 @@
 
 #pragma once
-
-#include "Engine.h"
-
+#include "cashgenUE.h"
+#include "ZoneBlockCorner.h"
 
 class ZoneBlock
 {
 public:
 	float Height;
 	FColor Color;
+	int MyX;
+	int MyY;
 
-	ZoneBlock* up;
-	ZoneBlock* down;
-	ZoneBlock* left;
-	ZoneBlock* right;
+	ZoneBlockCorner topLeftCorner;
+	ZoneBlockCorner topRightCorner;
+	ZoneBlockCorner bottomLeftCorner;
+	ZoneBlockCorner bottomRightCorner;
 
-	float GetUpHeight();
-	float GetDownHeight();
-	float GetLeftHeight();
-	float GetRightHeight();
+	void ProcessCorners();
 
-	ZoneBlock(float aHeight, FColor aColor);
+	ZoneBlock(float aHeight, FColor aColor, int aX, int aY);
 	ZoneBlock();
+	~ZoneBlock();
 	
 };

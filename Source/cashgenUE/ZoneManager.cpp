@@ -3,21 +3,24 @@
 
 AZoneManager::AZoneManager()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	USphereComponent* SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RootComponent"));
 	RootComponent = SphereComponent;
 	MyProcMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh"));
-	SetupZone(20, 20, 100.0f);
 }
 
-void AZoneManager::SetupZone(int32 aX, int32 aY, float aUnitSize)
+void AZoneManager::SetupZone(int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial)
 {
+
+	MyMaterial = aMaterial;
 	gridSize = aUnitSize;
 	worldGen = new WorldGenerator();
 	worldGen->InitialiseTerrainGrid(aX, aY);
 	worldGrid = worldGen->GetTerrainGrid();
 
 	LoadTerrainGridAndGenerateMesh();
+
+	
 }
 
 void AZoneManager::LoadTerrainGridAndGenerateMesh()
@@ -36,24 +39,14 @@ void AZoneManager::LoadTerrainGridAndGenerateMesh()
 void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
 {
 	int32 numTriangles = MyVertices.Num();
-	float bottomLeftHeight;
-	float bottomRightHeight;
-	float topRightHeight;
-	float topLeftHeight;
 
-	bottomLeftHeight = (block->GetDownHeight() + block->GetLeftHeight()) * 0.5f;
-	bottomRightHeight = (block->GetDownHeight() + block->GetRightHeight()) * 0.5f;
-	topLeftHeight = (block->GetUpHeight() + block->GetLeftHeight()) * 0.5f;
-	topRightHeight = (block->GetUpHeight() + block->GetRightHeight()) * 0.5f;
+	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), block->bottomLeftCorner.height));//BL
+	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->topLeftCorner.height));//BR
+	MyVertices.Add(FVector((aX * gridSize) + (gridSize * 0.5), (aY * gridSize) - (gridSize*0.5), block->bottomRightCorner.height));//TL
 
-
-	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), bottomLeftHeight));//BL
-	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), topLeftHeight));//BR
-	MyVertices.Add(FVector((aX * gridSize) + (gridSize * 0.5), (aY * gridSize) - (gridSize*0.5), bottomRightHeight));//TL
-
-	MyVertices.Add(FVector((aX * gridSize) - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), topLeftHeight));//BR
-	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), topRightHeight));//TR
-	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), bottomRightHeight));//TL
+	MyVertices.Add(FVector((aX * gridSize) - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->topLeftCorner.height));//BR
+	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->topRightCorner.height));//TR
+	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), block->bottomRightCorner.height));//TL
 	
 	MyTriangles.Add(numTriangles);
 	MyTriangles.Add(numTriangles + 1);
@@ -62,12 +55,12 @@ void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
 	MyTriangles.Add(numTriangles + 4);
 	MyTriangles.Add(numTriangles + 5);
 
-	MyNormals.Add(FVector(0, 0, 1));
-	MyNormals.Add(FVector(0, 0, 1));
-	MyNormals.Add(FVector(0, 0, 1));
-	MyNormals.Add(FVector(0, 0, 1));
-	MyNormals.Add(FVector(0, 0, 1));
-	MyNormals.Add(FVector(0, 0, 1));
+	//MyNormals.Add(FVector(0, 0, 1));
+	//MyNormals.Add(FVector(0, 0, 1));
+	//MyNormals.Add(FVector(0, 0, 1));
+	//MyNormals.Add(FVector(0, 0, 1));
+	//MyNormals.Add(FVector(0, 0, 1));
+	//MyNormals.Add(FVector(0, 0, 1));
 
 	MyUV0.Add(FVector2D(0, 0));
 	MyUV0.Add(FVector2D(0, 10));
@@ -83,19 +76,22 @@ void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
 	MyVertexColors.Add(block->Color);
 	MyVertexColors.Add(block->Color);
 
-	/*MyTangents.Add(FProcMeshTangent(1, 1, 1));
-	MyTangents.Add(FProcMeshTangent(1, 1, 1));
-	MyTangents.Add(FProcMeshTangent(1, 1, 1));
-	MyTangents.Add(FProcMeshTangent(1, 1, 1));
-	MyTangents.Add(FProcMeshTangent(1, 1, 1));
-	MyTangents.Add(FProcMeshTangent(1, 1, 1));*/
+	//MyTangents.Add(FProcMeshTangent(1, 1, 1));
+	//MyTangents.Add(FProcMeshTangent(1, 1, 1));
+	//MyTangents.Add(FProcMeshTangent(1, 1, 1));
+	//MyTangents.Add(FProcMeshTangent(1, 1, 1));
+	//MyTangents.Add(FProcMeshTangent(1, 1, 1));
+	//MyTangents.Add(FProcMeshTangent(1, 1, 1));
 }
 
 void AZoneManager::CreateSection()
 {
-	MyProcMesh->CreateMeshSection(1, MyVertices, MyTriangles, MyNormals, MyUV0, MyVertexColors, MyTangents, false);
+	MyProcMesh->SetMaterial(0, MyMaterial);
+	MyProcMesh->CreateMeshSection(0, MyVertices, MyTriangles, MyNormals, MyUV0, MyVertexColors, MyTangents, true);
 	
 	MyProcMesh->AttachTo(RootComponent);
+
+	
 }
 
 AZoneManager::~AZoneManager()

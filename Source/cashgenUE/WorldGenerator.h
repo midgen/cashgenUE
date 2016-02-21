@@ -14,7 +14,7 @@ public:
 	static const int X_SIZE = 20;
 	static const int Y_SIZE = 20;
 
-	void InitialiseTerrainGrid(const int aX, const int aY);
+	int8 InitialiseTerrainGrid(const int aX, const int aY);
 	TArray<GridRow>* GetTerrainGrid();
 
 };

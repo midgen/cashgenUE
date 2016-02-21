@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-
+#include "cashgenUE.h"
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
 #include "WorldGenerator.h"
@@ -14,7 +14,7 @@ class CASHGENUE_API AZoneManager : public AActor
 {
 	GENERATED_BODY()
 	UProceduralMeshComponent* MyProcMesh;
-
+	UMaterial* MyMaterial;
 	WorldGenerator* worldGen;
 	TArray<GridRow>* worldGrid;
 	float gridSize;
@@ -29,8 +29,7 @@ class CASHGENUE_API AZoneManager : public AActor
 	TArray<FColor> MyVertexColors;
 	TArray<FProcMeshTangent> MyTangents;
 
-	UFUNCTION(BlueprintCallable, Category = "Zone Manager")
-	void SetupZone(int32 aX, int32 aY, float aUnitSize);
+
 public:	
 	// Sets default values for this actor's properties
 	AZoneManager();
@@ -39,5 +38,8 @@ public:
 	virtual void Tick( float DeltaSeconds ) override;
 
 	void LoadTerrainGridAndGenerateMesh();
+
+	UFUNCTION(BlueprintCallable, Category = "Zone Manager")
+		void SetupZone(int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial);
 	
 };
