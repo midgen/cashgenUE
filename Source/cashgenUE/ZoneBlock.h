@@ -16,7 +16,7 @@ public:
 	ZoneBlockCorner bottomLeftCorner;
 	ZoneBlockCorner bottomRightCorner;
 
-	void ProcessCorners();
+	void ProcessCorners(float aMaxHeight);
 
 	ZoneBlock(float aHeight, FColor aColor, int aX, int aY);
 	ZoneBlock();

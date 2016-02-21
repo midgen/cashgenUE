@@ -9,13 +9,13 @@ AZoneManager::AZoneManager()
 	MyProcMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh"));
 }
 
-void AZoneManager::SetupZone(int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial)
+void AZoneManager::SetupZone(int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed)
 {
 
 	MyMaterial = aMaterial;
 	gridSize = aUnitSize;
 	worldGen = new WorldGenerator();
-	worldGen->InitialiseTerrainGrid(aX, aY);
+	worldGen->InitialiseTerrainGrid(aX, aY, aFloor, aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
 	worldGrid = worldGen->GetTerrainGrid();
 
 	LoadTerrainGridAndGenerateMesh();
@@ -34,6 +34,19 @@ void AZoneManager::LoadTerrainGridAndGenerateMesh()
 	}
 
 	CreateSection();
+}
+
+FVector AZoneManager::CalcSurfaceNormalForTriangle(const int32 aStartTriangle)
+{
+	FVector v1 = MyVertices[aStartTriangle];
+	FVector v2 = MyVertices[aStartTriangle + 1];
+	FVector v3 = MyVertices[aStartTriangle + 2];
+
+	FVector U = v2 - v1;
+	FVector V = v3 - v1;
+
+	return FVector::CrossProduct(V, U).GetSafeNormal();
+
 }
 
 void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
@@ -55,19 +68,22 @@ void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
 	MyTriangles.Add(numTriangles + 4);
 	MyTriangles.Add(numTriangles + 5);
 
-	//MyNormals.Add(FVector(0, 0, 1));
-	//MyNormals.Add(FVector(0, 0, 1));
-	//MyNormals.Add(FVector(0, 0, 1));
-	//MyNormals.Add(FVector(0, 0, 1));
-	//MyNormals.Add(FVector(0, 0, 1));
-	//MyNormals.Add(FVector(0, 0, 1));
+	FVector t1Normal = CalcSurfaceNormalForTriangle(numTriangles);
+	FVector t2Normal = CalcSurfaceNormalForTriangle(numTriangles + 3);
+
+	MyNormals.Add(t1Normal);
+	MyNormals.Add(t1Normal);
+	MyNormals.Add(t1Normal);
+	MyNormals.Add(t2Normal);
+	MyNormals.Add(t2Normal);
+	MyNormals.Add(t2Normal);
 
 	MyUV0.Add(FVector2D(0, 0));
-	MyUV0.Add(FVector2D(0, 10));
-	MyUV0.Add(FVector2D(10, 0));
-	MyUV0.Add(FVector2D(0, 10));
-	MyUV0.Add(FVector2D(10, 10));
-	MyUV0.Add(FVector2D(10, 0));
+	MyUV0.Add(FVector2D(0, 1));
+	MyUV0.Add(FVector2D(1, 0));
+	MyUV0.Add(FVector2D(0, 1));
+	MyUV0.Add(FVector2D(1, 1));
+	MyUV0.Add(FVector2D(1, 0));
 
 	MyVertexColors.Add(block->Color);
 	MyVertexColors.Add(block->Color);

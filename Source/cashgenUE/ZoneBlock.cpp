@@ -20,12 +20,19 @@ ZoneBlock::ZoneBlock()
 
 }
 
-void ZoneBlock::ProcessCorners()
+void ZoneBlock::ProcessCorners(float aMaxHeight)
 {
 	topLeftCorner.CalcHeight();
 	topRightCorner.CalcHeight();
 	bottomLeftCorner.CalcHeight();
 	bottomRightCorner.CalcHeight();
+
+	float heightRatio = this->Height / aMaxHeight;
+
+	Color.R = 255 * heightRatio;
+	Color.G = 0;
+	Color.B = 0;
+	Color.A = 1;
 }
 
 ZoneBlock::~ZoneBlock()

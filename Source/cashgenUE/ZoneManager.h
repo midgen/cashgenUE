@@ -29,6 +29,7 @@ class CASHGENUE_API AZoneManager : public AActor
 	TArray<FColor> MyVertexColors;
 	TArray<FProcMeshTangent> MyTangents;
 
+	FVector CalcSurfaceNormalForTriangle(const int32 aStartTriangle);
 
 public:	
 	// Sets default values for this actor's properties
@@ -40,6 +41,6 @@ public:
 	void LoadTerrainGridAndGenerateMesh();
 
 	UFUNCTION(BlueprintCallable, Category = "Zone Manager")
-		void SetupZone(int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial);
+		void SetupZone(int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
 	
 };

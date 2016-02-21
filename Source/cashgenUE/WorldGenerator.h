@@ -2,19 +2,17 @@
 
 #pragma once
 #include "ZoneBlock.h"
+#include "PerlinNoise.h"
 struct GridRow;
 
 class CASHGENUE_API WorldGenerator
 {
 
 	TArray<GridRow> MyGrid;
-	
+	float MyMaxHeight;
 
 public:
-	static const int X_SIZE = 20;
-	static const int Y_SIZE = 20;
-
-	int8 InitialiseTerrainGrid(const int aX, const int aY);
+	int8 InitialiseTerrainGrid(const int aX, const int aY, double aFloor, double aPersistence, double aFrequency, double aAmplitude, int aOctaves, int aRandomseed);
 	TArray<GridRow>* GetTerrainGrid();
 
 };

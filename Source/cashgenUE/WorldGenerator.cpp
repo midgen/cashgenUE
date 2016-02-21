@@ -2,6 +2,7 @@
 
 #include "cashgenUE.h"
 #include "WorldGenerator.h"
+#include "PerlinNoise.h"
 #include "Kismet/KismetMathLibrary.h"
 
 
@@ -10,16 +11,39 @@ TArray<GridRow>* WorldGenerator::GetTerrainGrid()
 	return &MyGrid;
 }
 
-int8 WorldGenerator::InitialiseTerrainGrid(int aX, int aY)
+int8 WorldGenerator::InitialiseTerrainGrid(int aX, int aY, double aFloor, double aPersistence, double aFrequency, double aAmplitude, int aOctaves, int aRandomseed)
 {
+	PerlinNoise noiseGen(aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
+	MyMaxHeight = 0.0f;
+
 	for (int x = 0; x < aX; ++x)
 	{
 		GridRow row;
 		for (int y = 0; y < aY; ++y)
 		{
-			row.blocks.Add(ZoneBlock(FMath::RandRange(0,5) * 100.0f, FColor::Cyan, x, y));
+			row.blocks.Add(ZoneBlock(noiseGen.GetHeight(x,y), FColor::Cyan, x, y));
 		}
 		MyGrid.Add(row);
+	}
+
+	// Floor pass
+	for (int x = 0; x < aX; ++x)
+	{
+		for (int y = 0; y < aY; ++y)
+		{
+			if (MyGrid[x].blocks[y].Height < aFloor)
+			{
+				MyGrid[x].blocks[y].Height = 0;
+			}
+			else {
+				MyGrid[x].blocks[y].Height -=aFloor;
+			}
+
+			if (MyGrid[x].blocks[y].Height > MyMaxHeight)
+			{
+				MyMaxHeight = MyGrid[x].blocks[y].Height;
+			}
+		}
 	}
 
 	// Now set the LRUD pointers
@@ -233,6 +257,8 @@ int8 WorldGenerator::InitialiseTerrainGrid(int aX, int aY)
 				MyGrid[x].blocks[y].bottomRightCorner.bottomRightBlock = &MyGrid[x + 1].blocks[y - 1];
 			}
 		}
+
+		
 	}
 
 	// Now run through and calculate vertex heights
@@ -240,7 +266,8 @@ int8 WorldGenerator::InitialiseTerrainGrid(int aX, int aY)
 	{
 		for (int y = 0; y < aY; ++y)
 		{
-			MyGrid[x].blocks[y].ProcessCorners();
+			MyGrid[x].blocks[y].ProcessCorners(MyMaxHeight);
+
 		}
 	}
 
