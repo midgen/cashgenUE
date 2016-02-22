@@ -5,9 +5,12 @@
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
 #include "WorldGenerator.h"
+#include "Point.h"
 #include "ZoneManager.generated.h"
 
 
+class AWorldManager;
+enum ZonePos { C, U, D, L, R, UL, UR, DL, DR };
 
 UCLASS()
 class CASHGENUE_API AZoneManager : public AActor
@@ -40,7 +43,7 @@ public:
 
 	void LoadTerrainGridAndGenerateMesh();
 
-	UFUNCTION(BlueprintCallable, Category = "Zone Manager")
-		void SetupZone(int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
+	
+	void SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
 	
 };

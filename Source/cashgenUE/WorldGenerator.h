@@ -3,6 +3,7 @@
 #pragma once
 #include "ZoneBlock.h"
 #include "PerlinNoise.h"
+#include "Point.h"
 struct GridRow;
 
 class CASHGENUE_API WorldGenerator
@@ -12,7 +13,7 @@ class CASHGENUE_API WorldGenerator
 	float MyMaxHeight;
 
 public:
-	int8 InitialiseTerrainGrid(const int aX, const int aY, double aFloor, double aPersistence, double aFrequency, double aAmplitude, int aOctaves, int aRandomseed);
+	int8 InitialiseTerrainGrid(Point aOffset, const int aX, const int aY, double aFloor, double aPersistence, double aFrequency, double aAmplitude, int aOctaves, int aRandomseed);
 	TArray<GridRow>* GetTerrainGrid();
 
 };

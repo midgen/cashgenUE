@@ -11,7 +11,7 @@ TArray<GridRow>* WorldGenerator::GetTerrainGrid()
 	return &MyGrid;
 }
 
-int8 WorldGenerator::InitialiseTerrainGrid(int aX, int aY, double aFloor, double aPersistence, double aFrequency, double aAmplitude, int aOctaves, int aRandomseed)
+int8 WorldGenerator::InitialiseTerrainGrid(Point aOffset, int aX, int aY, double aFloor, double aPersistence, double aFrequency, double aAmplitude, int aOctaves, int aRandomseed)
 {
 	PerlinNoise noiseGen(aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
 	MyMaxHeight = 0.0f;
@@ -21,7 +21,7 @@ int8 WorldGenerator::InitialiseTerrainGrid(int aX, int aY, double aFloor, double
 		GridRow row;
 		for (int y = 0; y < aY; ++y)
 		{
-			row.blocks.Add(ZoneBlock(noiseGen.GetHeight(x,y), FColor::Cyan, x, y));
+			row.blocks.Add(ZoneBlock(noiseGen.GetHeight((aOffset.x * aX) + x, (aOffset.y * aY) + y), FColor::Cyan, x, y));
 		}
 		MyGrid.Add(row);
 	}

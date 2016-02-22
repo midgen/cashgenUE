@@ -1,3 +1,12 @@
+/**
+ Code from user gamerrnb on Stack Overflow  - 
+ http://stackoverflow.com/users/314005/gamernb 
+ Post - 
+ http://stackoverflow.com/questions/4753055/perlin-noise-generation-for-terrain
+
+**/
+
+
 #pragma once
 #include "cashgenUE.h"
 class PerlinNoise
