@@ -9,12 +9,12 @@ struct GridRow;
 class CASHGENUE_API WorldGenerator
 {
 
-	TArray<GridRow> MyGrid;
+	//TArray<GridRow> MyGrid;
 	float MyMaxHeight;
 
 public:
-	int8 InitialiseTerrainGrid(Point aOffset, const int aX, const int aY, double aFloor, double aPersistence, double aFrequency, double aAmplitude, int aOctaves, int aRandomseed);
-	TArray<GridRow>* GetTerrainGrid();
+	int8 InitialiseTerrainGrid(TArray<GridRow>* outZoneData, TArray<float>* outHeightMap, Point aOffset, const int aX, const int aY, double aFloor, double aPersistence, double aFrequency, double aAmplitude, int aOctaves, int aRandomseed);
+	
 
 };
 

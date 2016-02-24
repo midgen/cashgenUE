@@ -19,7 +19,8 @@ class CASHGENUE_API AZoneManager : public AActor
 	UProceduralMeshComponent* MyProcMesh;
 	UMaterial* MyMaterial;
 	WorldGenerator* worldGen;
-	TArray<GridRow>* worldGrid;
+	TArray<GridRow> MyZoneData;
+	TArray<float> MyHeightMap;
 	float gridSize;
 	
 	void CreateSection();

@@ -6,30 +6,32 @@
 #include "Kismet/KismetMathLibrary.h"
 
 
-TArray<GridRow>* WorldGenerator::GetTerrainGrid()
-{
-	return &MyGrid;
-}
-
-int8 WorldGenerator::InitialiseTerrainGrid(Point aOffset, int aX, int aY, double aFloor, double aPersistence, double aFrequency, double aAmplitude, int aOctaves, int aRandomseed)
+int8 WorldGenerator::InitialiseTerrainGrid(TArray<GridRow>* outZoneData, TArray<float>* outHeightMap, Point aOffset, int aX, int aY, double aFloor, double aPersistence, double aFrequency, double aAmplitude, int aOctaves, int aRandomseed)
 {
 	PerlinNoise noiseGen(aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
 	MyMaxHeight = 0.0f;
 
-	for (int x = 0; x < aX; ++x)
+	int32 exX = aX + 2;
+	int32 exY = aY + 2;
+
+	outZoneData->Reserve(exX);
+	for (int x = 0; x < exX; ++x)
 	{
 		GridRow row;
-		for (int y = 0; y < aY; ++y)
+		row.blocks.Reserve(exY);
+		for (int y = 0; y < exY; ++y)
 		{
 			row.blocks.Add(ZoneBlock(noiseGen.GetHeight((aOffset.x * aX) + x, (aOffset.y * aY) + y), FColor::Cyan, x, y));
 		}
-		MyGrid.Add(row);
+		outZoneData->Add(row);
 	}
 
+	GridRow* MyGrid = outZoneData->GetData();
+
 	// Floor pass
-	for (int x = 0; x < aX; ++x)
+	for (int x = 0; x < exX; ++x)
 	{
-		for (int y = 0; y < aY; ++y)
+		for (int y = 0; y < exY; ++y)
 		{
 			if (MyGrid[x].blocks[y].Height < aFloor)
 			{
@@ -47,9 +49,9 @@ int8 WorldGenerator::InitialiseTerrainGrid(Point aOffset, int aX, int aY, double
 	}
 
 	// Now set the LRUD pointers
-	for (int x = 0; x < aX; ++x)
+	for (int x = 0; x < exX; ++x)
 	{
-		for (int y = 0; y < aY; ++y)
+		for (int y = 0; y < exY; ++y)
 		{ 
 			// Bottom left case
 			if (x == 0 && y == 0)
@@ -75,7 +77,7 @@ int8 WorldGenerator::InitialiseTerrainGrid(Point aOffset, int aX, int aY, double
 				MyGrid[x].blocks[y].bottomRightCorner.bottomRightBlock = nullptr;
 			}
 			// top left case
-			if (x == 0 && y == aY -1)
+			if (x == 0 && y == exY -1)
 			{
 				MyGrid[x].blocks[y].topLeftCorner.topLeftBlock = nullptr;
 				MyGrid[x].blocks[y].topLeftCorner.topRightBlock = nullptr;
@@ -98,7 +100,7 @@ int8 WorldGenerator::InitialiseTerrainGrid(Point aOffset, int aX, int aY, double
 				MyGrid[x].blocks[y].bottomRightCorner.bottomRightBlock = &MyGrid[x + 1].blocks[y - 1];
 			}
 			// top right case
-			if (x == aX - 1 && y == aY - 1)
+			if (x == exX - 1 && y == exY - 1)
 			{
 				MyGrid[x].blocks[y].topLeftCorner.topLeftBlock = nullptr;
 				MyGrid[x].blocks[y].topLeftCorner.topRightBlock = nullptr;
@@ -121,7 +123,7 @@ int8 WorldGenerator::InitialiseTerrainGrid(Point aOffset, int aX, int aY, double
 				MyGrid[x].blocks[y].bottomRightCorner.bottomRightBlock = nullptr;
 			}
 			// bottom right case
-			if (x == aX - 1 && y == 0)
+			if (x == exX - 1 && y == 0)
 			{
 				MyGrid[x].blocks[y].topLeftCorner.topLeftBlock = &MyGrid[x - 1].blocks[y + 1];
 				MyGrid[x].blocks[y].topLeftCorner.topRightBlock = &MyGrid[x].blocks[y + 1];
@@ -145,7 +147,7 @@ int8 WorldGenerator::InitialiseTerrainGrid(Point aOffset, int aX, int aY, double
 			}
 
 			// Set left edge pointers
-			if (x == 0 && y > 0 && y < aY - 1)
+			if (x == 0 && y > 0 && y < exY - 1)
 			{
 				MyGrid[x].blocks[y].topLeftCorner.topLeftBlock = nullptr;
 				MyGrid[x].blocks[y].topLeftCorner.topRightBlock = &MyGrid[x].blocks[y + 1];
@@ -168,7 +170,7 @@ int8 WorldGenerator::InitialiseTerrainGrid(Point aOffset, int aX, int aY, double
 				MyGrid[x].blocks[y].bottomRightCorner.bottomRightBlock = &MyGrid[x + 1].blocks[y - 1];
 			}
 			// Set right edge pointers
-			if (x == aX - 1 && y > 0 && y < aY - 1) {
+			if (x == exX - 1 && y > 0 && y < exY - 1) {
 				MyGrid[x].blocks[y].topLeftCorner.topLeftBlock = &MyGrid[x - 1].blocks[y + 1];
 				MyGrid[x].blocks[y].topLeftCorner.topRightBlock = &MyGrid[x].blocks[y + 1];
 				MyGrid[x].blocks[y].topLeftCorner.bottomLeftBlock = &MyGrid[x - 1].blocks[y];
@@ -190,7 +192,7 @@ int8 WorldGenerator::InitialiseTerrainGrid(Point aOffset, int aX, int aY, double
 				MyGrid[x].blocks[y].bottomRightCorner.bottomRightBlock = nullptr;
 			}
 			// Set bottom edge pointers
-			if (y == 0 && x > 0 && x < aX -1) {
+			if (y == 0 && x > 0 && x < exX -1) {
 				MyGrid[x].blocks[y].topLeftCorner.topLeftBlock = &MyGrid[x - 1].blocks[y + 1];
 				MyGrid[x].blocks[y].topLeftCorner.topRightBlock = &MyGrid[x].blocks[y + 1];
 				MyGrid[x].blocks[y].topLeftCorner.bottomLeftBlock = &MyGrid[x - 1].blocks[y];
@@ -212,7 +214,7 @@ int8 WorldGenerator::InitialiseTerrainGrid(Point aOffset, int aX, int aY, double
 				MyGrid[x].blocks[y].bottomRightCorner.bottomRightBlock = nullptr;
 			}
 			// Set top edge pointers
-			if (y == aY - 1 && x > 0 && x < aX -1) {
+			if (y == exY - 1 && x > 0 && x < exX -1) {
 				MyGrid[x].blocks[y].topLeftCorner.topLeftBlock = nullptr;
 				MyGrid[x].blocks[y].topLeftCorner.topRightBlock = nullptr;
 				MyGrid[x].blocks[y].topLeftCorner.bottomLeftBlock = &MyGrid[x - 1].blocks[y];
@@ -235,7 +237,7 @@ int8 WorldGenerator::InitialiseTerrainGrid(Point aOffset, int aX, int aY, double
 			}
 
 			// Normal cases :
-			if (x > 0 && x < aX - 1 && y > 0 && y < aY - 1) {
+			if (x > 0 && x < exX - 1 && y > 0 && y < exY - 1) {
 				MyGrid[x].blocks[y].topLeftCorner.topLeftBlock = &MyGrid[x - 1].blocks[y + 1];
 				MyGrid[x].blocks[y].topLeftCorner.topRightBlock = &MyGrid[x].blocks[y + 1];
 				MyGrid[x].blocks[y].topLeftCorner.bottomLeftBlock = &MyGrid[x - 1].blocks[y];
@@ -262,9 +264,9 @@ int8 WorldGenerator::InitialiseTerrainGrid(Point aOffset, int aX, int aY, double
 	}
 
 	// Now run through and calculate vertex heights
-	for (int x = 0; x < aX; ++x)
+	for (int x = 0; x < exX; ++x)
 	{
-		for (int y = 0; y < aY; ++y)
+		for (int y = 0; y < exY; ++y)
 		{
 			MyGrid[x].blocks[y].ProcessCorners(MyMaxHeight);
 

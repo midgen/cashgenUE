@@ -14,18 +14,17 @@ void AZoneManager::SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize,
 	MyMaterial = aMaterial;
 	gridSize = aUnitSize;
 	worldGen = new WorldGenerator();
-	worldGen->InitialiseTerrainGrid(aOffset, aX, aY, aFloor, aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
-	worldGrid = worldGen->GetTerrainGrid();
+	worldGen->InitialiseTerrainGrid(&MyZoneData, &MyHeightMap, aOffset, aX, aY, aFloor, aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
 	LoadTerrainGridAndGenerateMesh();
 }
 
 void AZoneManager::LoadTerrainGridAndGenerateMesh()
 {
-	for (int32 x = 0; x < worldGrid->Num(); ++x)
+	for (int32 x = 0; x < MyZoneData.Num() -2; ++x)
 	{
-		for (int32 y = 0; y < (*worldGrid)[x].blocks.Num(); ++y)
+		for (int32 y = 0; y < MyZoneData[x].blocks.Num() -2; ++y)
 		{
-			AddQuad(&(*worldGrid)[x].blocks[y], x, y);
+			AddQuad(&MyZoneData[x+1].blocks[y+1], x, y);
 		}
 	}
 
