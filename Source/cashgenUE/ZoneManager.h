@@ -18,10 +18,13 @@ class CASHGENUE_API AZoneManager : public AActor
 	GENERATED_BODY()
 	UProceduralMeshComponent* MyProcMesh;
 	UMaterial* MyMaterial;
+
 	WorldGenerator* worldGen;
 	TArray<GridRow> MyZoneData;
 	TArray<float> MyHeightMap;
 	float gridSize;
+	int32 xUnits;
+	int32 yUnits;
 	
 	void CreateSection();
 	void AddQuad(ZoneBlock* block, int32 aX, int32 aY);

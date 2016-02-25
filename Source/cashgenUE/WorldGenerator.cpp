@@ -9,7 +9,7 @@
 int8 WorldGenerator::InitialiseTerrainGrid(TArray<GridRow>* outZoneData, TArray<float>* outHeightMap, Point aOffset, int aX, int aY, double aFloor, double aPersistence, double aFrequency, double aAmplitude, int aOctaves, int aRandomseed)
 {
 	PerlinNoise noiseGen(aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
-	MyMaxHeight = 0.0f;
+	float MyMaxHeight = 0.0f;
 
 	int32 exX = aX + 2;
 	int32 exY = aY + 2;

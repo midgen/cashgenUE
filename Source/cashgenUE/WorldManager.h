@@ -15,7 +15,17 @@ class CASHGENUE_API AWorldManager : public AActor
 
 	TMap<ZonePos, AZoneManager*> Zones;
 	TMap<ZonePos, Point> ZoneOffsets;
+
+
+	AActor* currentPlayerPawn;
 	UWorld* world;
+
+	float unitSize;
+	int32 xUnits;
+	int32 yUnits;
+
+	void HandleZoneChange(FVector2D aOldZone, FVector2D aNewZone);
+
 public:	
 	// Sets default values for this actor's properties
 	AWorldManager();
@@ -27,8 +37,9 @@ public:
 	virtual void Tick( float DeltaSeconds ) override;
 
 	UFUNCTION(BlueprintCallable, Category = "World Manager")
-	void SpawnZones(int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
+	void SpawnZones(AActor* aPlayerPawn, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen Manager")
+		FVector2D currentPlayerZone;
 
 };

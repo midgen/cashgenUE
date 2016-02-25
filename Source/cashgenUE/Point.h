@@ -8,5 +8,9 @@ struct Point
 		x = aX;
 		y = aY;
 	}
+	Point()
+	{
+		x = 0; y = 0;
+	}
 	
 };

@@ -27,6 +27,7 @@ void AWorldManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	
 
 }
 
@@ -35,11 +36,34 @@ void AWorldManager::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
+	FVector2D oldPos = currentPlayerZone;
+	
+	if (currentPlayerPawn)
+	{
+		currentPlayerZone.X = floor(currentPlayerPawn->GetActorLocation().X / (unitSize* xUnits));
+		currentPlayerZone.Y = floor(currentPlayerPawn->GetActorLocation().Y / (unitSize* yUnits));
+	}
+
+	FVector2D newPos = currentPlayerZone;
+
+	if (oldPos.X != newPos.X || oldPos.Y != newPos.Y)
+	{
+		HandleZoneChange(oldPos, newPos);
+	}
+
+	GEngine->AddOnScreenDebugMessage(1, 0.1f, FColor::Red, currentPlayerZone.ToString());
 }
 
-void AWorldManager::SpawnZones(int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed)
+void AWorldManager::HandleZoneChange(FVector2D aOldZone, FVector2D aNewZone)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, TEXT("Zone Changed!"));
+}
+
+void AWorldManager::SpawnZones(AActor* aPlayerPawn, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed)
 {
 	world = GetWorld();
+	xUnits = aX; yUnits = aY, unitSize = aUnitSize;
+	currentPlayerPawn = aPlayerPawn;
 	// Spawn in the 9 zones
 	Zones.Add(ZonePos::C, world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), GetActorLocation(), FRotator(0.0f)));
 	Zones.Add(ZonePos::U, world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), GetActorLocation() + FVector(0.0f, aY * aUnitSize, 0.0f), FRotator(0.0f)));
