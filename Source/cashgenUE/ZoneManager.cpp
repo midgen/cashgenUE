@@ -18,6 +18,11 @@ void AZoneManager::SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize,
 	LoadTerrainGridAndGenerateMesh();
 }
 
+void AZoneManager::RelocateZone(Point aOffset)
+{
+
+}
+
 void AZoneManager::LoadTerrainGridAndGenerateMesh()
 {
 	for (int32 x = 0; x < MyZoneData.Num() -2; ++x)

@@ -49,5 +49,5 @@ public:
 
 	
 	void SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
-	
+	void RelocateZone(Point aOffset);
 };

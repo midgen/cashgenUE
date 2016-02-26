@@ -13,10 +13,12 @@ class CASHGENUE_API AWorldManager : public AActor
 {
 	GENERATED_BODY()
 
-	TMap<ZonePos, AZoneManager*> Zones;
+	TArray<AZoneManager*> ZonesMaster;
+	TMap<ZonePos, int8> CurrentZones;
+
 	TMap<ZonePos, Point> ZoneOffsets;
 
-
+	TMap<ZonePos, int8> NewZones;
 	AActor* currentPlayerPawn;
 	UWorld* world;
 
@@ -24,7 +26,7 @@ class CASHGENUE_API AWorldManager : public AActor
 	int32 xUnits;
 	int32 yUnits;
 
-	void HandleZoneChange(FVector2D aOldZone, FVector2D aNewZone);
+	void HandleZoneChange(FVector2D delta);
 
 public:	
 	// Sets default values for this actor's properties

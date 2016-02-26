@@ -16,7 +16,7 @@ AMyRTSPawn::AMyRTSPawn(const FObjectInitializer& ObjectInitializer)
 	MySpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("MySpringArm"));
 	MyCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("MyCamera"));
 	MySpringArm->AttachTo(RootComponent);
-	MySpringArm->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.0f), FRotator(-80.0f, 0.0f, 0.0f));
+	MySpringArm->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.0f), FRotator(-80.0f, -270.0f, 0.0f));
 	MySpringArm->TargetArmLength = 1500.0f;
 	MySpringArm->bEnableCameraLag = true;
 	MySpringArm->CameraLagSpeed = 3.0f;
@@ -64,7 +64,7 @@ void AMyRTSPawn::ZoomOut()
 void AMyRTSPawn::MoveForward(float AAxisValue)
 {
 	if (AAxisValue != 0.0f) {
-		FVector deltaMove = AAxisValue * GetActorRotation().Vector() * 20.0f;
+		FVector deltaMove = AAxisValue * FVector(0.0f, 1.0f, 0.0f) * 20.0f;
 		SetActorLocation(GetActorLocation() + deltaMove);
 	}
 }
@@ -72,7 +72,7 @@ void AMyRTSPawn::MoveForward(float AAxisValue)
 void AMyRTSPawn::MoveRight(float AAxisValue)
 {
 	if (AAxisValue != 0.0f) {
-		FVector deltaMove = AAxisValue * GetActorRotation().Vector().RightVector * 20.0f;
+		FVector deltaMove = AAxisValue * FVector(-1.0f, 0.0f, 0.0f) * 20.0f;
 		SetActorLocation(GetActorLocation() + deltaMove);
 	}
 }
