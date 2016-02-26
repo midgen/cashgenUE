@@ -9,5 +9,5 @@ AcashgenUEGameMode::AcashgenUEGameMode()
 {
 
 	PlayerControllerClass = AMyRTSPlayerController::StaticClass();
-	DefaultPawnClass = AMyRTSPawn::StaticClass();
+	//DefaultPawnClass = AMyRTSPawn::StaticClass();
 }

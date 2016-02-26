@@ -52,13 +52,13 @@ void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
 {
 	int32 numTriangles = MyVertices.Num();
 
-	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), block->bottomLeftCorner.height));//BL
-	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->topLeftCorner.height));//TL
-	MyVertices.Add(FVector((aX * gridSize) + (gridSize * 0.5), (aY * gridSize) - (gridSize*0.5), block->bottomRightCorner.height));//BR
+	MyVertices.Add(FVector(aX * gridSize + (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), block->bottomLeftCorner.height));
+	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), block->bottomRightCorner.height));
+	MyVertices.Add(FVector((aX * gridSize) + (gridSize * 0.5), (aY * gridSize) + (gridSize*0.5), block->topLeftCorner.height));
 
-	MyVertices.Add(FVector((aX * gridSize) - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->topLeftCorner.height));//TL
-	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->topRightCorner.height));//TR
-	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), block->bottomRightCorner.height));//BR
+	MyVertices.Add(FVector((aX * gridSize) - (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), block->bottomRightCorner.height));
+	MyVertices.Add(FVector((aX * gridSize) - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->topRightCorner.height));
+	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->topLeftCorner.height));
 	
 	MyTriangles.Add(numTriangles);
 	MyTriangles.Add(numTriangles + 1);
