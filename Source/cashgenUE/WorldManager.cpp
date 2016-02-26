@@ -104,7 +104,7 @@ void AWorldManager::SpawnZones(AActor* aPlayerPawn, int32 aX, int32 aY, float aU
 
 	for (auto& Elem : CurrentZones)
 	{
-		ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), FVector(-xUnits * unitSize * ZoneOffsets[Elem.Key].x, -yUnits * unitSize * ZoneOffsets[Elem.Key].y, 0.0f), FRotator(0.0f)));
+		ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), FVector(xUnits * unitSize * ZoneOffsets[Elem.Key].x, yUnits * unitSize * ZoneOffsets[Elem.Key].y, 0.0f), FRotator(0.0f)));
 		
 		//Elem->SetActorLocation(FVector(-xUnits * unitSize * ZoneOffsets, yUnits * unitSize, 0.0f))
 	}
