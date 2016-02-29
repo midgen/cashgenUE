@@ -27,6 +27,7 @@ class CASHGENUE_API AZoneManager : public AActor
 	int32 yUnits;
 	
 	void CreateSection();
+	void UpdateSection();
 	void AddQuad(ZoneBlock* block, int32 aX, int32 aY);
 
 	TArray<FVector> MyVertices;
@@ -45,9 +46,9 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
 
-	void LoadTerrainGridAndGenerateMesh();
+	void LoadTerrainGridAndGenerateMesh(bool isNew);
 
 	
 	void SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
-	void RelocateZone(Point aOffset);
+	void RegenerateZone(Point aOffset, int32 aX, int32 aY, float aUnitSize,float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
 };

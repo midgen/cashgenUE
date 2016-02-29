@@ -40,8 +40,8 @@ void AWorldManager::Tick( float DeltaTime )
 	
 	if (currentPlayerPawn)
 	{
-		currentPlayerZone.X = floor(currentPlayerPawn->GetActorLocation().X / (unitSize* xUnits));
-		currentPlayerZone.Y = floor(currentPlayerPawn->GetActorLocation().Y / (unitSize* yUnits));
+		currentPlayerZone.X = floor(currentPlayerPawn->GetActorLocation().X / (MyGridSize* MyXUnits));
+		currentPlayerZone.Y = floor(currentPlayerPawn->GetActorLocation().Y / (MyGridSize* MyYUnits));
 	}
 
 	FVector2D newPos = currentPlayerZone;
@@ -66,7 +66,8 @@ void AWorldManager::HandleZoneChange(FVector2D delta)
 
 	for (auto& Elem : CurrentZones)
 	{
-		ZonesMaster[Elem.Value]->SetActorLocation(FVector(-xUnits * unitSize * ZoneOffsets[Elem.Key].x, -yUnits * unitSize * ZoneOffsets[Elem.Key].y, 0.0f));
+		ZonesMaster[Elem.Value]->SetActorLocation(FVector(-MyXUnits * MyGridSize * ZoneOffsets[Elem.Key].x, -MyYUnits * MyGridSize * ZoneOffsets[Elem.Key].y, 0.0f));
+		ZonesMaster[Elem.Value]->RegenerateZone(ZoneOffsets[Elem.Key], MyXUnits, MyYUnits, MyGridSize, MyFloor, MyPersistence, MyFrequency, MyAmplitude, MyOctaves, MySeed);
 		//Elem->SetActorLocation(FVector(-xUnits * unitSize * ZoneOffsets, yUnits * unitSize, 0.0f))
 	}
 
@@ -88,7 +89,11 @@ void AWorldManager::HandleZoneChange(FVector2D delta)
 void AWorldManager::SpawnZones(AActor* aPlayerPawn, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed)
 {
 	world = GetWorld();
-	xUnits = aX; yUnits = aY, unitSize = aUnitSize;
+	MyXUnits = aX; MyYUnits = aY, MyGridSize = aUnitSize;
+	MyFloor = aFloor; MyPersistence = aPersistence;
+	MyFrequency = aFrequency; MyAmplitude = aAmplitude;
+	MyOctaves = aOctaves; MySeed = aRandomseed;
+
 	currentPlayerPawn = aPlayerPawn;
 	// Setup the tracking maps
 
@@ -104,22 +109,8 @@ void AWorldManager::SpawnZones(AActor* aPlayerPawn, int32 aX, int32 aY, float aU
 
 	for (auto& Elem : CurrentZones)
 	{
-		ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), FVector(xUnits * unitSize * ZoneOffsets[Elem.Key].x, yUnits * unitSize * ZoneOffsets[Elem.Key].y, 0.0f), FRotator(0.0f)));
-		
-		//Elem->SetActorLocation(FVector(-xUnits * unitSize * ZoneOffsets, yUnits * unitSize, 0.0f))
+		ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), FVector(MyXUnits * MyGridSize * ZoneOffsets[Elem.Key].x, MyYUnits * MyGridSize * ZoneOffsets[Elem.Key].y, 0.0f), FRotator(0.0f)));
 	}
-
-	//ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), GetActorLocation(), FRotator(0.0f)));
-	//ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), GetActorLocation() + FVector(0.0f, aY * aUnitSize, 0.0f), FRotator(0.0f)));
-	//ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), GetActorLocation() + FVector(0.0f, -aY * aUnitSize, 0.0f), FRotator(0.0f)));
-	//ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), GetActorLocation() + FVector(-aX * aUnitSize, 0.0f, 0.0f), FRotator(0.0f)));
-	//ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), GetActorLocation() + FVector(aX * aUnitSize, 0.0f, 0.0f), FRotator(0.0f)));
-	//ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), GetActorLocation() + FVector(-aX * aUnitSize, aY * aUnitSize, 0.0f), FRotator(0.0f)));
-	//ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), GetActorLocation() + FVector(aX * aUnitSize, aY * aUnitSize, 0.0f), FRotator(0.0f)));
-	//ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), GetActorLocation() + FVector(-aX * aUnitSize, -aY * aUnitSize, 0.0f), FRotator(0.0f)));
-	//ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), GetActorLocation() + FVector(aX * aUnitSize, -aY * aUnitSize, 0.0f), FRotator(0.0f)));
-
-
 
 	// Now set them up!
 	for (auto& Elem : CurrentZones)

@@ -9,33 +9,54 @@ AZoneManager::AZoneManager()
 	MyProcMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh"));
 }
 
+// Initial setup of the zone
 void AZoneManager::SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed)
 {
 	MyMaterial = aMaterial;
 	gridSize = aUnitSize;
 	worldGen = new WorldGenerator();
 	worldGen->InitialiseTerrainGrid(&MyZoneData, &MyHeightMap, aOffset, aX, aY, aFloor, aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
-	LoadTerrainGridAndGenerateMesh();
+	LoadTerrainGridAndGenerateMesh(true);
 }
 
-void AZoneManager::RelocateZone(Point aOffset)
+void AZoneManager::RegenerateZone(Point aOffset, int32 aX, int32 aY, float aUnitSize, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed)
 {
-
+	// Wipe the zone data and heighmap (TODO: re-use instead of reallocate)
+	MyZoneData.Empty();
+	MyHeightMap.Empty();
+	worldGen->InitialiseTerrainGrid(&MyZoneData, &MyHeightMap, aOffset, aX, aY, aFloor, aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
+	LoadTerrainGridAndGenerateMesh(false);
 }
 
-void AZoneManager::LoadTerrainGridAndGenerateMesh()
+void AZoneManager::LoadTerrainGridAndGenerateMesh(bool isNew)
 {
-	for (int32 x = 0; x < MyZoneData.Num() -2; ++x)
+	// If this is an update cycle, clearout the data structures
+	if (!isNew)
 	{
-		for (int32 y = 0; y < MyZoneData[x].blocks.Num() -2; ++y)
+		MyVertices.Empty();
+		MyTriangles.Empty();
+		MyNormals.Empty();
+		MyUV0.Empty();
+		MyVertexColors.Empty();
+	}
+	// Generate the mesh data
+	for (int32 x = 0; x < MyZoneData.Num() - 2; ++x)
+	{
+		for (int32 y = 0; y < MyZoneData[x].blocks.Num() - 2; ++y)
 		{
-			AddQuad(&MyZoneData[x+1].blocks[y+1], x, y);
+			AddQuad(&MyZoneData[x + 1].blocks[y + 1], x, y);
 		}
 	}
-
-	CreateSection();
+	// Now tell the procmesh component to build/update
+	if (isNew) {
+		CreateSection();
+	}
+	else {
+		UpdateSection();
+	}
 }
 
+// This'll do for now, gives us face normals
 FVector AZoneManager::CalcSurfaceNormalForTriangle(const int32 aStartTriangle)
 {
 	FVector v1 = MyVertices[aStartTriangle];
@@ -48,6 +69,7 @@ FVector AZoneManager::CalcSurfaceNormalForTriangle(const int32 aStartTriangle)
 	return FVector::CrossProduct(V, U).GetSafeNormal();
 }
 
+// Builds a 2 tri square of mesh to cover the zoneblock
 void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
 {
 	int32 numTriangles = MyVertices.Num();
@@ -95,8 +117,13 @@ void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
 void AZoneManager::CreateSection()
 {
 	MyProcMesh->SetMaterial(0, MyMaterial);
-	MyProcMesh->CreateMeshSection(0, MyVertices, MyTriangles, MyNormals, MyUV0, MyVertexColors, MyTangents, true);
+	MyProcMesh->CreateMeshSection(0, MyVertices, MyTriangles, MyNormals, MyUV0, MyVertexColors, MyTangents, false);
 	MyProcMesh->AttachTo(RootComponent);
+}
+
+void AZoneManager::UpdateSection()
+{
+	MyProcMesh->UpdateMeshSection(0, MyVertices, MyNormals, MyUV0, MyVertexColors, MyTangents);
 }
 
 AZoneManager::~AZoneManager()

@@ -22,9 +22,16 @@ class CASHGENUE_API AWorldManager : public AActor
 	AActor* currentPlayerPawn;
 	UWorld* world;
 
-	float unitSize;
-	int32 xUnits;
-	int32 yUnits;
+	float MyGridSize;
+	int32 MyXUnits;
+	int32 MyYUnits;
+	float MyFloor;
+	float MyPersistence;
+	float MyFrequency;
+	float MyAmplitude;
+	int32 MyOctaves;
+	int32 MySeed;
+	
 
 	void HandleZoneChange(FVector2D delta);
 
