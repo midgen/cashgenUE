@@ -51,39 +51,26 @@ void AWorldManager::Tick( float DeltaTime )
 		HandleZoneChange(oldPos - newPos);
 	}
 
-	GEngine->AddOnScreenDebugMessage(1, 0.1f, FColor::Red, currentPlayerZone.ToString());
+	GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Red, currentPlayerZone.ToString());
 }
 
 void AWorldManager::HandleZoneChange(FVector2D delta)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, TEXT("Zone Changed!"));
+	GEngine->AddOnScreenDebugMessage(2, 5.0f, FColor::Green, delta.ToString());
 
 	for (auto& Elem : ZoneOffsets)
 	{
-		Elem.Value.x += delta.X;
-		Elem.Value.y += delta.Y;
+		Elem.Value.x -= delta.X;
+		Elem.Value.y -= delta.Y;
+		
 	}
 
 	for (auto& Elem : CurrentZones)
 	{
-		ZonesMaster[Elem.Value]->SetActorLocation(FVector(-MyXUnits * MyGridSize * ZoneOffsets[Elem.Key].x, -MyYUnits * MyGridSize * ZoneOffsets[Elem.Key].y, 0.0f));
+		ZonesMaster[Elem.Value]->SetActorLocation(FVector(MyXUnits * MyGridSize * ZoneOffsets[Elem.Key].x, MyYUnits * MyGridSize * ZoneOffsets[Elem.Key].y, 0.0f));
 		ZonesMaster[Elem.Value]->RegenerateZone(ZoneOffsets[Elem.Key], MyXUnits, MyYUnits, MyGridSize, MyFloor, MyPersistence, MyFrequency, MyAmplitude, MyOctaves, MySeed);
-		//Elem->SetActorLocation(FVector(-xUnits * unitSize * ZoneOffsets, yUnits * unitSize, 0.0f))
+		
 	}
-
-
-
-
-	//if (floor(delta.X) == 0 && floor(delta.Y) == 1)
-	//{
-	//	ZonesMaster[CurrentZones[ZonePos::D]]->SetActorLocation(GetActorLocation() + FVector(0.0f, 2 * xUnits * unitSize, 0.0f));
-	//}
-
-
-	//ZonePos direction;
-
-	//FVector2D delta = aOldZone - aNewZone;
-	
 }
 
 void AWorldManager::SpawnZones(AActor* aPlayerPawn, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed)

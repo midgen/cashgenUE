@@ -21,8 +21,8 @@ int8 WorldGenerator::InitialiseTerrainGrid(TArray<GridRow>* outZoneData, TArray<
 		row.blocks.Reserve(exY);
 		for (int y = 0; y < exY; ++y)
 		{
-			int32 thisX = (-aOffset.x * aX) + x;
-			int32 thisY = (-aOffset.y * aY) + y;
+			int32 thisX = (aOffset.x * aX) + x;
+			int32 thisY = (aOffset.y * aY) + y;
 			row.blocks.Add(ZoneBlock(noiseGen.GetHeight(thisX, thisY), FColor::Cyan, x, y));
 		}
 		outZoneData->Add(row);
