@@ -68,7 +68,7 @@ void AWorldManager::HandleZoneChange(FVector2D delta)
 	for (auto& Elem : CurrentZones)
 	{
 		ZonesMaster[Elem.Value]->SetActorLocation(FVector(MyXUnits * MyGridSize * ZoneOffsets[Elem.Key].x, MyYUnits * MyGridSize * ZoneOffsets[Elem.Key].y, 0.0f));
-		ZonesMaster[Elem.Value]->RegenerateZone(ZoneOffsets[Elem.Key], MyXUnits, MyYUnits, MyGridSize, MyFloor, MyPersistence, MyFrequency, MyAmplitude, MyOctaves, MySeed);
+		ZonesMaster[Elem.Value]->RegenerateZone(ZoneOffsets[Elem.Key]);
 		
 	}
 }

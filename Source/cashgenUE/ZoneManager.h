@@ -11,6 +11,18 @@
 
 class AWorldManager;
 enum ZonePos { C, U, D, L, R, UL, UR, DL, DR };
+struct ZoneConfig
+{
+	int32 XUnits;
+	int32 YUnits;
+	float UnitSize;
+	float Floor;
+	float Persistence;
+	float Frequency;
+	float Amplitude;
+	int32 Octaves;
+	int32 RandomSeed;
+};
 
 UCLASS()
 class CASHGENUE_API AZoneManager : public AActor
@@ -19,12 +31,14 @@ class CASHGENUE_API AZoneManager : public AActor
 	UProceduralMeshComponent* MyProcMesh;
 	UMaterial* MyMaterial;
 
+	FRunnableThread* Thread;
+
+	ZoneConfig MyConfig;
+	Point MyOffset;
+
 	WorldGenerator* worldGen;
 	TArray<GridRow> MyZoneData;
 	TArray<float> MyHeightMap;
-	float gridSize;
-	int32 xUnits;
-	int32 yUnits;
 	
 	void CreateSection();
 	void UpdateSection();
@@ -48,7 +62,8 @@ public:
 
 	void LoadTerrainGridAndGenerateMesh(bool isNew);
 
+	bool workerThreadCompleted = false;
 	
 	void SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
-	void RegenerateZone(Point aOffset, int32 aX, int32 aY, float aUnitSize,float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
+	void RegenerateZone(Point aOffset);
 };

@@ -1,9 +1,10 @@
 #include "cashgenUE.h"
 #include "ZoneManager.h"
+#include "FZoneGeneratorWorker.h"
 
 AZoneManager::AZoneManager()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	USphereComponent* SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RootComponent"));
 	RootComponent = SphereComponent;
 	MyProcMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh"));
@@ -12,20 +13,51 @@ AZoneManager::AZoneManager()
 // Initial setup of the zone
 void AZoneManager::SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed)
 {
+	MyOffset.x = aOffset.x;
+	MyOffset.y = aOffset.y;
+	MyConfig.XUnits = aX;
+	MyConfig.YUnits = aY;
+	MyConfig.UnitSize = aUnitSize;
+	MyConfig.Floor = aFloor;
+	MyConfig.Persistence = aPersistence;
+	MyConfig.Frequency = aFrequency;
+	MyConfig.Amplitude = aAmplitude;
+	MyConfig.Octaves = aOctaves;
+	MyConfig.RandomSeed = aRandomseed;
+
 	MyMaterial = aMaterial;
-	gridSize = aUnitSize;
+
 	worldGen = new WorldGenerator();
 	worldGen->InitialiseTerrainGrid(&MyZoneData, &MyHeightMap, aOffset, aX, aY, aFloor, aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
 	LoadTerrainGridAndGenerateMesh(true);
 }
 
-void AZoneManager::RegenerateZone(Point aOffset, int32 aX, int32 aY, float aUnitSize, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed)
+void AZoneManager::RegenerateZone(Point aOffset)
 {
+	MyOffset.x = aOffset.x;
+	MyOffset.y = aOffset.y;
+
+	workerThreadCompleted = false;
+
+	Thread = FRunnableThread::Create(new FZoneGeneratorWorker(this,
+		&MyConfig,
+		&MyOffset,
+		&MyZoneData,
+		&MyVertices,
+		&MyTriangles,
+		&MyNormals,
+		&MyUV0,
+		&MyVertexColors),
+		TEXT("FZoneGeneratorWorker"),
+		0, TPri_BelowNormal);
+
+
+
 	// Wipe the zone data and heighmap (TODO: re-use instead of reallocate)
-	MyZoneData.Empty();
-	MyHeightMap.Empty();
-	worldGen->InitialiseTerrainGrid(&MyZoneData, &MyHeightMap, aOffset, aX, aY, aFloor, aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
-	LoadTerrainGridAndGenerateMesh(false);
+	//MyZoneData.Empty();
+	//MyHeightMap.Empty();
+	//worldGen->InitialiseTerrainGrid(&MyZoneData, &MyHeightMap, aOffset, aX, aY, aFloor, aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
+	//LoadTerrainGridAndGenerateMesh(false);
 }
 
 void AZoneManager::LoadTerrainGridAndGenerateMesh(bool isNew)
@@ -74,13 +106,13 @@ void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
 {
 	int32 numTriangles = MyVertices.Num();
 
-	MyVertices.Add(FVector(aX * gridSize + (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), block->bottomLeftCorner.height));
-	MyVertices.Add(FVector(aX * gridSize - (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), block->bottomRightCorner.height));
-	MyVertices.Add(FVector((aX * gridSize) + (gridSize * 0.5), (aY * gridSize) + (gridSize*0.5), block->topLeftCorner.height));
+	MyVertices.Add(FVector(aX * MyConfig.UnitSize + (MyConfig.UnitSize*0.5), (aY * MyConfig.UnitSize) - (MyConfig.UnitSize*0.5), block->bottomLeftCorner.height));
+	MyVertices.Add(FVector(aX * MyConfig.UnitSize - (MyConfig.UnitSize*0.5), (aY * MyConfig.UnitSize) - (MyConfig.UnitSize*0.5), block->bottomRightCorner.height));
+	MyVertices.Add(FVector((aX * MyConfig.UnitSize) + (MyConfig.UnitSize * 0.5), (aY * MyConfig.UnitSize) + (MyConfig.UnitSize*0.5), block->topLeftCorner.height));
 
-	MyVertices.Add(FVector((aX * gridSize) - (gridSize*0.5), (aY * gridSize) - (gridSize*0.5), block->bottomRightCorner.height));
-	MyVertices.Add(FVector((aX * gridSize) - (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->topRightCorner.height));
-	MyVertices.Add(FVector((aX * gridSize) + (gridSize*0.5), (aY * gridSize) + (gridSize*0.5), block->topLeftCorner.height));
+	MyVertices.Add(FVector((aX * MyConfig.UnitSize) - (MyConfig.UnitSize*0.5), (aY * MyConfig.UnitSize) - (MyConfig.UnitSize*0.5), block->bottomRightCorner.height));
+	MyVertices.Add(FVector((aX * MyConfig.UnitSize) - (MyConfig.UnitSize*0.5), (aY * MyConfig.UnitSize) + (MyConfig.UnitSize*0.5), block->topRightCorner.height));
+	MyVertices.Add(FVector((aX * MyConfig.UnitSize) + (MyConfig.UnitSize*0.5), (aY * MyConfig.UnitSize) + (MyConfig.UnitSize*0.5), block->topLeftCorner.height));
 	
 	MyTriangles.Add(numTriangles);
 	MyTriangles.Add(numTriangles + 1);
@@ -143,4 +175,10 @@ void AZoneManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (workerThreadCompleted)
+	{
+		UpdateSection();
+		delete Thread;
+		Thread = NULL;
+	}
 }
