@@ -37,6 +37,10 @@ void AZoneManager::RegenerateZone(Point aOffset)
 	MyOffset.x = aOffset.x;
 	MyOffset.y = aOffset.y;
 
+	FString threadName = "ZoneWorker" + aOffset.x + aOffset.y;
+	
+	
+
 	workerThreadCompleted = false;
 
 	Thread = FRunnableThread::Create(new FZoneGeneratorWorker(this,
@@ -48,7 +52,7 @@ void AZoneManager::RegenerateZone(Point aOffset)
 		&MyNormals,
 		&MyUV0,
 		&MyVertexColors),
-		TEXT("FZoneGeneratorWorker"),
+		*threadName,
 		0, TPri_BelowNormal);
 
 
@@ -177,6 +181,7 @@ void AZoneManager::Tick(float DeltaTime)
 
 	if (workerThreadCompleted)
 	{
+		workerThreadCompleted = false;
 		UpdateSection();
 		delete Thread;
 		Thread = NULL;
