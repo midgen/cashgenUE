@@ -183,6 +183,8 @@ void AZoneManager::Tick(float DeltaTime)
 	{
 		workerThreadCompleted = false;
 		UpdateSection();
+
+		SetActorLocation(FVector(MyConfig.XUnits * MyConfig.UnitSize * MyOffset.x, MyConfig.YUnits * MyConfig.UnitSize * MyOffset.y, 0.0f));
 		delete Thread;
 		Thread = NULL;
 	}

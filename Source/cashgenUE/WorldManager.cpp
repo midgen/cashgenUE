@@ -26,9 +26,6 @@ AWorldManager::AWorldManager()
 void AWorldManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	
-
 }
 
 // Called every frame
@@ -58,18 +55,51 @@ void AWorldManager::HandleZoneChange(FVector2D delta)
 {
 	GEngine->AddOnScreenDebugMessage(2, 5.0f, FColor::Green, delta.ToString());
 
+	for (auto& Elem : ZonesMaster)
+	{
+		Elem->isStale = false;
+	}
+
 	for (auto& Elem : ZoneOffsets)
 	{
 		Elem.Value.x -= delta.X;
 		Elem.Value.y -= delta.Y;
-		
+	}
+
+	if (delta.X < -0.1)
+	{ 
+		ZonesMaster[CurrentZones[ZonePos::R]]->isStale = true;
+		ZonesMaster[CurrentZones[ZonePos::UR]]->isStale = true;
+		ZonesMaster[CurrentZones[ZonePos::DR]]->isStale = true;
+
+		NewZones[ZonePos::C] = CurrentZones[ZonePos::L];
+		NewZones[ZonePos::U] = CurrentZones[ZonePos::UL];
+		NewZones[ZonePos::D] = CurrentZones[ZonePos::DL];
+		NewZones[ZonePos::L] = CurrentZones[ZonePos::R];
+		NewZones[ZonePos::R] = CurrentZones[ZonePos::C];
+		NewZones[ZonePos::UL] = CurrentZones[ZonePos::UR];
+		NewZones[ZonePos::UR] = CurrentZones[ZonePos::U];
+		NewZones[ZonePos::DL] = CurrentZones[ZonePos::DR];
+		NewZones[ZonePos::DR] = CurrentZones[ZonePos::D];
+
+		CurrentZones[ZonePos::C] = NewZones[ZonePos::C];
+		CurrentZones[ZonePos::U] = NewZones[ZonePos::U];
+		CurrentZones[ZonePos::D] = NewZones[ZonePos::D];
+		CurrentZones[ZonePos::L] = NewZones[ZonePos::L];
+		CurrentZones[ZonePos::R] = NewZones[ZonePos::R];
+		CurrentZones[ZonePos::UL] = NewZones[ZonePos::UL];
+		CurrentZones[ZonePos::UR] = NewZones[ZonePos::UR];
+		CurrentZones[ZonePos::DL] = NewZones[ZonePos::DL];
+		CurrentZones[ZonePos::DR] = NewZones[ZonePos::DR];
+
 	}
 
 	for (auto& Elem : CurrentZones)
 	{
-		ZonesMaster[Elem.Value]->SetActorLocation(FVector(MyXUnits * MyGridSize * ZoneOffsets[Elem.Key].x, MyYUnits * MyGridSize * ZoneOffsets[Elem.Key].y, 0.0f));
-		ZonesMaster[Elem.Value]->RegenerateZone(ZoneOffsets[Elem.Key]);
-		
+		if (ZonesMaster[Elem.Value]->isStale)
+		{		
+			ZonesMaster[Elem.Value]->RegenerateZone(ZoneOffsets[Elem.Key]);
+		}
 	}
 }
 
@@ -93,6 +123,16 @@ void AWorldManager::SpawnZones(AActor* aPlayerPawn, int32 aX, int32 aY, float aU
 	CurrentZones.Add(ZonePos::UR, 6);
 	CurrentZones.Add(ZonePos::DL, 7);
 	CurrentZones.Add(ZonePos::DR, 8);
+
+	NewZones.Add(ZonePos::C, 0);
+	NewZones.Add(ZonePos::U, 0);
+	NewZones.Add(ZonePos::D, 0);
+	NewZones.Add(ZonePos::L, 0);
+	NewZones.Add(ZonePos::R, 0);
+	NewZones.Add(ZonePos::UL, 0);
+	NewZones.Add(ZonePos::UR, 0);
+	NewZones.Add(ZonePos::DL, 0);
+	NewZones.Add(ZonePos::DR, 0);
 
 	for (auto& Elem : CurrentZones)
 	{

@@ -57,6 +57,8 @@ public:
 	// Sets default values for this actor's properties
 	AZoneManager();
 	~AZoneManager();
+	bool isStale = false;
+
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
 
