@@ -34,7 +34,7 @@ class CASHGENUE_API AZoneManager : public AActor
 	FRunnableThread* Thread;
 
 	ZoneConfig MyConfig;
-	Point MyOffset;
+	
 
 	WorldGenerator* worldGen;
 	TArray<GridRow> MyZoneData;
@@ -58,6 +58,7 @@ public:
 	AZoneManager();
 	~AZoneManager();
 	bool isStale = false;
+	Point MyOffset;
 
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
@@ -67,5 +68,5 @@ public:
 	bool workerThreadCompleted = false;
 	
 	void SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
-	void RegenerateZone(Point aOffset);
+	void RegenerateZone();
 };

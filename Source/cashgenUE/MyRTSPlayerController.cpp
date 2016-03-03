@@ -5,10 +5,10 @@
 
 AMyRTSPlayerController::AMyRTSPlayerController()
 {
-	bShowMouseCursor = true;
-	bEnableClickEvents = true;
-	bEnableMouseOverEvents = false;
-	DefaultMouseCursor = EMouseCursor::Crosshairs;
+	//bShowMouseCursor = true;
+	//bEnableClickEvents = true;
+	//bEnableMouseOverEvents = false;
+	//DefaultMouseCursor = EMouseCursor::Crosshairs;
 
 	EnableInput(this);
 }

@@ -32,12 +32,9 @@ void AZoneManager::SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize,
 	LoadTerrainGridAndGenerateMesh(true);
 }
 
-void AZoneManager::RegenerateZone(Point aOffset)
+void AZoneManager::RegenerateZone()
 {
-	MyOffset.x = aOffset.x;
-	MyOffset.y = aOffset.y;
-
-	FString threadName = "ZoneWorker" + aOffset.x + aOffset.y;
+	FString threadName = "ZoneWorker" + MyOffset.x + MyOffset.y;
 	
 	
 
