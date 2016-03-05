@@ -55,4 +55,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen Manager")
 		FVector2D currentPlayerZone;
 
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "CashGen Manager")
+		int32 UpdatesPerFrame = 1;
+
 };

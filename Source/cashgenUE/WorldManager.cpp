@@ -37,14 +37,18 @@ void AWorldManager::Tick( float DeltaTime )
 		HandleZoneChange(newPos - oldPos);
 	}
 
-	int32 indexToRegen = -1;
-	if (MyRegenQueue.Dequeue(indexToRegen))
+	for (int i = 0; i < UpdatesPerFrame; ++i)
 	{
-		if (indexToRegen >= 0)
+		int32 indexToRegen = -1;
+		if (MyRegenQueue.Dequeue(indexToRegen))
 		{
-			ZonesMaster[indexToRegen]->RegenerateZone();
+			if (indexToRegen >= 0)
+			{
+				ZonesMaster[indexToRegen]->RegenerateZone();
+			}
 		}
 	}
+
 
 
 	GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Red, currentPlayerZone.ToString());

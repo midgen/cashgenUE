@@ -59,6 +59,7 @@ public:
 	~AZoneManager();
 	bool isStale = false;
 	Point MyOffset;
+	FVector MyTargetLocation;
 
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;

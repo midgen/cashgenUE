@@ -180,9 +180,20 @@ void AZoneManager::Tick(float DeltaTime)
 	{
 		workerThreadCompleted = false;
 		UpdateSection();
-
-		SetActorLocation(FVector(MyConfig.XUnits * MyConfig.UnitSize * MyOffset.x, MyConfig.YUnits * MyConfig.UnitSize * MyOffset.y, 0.0f));
+		SetActorLocation(FVector(MyConfig.XUnits * MyConfig.UnitSize * MyOffset.x, MyConfig.YUnits * MyConfig.UnitSize * MyOffset.y, -10000.0f));
 		delete Thread;
 		Thread = NULL;
 	}
+
+	if (GetActorLocation().Z < 0.0f)
+	{
+		FVector newLoc = GetActorLocation() + FVector(0.0f, 0.0f, 10000.0f * DeltaTime);
+		if (newLoc.Z > 0.0f)
+		{
+			newLoc.Z = 0.0f;
+		}
+
+		SetActorLocation(newLoc);
+	}
+	
 }
