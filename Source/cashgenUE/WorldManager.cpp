@@ -151,6 +151,7 @@ void AWorldManager::SpawnZones(AActor* aPlayerPawn, int32 aNumXZones, int32 aNum
 	for (int i = 0; i < ZonesMaster.Num(); ++i)
 	{
 		ZonesMaster[i]->SetupZone(GetXYfromIdx(i), MyXUnits, MyYUnits, MyGridSize, aMaterial, MyFloor, MyPersistence, MyFrequency, MyAmplitude, MyOctaves, MySeed);
+		MyRegenQueue.Enqueue(i);
 	}
 }
 

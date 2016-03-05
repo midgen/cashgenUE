@@ -27,9 +27,257 @@ void AZoneManager::SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize,
 
 	MyMaterial = aMaterial;
 
-	worldGen = new WorldGenerator();
-	worldGen->InitialiseTerrainGrid(&MyZoneData, &MyHeightMap, aOffset, aX, aY, aFloor, aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
-	LoadTerrainGridAndGenerateMesh(true);
+	PopulateDataStructures();
+	InitialiseBlockPointers();
+	CreateSection();
+
+	//worldGen = new WorldGenerator();
+	//worldGen->InitialiseTerrainGrid(&MyZoneData, &MyHeightMap, aOffset, aX, aY, aFloor, aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
+	//LoadTerrainGridAndGenerateMesh(true);
+}
+
+void AZoneManager::PopulateDataStructures()
+{
+	int32 exX = MyConfig.XUnits + 2;
+	int32 exY = MyConfig.YUnits + 2;
+
+	MyZoneData.Reserve(exX);
+	for (int x = 0; x < exX; ++x)
+	{
+		GridRow row;
+		row.blocks.Reserve(exY);
+		for (int y = 0; y < exY; ++y)
+		{
+			row.blocks.Add(ZoneBlock(0.0f, FColor::Cyan, x, y));
+		}
+		MyZoneData.Add(row);
+	}
+
+	for (int32 x = 0; x < MyZoneData.Num() - 2; ++x)
+	{
+		for (int32 y = 0; y < MyZoneData[x].blocks.Num() - 2; ++y)
+		{
+			AddQuad(&MyZoneData[x + 1].blocks[y + 1], x, y);
+		}
+	}
+}
+
+void AZoneManager::InitialiseBlockPointers()
+{
+	int32 exX = MyConfig.XUnits + 2;
+	int32 exY = MyConfig.YUnits + 2;
+	// Now set the LRUD pointers
+	for (int x = 0; x < exX; ++x)
+	{
+		for (int y = 0; y < exY; ++y)
+		{
+			// Bottom right case
+			if (x == 0 && y == 0)
+			{
+				MyZoneData[x].blocks[y].topLeftCorner.topLeftBlock = &MyZoneData[x + 1].blocks[y + 1];
+				MyZoneData[x].blocks[y].topLeftCorner.topRightBlock = &MyZoneData[x].blocks[y + 1];
+				MyZoneData[x].blocks[y].topLeftCorner.bottomLeftBlock = &MyZoneData[x + 1].blocks[y];
+				MyZoneData[x].blocks[y].topLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y];
+
+				MyZoneData[x].blocks[y].topRightCorner.topLeftBlock = &MyZoneData[x].blocks[y + 1];
+				MyZoneData[x].blocks[y].topRightCorner.topRightBlock = nullptr;
+				MyZoneData[x].blocks[y].topRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].topRightCorner.bottomRightBlock = nullptr;
+
+				MyZoneData[x].blocks[y].bottomLeftCorner.topLeftBlock = &MyZoneData[x + 1].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.topRightBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomRightBlock = nullptr;
+
+				MyZoneData[x].blocks[y].bottomRightCorner.topLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.topRightBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomRightBlock = nullptr;
+			}
+			// top right case
+			if (x == 0 && y == exY - 1)
+			{
+				MyZoneData[x].blocks[y].topLeftCorner.topLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].topLeftCorner.topRightBlock = nullptr;
+				MyZoneData[x].blocks[y].topLeftCorner.bottomLeftBlock = &MyZoneData[x + 1].blocks[y];
+				MyZoneData[x].blocks[y].topLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y];
+
+				MyZoneData[x].blocks[y].topRightCorner.topLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].topRightCorner.topRightBlock = nullptr;
+				MyZoneData[x].blocks[y].topRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].topRightCorner.bottomRightBlock = nullptr;
+
+				MyZoneData[x].blocks[y].bottomLeftCorner.topLeftBlock = &MyZoneData[x + 1].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.topRightBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomLeftBlock = &MyZoneData[x + 1].blocks[y - 1];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y - 1];
+
+				MyZoneData[x].blocks[y].bottomRightCorner.topLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.topRightBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y - 1];
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomRightBlock = nullptr;
+			}
+			// top left case
+			if (x == exX - 1 && y == exY - 1)
+			{
+				MyZoneData[x].blocks[y].topLeftCorner.topLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].topLeftCorner.topRightBlock = nullptr;
+				MyZoneData[x].blocks[y].topLeftCorner.bottomLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].topLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y];
+
+				MyZoneData[x].blocks[y].topRightCorner.topLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].topRightCorner.topRightBlock = nullptr;
+				MyZoneData[x].blocks[y].topRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].topRightCorner.bottomRightBlock = &MyZoneData[x - 1].blocks[y];
+
+				MyZoneData[x].blocks[y].bottomLeftCorner.topLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomLeftCorner.topRightBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y - 1];
+
+				MyZoneData[x].blocks[y].bottomRightCorner.topLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.topRightBlock = &MyZoneData[x - 1].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y - 1];
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomRightBlock = nullptr;
+			}
+			// bottom left case
+			if (x == exX - 1 && y == 0)
+			{
+				MyZoneData[x].blocks[y].topLeftCorner.topLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].topLeftCorner.topRightBlock = &MyZoneData[x].blocks[y + 1];
+				MyZoneData[x].blocks[y].topLeftCorner.bottomLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].topLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y];
+
+				MyZoneData[x].blocks[y].topRightCorner.topLeftBlock = &MyZoneData[x].blocks[y + 1];
+				MyZoneData[x].blocks[y].topRightCorner.topRightBlock = &MyZoneData[x - 1].blocks[y + 1];
+				MyZoneData[x].blocks[y].topRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].topRightCorner.bottomRightBlock = &MyZoneData[x - 1].blocks[y];
+
+				MyZoneData[x].blocks[y].bottomLeftCorner.topLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomLeftCorner.topRightBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomRightBlock = nullptr;
+
+				MyZoneData[x].blocks[y].bottomRightCorner.topLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.topRightBlock = &MyZoneData[x - 1].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomRightBlock = nullptr;
+			}
+
+			// Set right edge pointers
+			if (x == 0 && y > 0 && y < exY - 1)
+			{
+				MyZoneData[x].blocks[y].topLeftCorner.topLeftBlock = &MyZoneData[x + 1].blocks[y + 1];
+				MyZoneData[x].blocks[y].topLeftCorner.topRightBlock = &MyZoneData[x].blocks[y + 1];
+				MyZoneData[x].blocks[y].topLeftCorner.bottomLeftBlock = &MyZoneData[x + 1].blocks[y];
+				MyZoneData[x].blocks[y].topLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y];
+
+				MyZoneData[x].blocks[y].topRightCorner.topLeftBlock = &MyZoneData[x].blocks[y + 1];
+				MyZoneData[x].blocks[y].topRightCorner.topRightBlock = nullptr;
+				MyZoneData[x].blocks[y].topRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].topRightCorner.bottomRightBlock = nullptr;
+
+				MyZoneData[x].blocks[y].bottomLeftCorner.topLeftBlock = &MyZoneData[x + 1].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.topRightBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomLeftBlock = &MyZoneData[x + 1].blocks[y + 1];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y - 1];
+
+				MyZoneData[x].blocks[y].bottomRightCorner.topLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.topRightBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y - 1];
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomRightBlock = nullptr;
+			}
+			// Set left edge pointers
+			if (x == exX - 1 && y > 0 && y < exY - 1) {
+				MyZoneData[x].blocks[y].topLeftCorner.topLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].topLeftCorner.topRightBlock = &MyZoneData[x].blocks[y + 1];
+				MyZoneData[x].blocks[y].topLeftCorner.bottomLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].topLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y];
+
+				MyZoneData[x].blocks[y].topRightCorner.topLeftBlock = &MyZoneData[x].blocks[y + 1];
+				MyZoneData[x].blocks[y].topRightCorner.topRightBlock = &MyZoneData[x - 1].blocks[y];
+				MyZoneData[x].blocks[y].topRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].topRightCorner.bottomRightBlock = &MyZoneData[x - 1].blocks[y];
+
+				MyZoneData[x].blocks[y].bottomLeftCorner.topLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomLeftCorner.topRightBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y - 1];
+
+				MyZoneData[x].blocks[y].bottomRightCorner.topLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.topRightBlock = &MyZoneData[x - 1].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y - 1];
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomRightBlock = &MyZoneData[x - 1].blocks[y - 1];
+			}
+			// Set bottom edge pointers
+			if (y == 0 && x > 0 && x < exX - 1) {
+				MyZoneData[x].blocks[y].topLeftCorner.topLeftBlock = &MyZoneData[x + 1].blocks[y + 1];
+				MyZoneData[x].blocks[y].topLeftCorner.topRightBlock = &MyZoneData[x].blocks[y + 1];
+				MyZoneData[x].blocks[y].topLeftCorner.bottomLeftBlock = &MyZoneData[x + 1].blocks[y];
+				MyZoneData[x].blocks[y].topLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y];
+
+				MyZoneData[x].blocks[y].topRightCorner.topLeftBlock = &MyZoneData[x].blocks[y + 1];
+				MyZoneData[x].blocks[y].topRightCorner.topRightBlock = &MyZoneData[x - 1].blocks[y + 1];
+				MyZoneData[x].blocks[y].topRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].topRightCorner.bottomRightBlock = &MyZoneData[x - 1].blocks[y];
+
+				MyZoneData[x].blocks[y].bottomLeftCorner.topLeftBlock = &MyZoneData[x + 1].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.topRightBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomRightBlock = nullptr;
+
+				MyZoneData[x].blocks[y].bottomRightCorner.topLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.topRightBlock = &MyZoneData[x - 1].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomRightBlock = nullptr;
+			}
+			// Set top edge pointers
+			if (y == exY - 1 && x > 0 && x < exX - 1) {
+				MyZoneData[x].blocks[y].topLeftCorner.topLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].topLeftCorner.topRightBlock = nullptr;
+				MyZoneData[x].blocks[y].topLeftCorner.bottomLeftBlock = &MyZoneData[x + 1].blocks[y];
+				MyZoneData[x].blocks[y].topLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y];
+
+				MyZoneData[x].blocks[y].topRightCorner.topLeftBlock = nullptr;
+				MyZoneData[x].blocks[y].topRightCorner.topRightBlock = nullptr;
+				MyZoneData[x].blocks[y].topRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].topRightCorner.bottomRightBlock = &MyZoneData[x - 1].blocks[y];
+
+				MyZoneData[x].blocks[y].bottomLeftCorner.topLeftBlock = &MyZoneData[x + 1].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.topRightBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomLeftBlock = &MyZoneData[x + 1].blocks[y - 1];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y - 1];
+
+				MyZoneData[x].blocks[y].bottomRightCorner.topLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.topRightBlock = &MyZoneData[x - 1].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y - 1];
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomRightBlock = &MyZoneData[x - 1].blocks[y - 1];
+			}
+
+			// Normal cases :
+			if (x > 0 && x < exX - 1 && y > 0 && y < exY - 1) {
+				MyZoneData[x].blocks[y].topLeftCorner.topLeftBlock = &MyZoneData[x + 1].blocks[y + 1];
+				MyZoneData[x].blocks[y].topLeftCorner.topRightBlock = &MyZoneData[x].blocks[y + 1];
+				MyZoneData[x].blocks[y].topLeftCorner.bottomLeftBlock = &MyZoneData[x + 1].blocks[y];
+				MyZoneData[x].blocks[y].topLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y];
+
+				MyZoneData[x].blocks[y].topRightCorner.topLeftBlock = &MyZoneData[x].blocks[y + 1];
+				MyZoneData[x].blocks[y].topRightCorner.topRightBlock = &MyZoneData[x - 1].blocks[y + 1];
+				MyZoneData[x].blocks[y].topRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].topRightCorner.bottomRightBlock = &MyZoneData[x - 1].blocks[y];
+
+				MyZoneData[x].blocks[y].bottomLeftCorner.topLeftBlock = &MyZoneData[x + 1].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.topRightBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomLeftBlock = &MyZoneData[x + 1].blocks[y - 1];
+				MyZoneData[x].blocks[y].bottomLeftCorner.bottomRightBlock = &MyZoneData[x].blocks[y - 1];
+
+				MyZoneData[x].blocks[y].bottomRightCorner.topLeftBlock = &MyZoneData[x].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.topRightBlock = &MyZoneData[x - 1].blocks[y];
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomLeftBlock = &MyZoneData[x].blocks[y - 1];
+				MyZoneData[x].blocks[y].bottomRightCorner.bottomRightBlock = &MyZoneData[x - 1].blocks[y - 1];
+			}
+		}
+	}
 }
 
 void AZoneManager::RegenerateZone()
@@ -63,16 +311,7 @@ void AZoneManager::RegenerateZone()
 
 void AZoneManager::LoadTerrainGridAndGenerateMesh(bool isNew)
 {
-	// If this is an update cycle, clearout the data structures
-	if (!isNew)
-	{
-		MyVertices.Empty();
-		MyTriangles.Empty();
-		MyNormals.Empty();
-		MyUV0.Empty();
-		MyVertexColors.Empty();
-	}
-	// Generate the mesh data
+
 	for (int32 x = 0; x < MyZoneData.Num() - 2; ++x)
 	{
 		for (int32 y = 0; y < MyZoneData[x].blocks.Num() - 2; ++y)
@@ -178,6 +417,7 @@ void AZoneManager::Tick(float DeltaTime)
 
 	if (workerThreadCompleted)
 	{
+		
 		workerThreadCompleted = false;
 		UpdateSection();
 		SetActorLocation(FVector(MyConfig.XUnits * MyConfig.UnitSize * MyOffset.x, MyConfig.YUnits * MyConfig.UnitSize * MyOffset.y, -10000.0f));

@@ -42,6 +42,8 @@ class CASHGENUE_API AZoneManager : public AActor
 	
 	void CreateSection();
 	void UpdateSection();
+	void PopulateDataStructures();
+	void InitialiseBlockPointers();
 	void AddQuad(ZoneBlock* block, int32 aX, int32 aY);
 
 	TArray<FVector> MyVertices;
