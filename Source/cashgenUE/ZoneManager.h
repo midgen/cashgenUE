@@ -4,12 +4,17 @@
 #include "cashgenUE.h"
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
-#include "WorldGenerator.h"
 #include "Point.h"
+#include "ZoneBlock.h"
 #include "ZoneManager.generated.h"
 
 
 class AWorldManager;
+struct GridRow
+{
+	TArray<ZoneBlock> blocks;
+};
+
 enum ZonePos { C, U, D, L, R, UL, UR, DL, DR };
 struct ZoneConfig
 {
@@ -30,13 +35,13 @@ class CASHGENUE_API AZoneManager : public AActor
 	GENERATED_BODY()
 	UProceduralMeshComponent* MyProcMesh;
 	UMaterial* MyMaterial;
+	UMaterial* MyWaterMaterial;
 
 	FRunnableThread* Thread;
 
 	ZoneConfig MyConfig;
 	
-
-	WorldGenerator* worldGen;
+	AWorldManager* MyWorldManager;
 	TArray<GridRow> MyZoneData;
 	TArray<float> MyHeightMap;
 	
@@ -55,6 +60,8 @@ class CASHGENUE_API AZoneManager : public AActor
 
 	FVector CalcSurfaceNormalForTriangle(const int32 aStartTriangle);
 
+	void CreateWaterPlane();
+
 public:	
 	// Sets default values for this actor's properties
 	AZoneManager();
@@ -66,10 +73,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
 
-	void LoadTerrainGridAndGenerateMesh(bool isNew);
-
 	bool workerThreadCompleted = false;
 	
-	void SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
+	void SetupZone(AWorldManager* aWorldManager, Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, UMaterial* aWaterMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
 	void RegenerateZone();
 };

@@ -49,17 +49,12 @@ void AWorldManager::Tick( float DeltaTime )
 		}
 	}
 
-
-
 	GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Red, currentPlayerZone.ToString());
 }
 
 void AWorldManager::HandleZoneChange(FVector2D delta)
 {
 	GEngine->AddOnScreenDebugMessage(2, 5.0f, FColor::Green, delta.ToString());
-
-	//zone->MyOffset.x -= delta.X;
-	//zone->MyOffset.y -= delta.Y;
 
 	int32 minX = 0;
 	int32 maxX = 0;
@@ -100,28 +95,24 @@ void AWorldManager::HandleZoneChange(FVector2D delta)
 		{
 			ZonesMaster[i]->MyOffset.x = minX - 1;
 			MyRegenQueue.Enqueue(i);
-			//ZonesMaster[i]->isStale = true;
 		}
 		// Moving right on X, flip right column to left
 		if (delta.X > 0.1 && ZonesMaster[i]->MyOffset.x == minX)
 		{
 			ZonesMaster[i]->MyOffset.x = maxX + 1;
 			MyRegenQueue.Enqueue(i);
-			//ZonesMaster[i]->isStale = true;
 		}
 		// Movin down on Y, flip top row to bottom
 		if (delta.Y < -0.1 && ZonesMaster[i]->MyOffset.y == maxY)
 		{
 			ZonesMaster[i]->MyOffset.y = minY - 1;
 			MyRegenQueue.Enqueue(i);
-			//ZonesMaster[i]->isStale = true;
 		}
 		// Moving up on Y, flip bottom wor to top
 		if (delta.Y > 0.1 && ZonesMaster[i]->MyOffset.y == minY)
 		{
 			ZonesMaster[i]->MyOffset.y = maxY + 1;
 			MyRegenQueue.Enqueue(i);
-			//ZonesMaster[i]->isStale = true;
 		}
 
 	}
@@ -129,7 +120,7 @@ void AWorldManager::HandleZoneChange(FVector2D delta)
 
 
 
-void AWorldManager::SpawnZones(AActor* aPlayerPawn, int32 aNumXZones, int32 aNumYZones, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed)
+void AWorldManager::SpawnZones(AActor* aPlayerPawn, int32 aNumXZones, int32 aNumYZones, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, UMaterial* aWaterMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed, int32 aNumThreads)
 {
 	world = GetWorld();
 	MyNumXZones = aNumXZones;
@@ -138,6 +129,7 @@ void AWorldManager::SpawnZones(AActor* aPlayerPawn, int32 aNumXZones, int32 aNum
 	MyFloor = aFloor; MyPersistence = aPersistence;
 	MyFrequency = aFrequency; MyAmplitude = aAmplitude;
 	MyOctaves = aOctaves; MySeed = aRandomseed;
+	MyNumThreads = aNumThreads;
 
 	currentPlayerPawn = aPlayerPawn;
 
@@ -150,7 +142,7 @@ void AWorldManager::SpawnZones(AActor* aPlayerPawn, int32 aNumXZones, int32 aNum
 
 	for (int i = 0; i < ZonesMaster.Num(); ++i)
 	{
-		ZonesMaster[i]->SetupZone(GetXYfromIdx(i), MyXUnits, MyYUnits, MyGridSize, aMaterial, MyFloor, MyPersistence, MyFrequency, MyAmplitude, MyOctaves, MySeed);
+		ZonesMaster[i]->SetupZone(this, GetXYfromIdx(i), MyXUnits, MyYUnits, MyGridSize, aMaterial, aWaterMaterial, MyFloor, MyPersistence, MyFrequency, MyAmplitude, MyOctaves, MySeed);
 		MyRegenQueue.Enqueue(i);
 	}
 }

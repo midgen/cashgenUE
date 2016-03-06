@@ -11,7 +11,7 @@ AZoneManager::AZoneManager()
 }
 
 // Initial setup of the zone
-void AZoneManager::SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed)
+void AZoneManager::SetupZone(AWorldManager* aWorldManager, Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, UMaterial* aWaterMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed)
 {
 	MyOffset.x = aOffset.x;
 	MyOffset.y = aOffset.y;
@@ -25,15 +25,15 @@ void AZoneManager::SetupZone(Point aOffset, int32 aX, int32 aY, float aUnitSize,
 	MyConfig.Octaves = aOctaves;
 	MyConfig.RandomSeed = aRandomseed;
 
+	MyWorldManager = aWorldManager;
+
 	MyMaterial = aMaterial;
+	MyWaterMaterial = aWaterMaterial;
 
 	PopulateDataStructures();
 	InitialiseBlockPointers();
 	CreateSection();
-
-	//worldGen = new WorldGenerator();
-	//worldGen->InitialiseTerrainGrid(&MyZoneData, &MyHeightMap, aOffset, aX, aY, aFloor, aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
-	//LoadTerrainGridAndGenerateMesh(true);
+	CreateWaterPlane();
 }
 
 void AZoneManager::PopulateDataStructures()
@@ -283,8 +283,6 @@ void AZoneManager::InitialiseBlockPointers()
 void AZoneManager::RegenerateZone()
 {
 	FString threadName = "ZoneWorker" + MyOffset.x + MyOffset.y;
-	
-	
 
 	workerThreadCompleted = false;
 
@@ -299,33 +297,6 @@ void AZoneManager::RegenerateZone()
 		&MyVertexColors),
 		*threadName,
 		0, TPri_BelowNormal);
-
-
-
-	// Wipe the zone data and heighmap (TODO: re-use instead of reallocate)
-	//MyZoneData.Empty();
-	//MyHeightMap.Empty();
-	//worldGen->InitialiseTerrainGrid(&MyZoneData, &MyHeightMap, aOffset, aX, aY, aFloor, aPersistence, aFrequency, aAmplitude, aOctaves, aRandomseed);
-	//LoadTerrainGridAndGenerateMesh(false);
-}
-
-void AZoneManager::LoadTerrainGridAndGenerateMesh(bool isNew)
-{
-
-	for (int32 x = 0; x < MyZoneData.Num() - 2; ++x)
-	{
-		for (int32 y = 0; y < MyZoneData[x].blocks.Num() - 2; ++y)
-		{
-			AddQuad(&MyZoneData[x + 1].blocks[y + 1], x, y);
-		}
-	}
-	// Now tell the procmesh component to build/update
-	if (isNew) {
-		CreateSection();
-	}
-	else {
-		UpdateSection();
-	}
 }
 
 // This'll do for now, gives us face normals
@@ -389,6 +360,7 @@ void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
 void AZoneManager::CreateSection()
 {
 	MyProcMesh->SetMaterial(0, MyMaterial);
+	MyProcMesh->SetMaterial(1, MyWaterMaterial);
 	MyProcMesh->CreateMeshSection(0, MyVertices, MyTriangles, MyNormals, MyUV0, MyVertexColors, MyTangents, false);
 	MyProcMesh->AttachTo(RootComponent);
 }
@@ -400,7 +372,7 @@ void AZoneManager::UpdateSection()
 
 AZoneManager::~AZoneManager()
 {
-	delete worldGen;
+
 }
 
 // Called when the game starts or when spawned
@@ -436,4 +408,50 @@ void AZoneManager::Tick(float DeltaTime)
 		SetActorLocation(newLoc);
 	}
 	
+}
+
+void AZoneManager::CreateWaterPlane()
+{
+	float waterHeight = -500.0f;
+	TArray<FVector> waterVerts;
+	TArray<int32> waterTriangles;
+	TArray<FVector> waterNormals;
+	TArray<FVector2D> waterUVs;
+	TArray<FColor> waterVertColors;
+	TArray<FProcMeshTangent> waterTangents;
+
+
+
+	waterVerts.Add(FVector(MyConfig.XUnits * MyConfig.UnitSize, 1.0f * MyConfig.YUnits * MyConfig.UnitSize, waterHeight));
+	waterVerts.Add(FVector(MyConfig.XUnits * MyConfig.UnitSize, 0.0f, waterHeight));
+	waterVerts.Add(FVector(0.0f, 0.0f, waterHeight));
+
+	waterVerts.Add(FVector(MyConfig.XUnits * MyConfig.UnitSize, 1.0f * MyConfig.YUnits * MyConfig.UnitSize, waterHeight));
+	waterVerts.Add(FVector(0.0f, 0.0f, waterHeight));
+	waterVerts.Add(FVector(0.0f, 1.0f * MyConfig.YUnits * MyConfig.UnitSize, waterHeight));
+
+	waterTriangles.Add(0);
+	waterTriangles.Add(1);
+	waterTriangles.Add(2);
+	waterTriangles.Add(3);
+	waterTriangles.Add(4);
+	waterTriangles.Add(5);
+
+	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
+	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
+	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
+	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
+	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
+	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
+
+	waterUVs.Add(FVector2D(0, 0));
+	waterUVs.Add(FVector2D(0, 1));
+	waterUVs.Add(FVector2D(1, 0));
+	waterUVs.Add(FVector2D(0, 1));
+	waterUVs.Add(FVector2D(1, 1));
+	waterUVs.Add(FVector2D(1, 0));
+
+	MyProcMesh->CreateMeshSection(1, waterVerts, waterTriangles, waterNormals, waterUVs, waterVertColors, waterTangents, false);
+
+
 }

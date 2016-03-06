@@ -77,25 +77,25 @@ void FZoneGeneratorWorker::ProcessTerrainMap()
 
 	
 
-	//// Floor pass
-	//for (int x = 0; x < exX; ++x)
-	//{
-	//	for (int y = 0; y < exY; ++y)
-	//	{
-	//		if ((*pZoneData)[x].blocks[y].Height < pZoneConfig->Floor)
-	//		{
-	//			(*pZoneData)[x].blocks[y].Height = 0;
-	//		}
-	//		else {
-	//			(*pZoneData)[x].blocks[y].Height -= pZoneConfig->Floor;
-	//		}
+	// Floor pass
+	for (int x = 0; x < exX; ++x)
+	{
+		for (int y = 0; y < exY; ++y)
+		{
+			if ((*pZoneData)[x].blocks[y].Height < pZoneConfig->Floor && (*pZoneData)[x].blocks[y].Height > pZoneConfig->Floor - 2000.0f)
+			{
+				(*pZoneData)[x].blocks[y].Height = (*pZoneData)[x].blocks[y].Height * 0.2f;
+			}
+			else {
+				(*pZoneData)[x].blocks[y].Height -= pZoneConfig->Floor;
+			}
 
-	//		if ((*pZoneData)[x].blocks[y].Height > MyMaxHeight)
-	//		{
-	//			MyMaxHeight = (*pZoneData)[x].blocks[y].Height;
-	//		}
-	//	}
-	//}
+			if ((*pZoneData)[x].blocks[y].Height > MyMaxHeight)
+			{
+				MyMaxHeight = (*pZoneData)[x].blocks[y].Height;
+			}
+		}
+	}
 
 	// Now run through and calculate vertex heights
 	for (int x = 0; x < exX; ++x)

@@ -1,7 +1,6 @@
 #pragma once
 #include "cashgenUE.h"
 #include "ZoneManager.h"
-#include "WorldGenerator.h"
 #include "Point.h"
 
 class FZoneGeneratorWorker : public FRunnable
