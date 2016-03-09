@@ -51,7 +51,7 @@ public:
 	virtual void Tick( float DeltaSeconds ) override;
 
 	UFUNCTION(BlueprintCallable, Category = "World Manager")
-	void SpawnZones(AActor* aPlayerPawn, int32 aNumXZones, int32 aNumYZones, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, UMaterial* aWaterMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed, int32 aNumThreads);
+	void SpawnZones(AActor* aPlayerPawn, int32 aNumXZones, int32 aNumYZones, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, UMaterial* aWaterMaterial, float aFloorDepth, float aFloorHeight, float aWaterHeight, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed, int32 aNumThreads);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen Manager")
 		FVector2D currentPlayerZone;

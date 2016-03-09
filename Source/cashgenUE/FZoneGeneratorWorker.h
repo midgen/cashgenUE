@@ -16,10 +16,11 @@ class FZoneGeneratorWorker : public FRunnable
 	TArray<FVector>*	pNormals;
 	TArray<FVector2D>*	pUV0;
 	TArray<FColor>*		pVertexColors;
+	TArray<FProcMeshTangent>* pTangents;
 	
 	void ProcessTerrainMap();
 	void ProcessGeometry();
-	void UpdateOneBlockGeometry(ZoneBlock* aBlock, int32 aTriangleCounter);
+	void UpdateOneBlockGeometry(ZoneBlock* aBlock, int32& aVertCounter, int32& triCounter);
 	FVector CalcSurfaceNormalForTriangle(FVector v1, FVector v2, FVector v3);
 
 public:
@@ -31,7 +32,8 @@ public:
 		TArray<int32>*		aTriangles,
 		TArray<FVector>*	aNormals,
 		TArray<FVector2D>*	aUV0,
-		TArray<FColor>*		aVertexColors);
+		TArray<FColor>*		aVertexColors,
+		TArray<FProcMeshTangent>* aTangents);
 
 	virtual ~FZoneGeneratorWorker();
 

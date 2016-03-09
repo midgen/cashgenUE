@@ -21,7 +21,8 @@ struct ZoneConfig
 	int32 XUnits;
 	int32 YUnits;
 	float UnitSize;
-	float Floor;
+	float FloorDepth;
+	float FloorHeight;
 	float Persistence;
 	float Frequency;
 	float Amplitude;
@@ -49,6 +50,7 @@ class CASHGENUE_API AZoneManager : public AActor
 	void UpdateSection();
 	void PopulateDataStructures();
 	void InitialiseBlockPointers();
+	void CalculateTriangles();
 	void AddQuad(ZoneBlock* block, int32 aX, int32 aY);
 
 	TArray<FVector> MyVertices;
@@ -60,7 +62,7 @@ class CASHGENUE_API AZoneManager : public AActor
 
 	FVector CalcSurfaceNormalForTriangle(const int32 aStartTriangle);
 
-	void CreateWaterPlane();
+	void CreateWaterPlane(float aWaterHeight);
 
 public:	
 	// Sets default values for this actor's properties
@@ -75,6 +77,6 @@ public:
 
 	bool workerThreadCompleted = false;
 	
-	void SetupZone(AWorldManager* aWorldManager, Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, UMaterial* aWaterMaterial, float aFloor, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
+	void SetupZone(AWorldManager* aWorldManager, Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, UMaterial* aWaterMaterial, float aFloorDepth, float aFloorHeight, float aWaterHeight, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
 	void RegenerateZone();
 };
