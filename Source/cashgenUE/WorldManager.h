@@ -32,7 +32,7 @@ class CASHGENUE_API AWorldManager : public AActor
 	float MyAmplitude;
 	int32 MyOctaves;
 	int32 MySeed;
-	int32 MyNumThreads;
+	
 	
 
 	void HandleZoneChange(FVector2D delta);
@@ -43,6 +43,7 @@ class CASHGENUE_API AWorldManager : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AWorldManager();
+	int32 MyNumThreads;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -55,9 +56,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen Manager")
 		FVector2D currentPlayerZone;
-
-	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "CashGen Manager")
-		int32 UpdatesPerFrame = 1;
 
 
 };

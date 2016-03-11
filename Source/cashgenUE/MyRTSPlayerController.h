@@ -15,4 +15,6 @@ class CASHGENUE_API AMyRTSPlayerController : public APlayerController
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen Manager")
 	AWorldManager* worldManager;
+
+	void AMyRTSPlayerController::HandleMouseClick();
 };

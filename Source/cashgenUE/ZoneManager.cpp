@@ -1,5 +1,6 @@
 #include "cashgenUE.h"
 #include "ZoneManager.h"
+#include "WorldManager.h"
 #include "FZoneGeneratorWorker.h"
 
 
@@ -34,8 +35,10 @@ void AZoneManager::SetupZone(AWorldManager* aWorldManager, Point aOffset, int32 
 
 	PopulateDataStructures();
 	InitialiseBlockPointers();
-	CreateSection();
+	//CreateSection();
 	CreateWaterPlane(aWaterHeight);
+
+	hasCreatedMesh = false;
 }
 
 void AZoneManager::PopulateDataStructures()
@@ -57,12 +60,9 @@ void AZoneManager::PopulateDataStructures()
 	
 	for (int32 i = 0; i < (MyConfig.XUnits + 1) * (MyConfig.YUnits + 1); ++i)
 	{
-		MyVertices.Add(FVector(0.0f, 0.0f, 0.0f));
-		//MyTriangles.Add(i);
-		//MyNormals.Add(FVector(0.0f, 0.0f, 1.0f));
+		MyVertices.Add(FVector(i * 1.0f, i * 1.0f, 0.0f));
 		MyUV0.Add(FVector2D(0.0f, 0.0f));
 		MyVertexColors.Add(FColor::Black);
-		
 	}
 
 	for (int32 i = 0; i < (MyConfig.XUnits) * (MyConfig.YUnits) * 6; ++i)
@@ -71,15 +71,11 @@ void AZoneManager::PopulateDataStructures()
 	}
 
 	CalculateTriangles();
-	
+}
 
-	//for (int32 x = 0; x < MyZoneData.Num() - 2; ++x)
-	//{
-	//	for (int32 y = 0; y < MyZoneData[x].blocks.Num() - 2; ++y)
-	//	{
-	//		AddQuad(&MyZoneData[x + 1].blocks[y + 1], x, y);
-	//	}
-	//}
+void AZoneManager::CalculateUV0()
+{
+
 }
 
 void AZoneManager::CalculateTriangles()
@@ -91,7 +87,7 @@ void AZoneManager::CalculateTriangles()
 	{
 		for (int32 x = 0; x < MyZoneData.Num() - 2; ++x)
 		{
-			//UpdateOneBlockGeometry(&(*pZoneData)[x + 1].blocks[y + 1], vertCounter, triCounter);
+			
 			thisX = MyZoneData[x + 1].blocks[y + 1].MyX - 1;
 			thisY = MyZoneData[x + 1].blocks[y + 1].MyY - 1;
 			//TR
@@ -104,8 +100,6 @@ void AZoneManager::CalculateTriangles()
 			(MyTriangles)[triCounter] = thisX + (thisY * (MyConfig.XUnits + 1));
 			triCounter++;
 			
-
-
 			//BL
 			(MyTriangles)[triCounter] = (thisX + 1) + (thisY * (MyConfig.XUnits + 1));
 			triCounter++;
@@ -116,12 +110,17 @@ void AZoneManager::CalculateTriangles()
 			(MyTriangles)[triCounter] = (thisX + 1) + ((thisY + 1) * (MyConfig.XUnits + 1));
 			triCounter++;
 
+			//TR
+			MyUV0[thisX + ((thisY + 1) * (MyConfig.XUnits + 1))] = FVector2D(thisX * 100.0f, (thisY+1.0f) * 100.0f);
+			//BR
+			MyUV0[thisX + (thisY * (MyConfig.XUnits + 1))] = FVector2D(thisX * 100.0f, thisY * 100.0f);
+			//BL
+			MyUV0[(thisX + 1) + (thisY * (MyConfig.XUnits + 1))] = FVector2D((thisX + 1.0f) * 100.0f, thisY * 100.0f);
+			//TL
+			MyUV0[(thisX + 1) + ((thisY + 1) * (MyConfig.XUnits + 1))] = FVector2D((thisX +1.0f)* 100.0f, (thisY+1.0f) * 100.0f);
 			
 		}
 	}
-
-
-
 }
 
 void AZoneManager::InitialiseBlockPointers()
@@ -362,77 +361,26 @@ void AZoneManager::RegenerateZone()
 		0, TPri_BelowNormal);
 }
 
-// This'll do for now, gives us face normals
-FVector AZoneManager::CalcSurfaceNormalForTriangle(const int32 aStartTriangle)
-{
-	FVector v1 = MyVertices[aStartTriangle];
-	FVector v2 = MyVertices[aStartTriangle + 1];
-	FVector v3 = MyVertices[aStartTriangle + 2];
-
-	FVector U = v2 - v1;
-	FVector V = v3 - v1;
-
-	return FVector::CrossProduct(V, U).GetSafeNormal();
-}
-
-// Builds a 2 tri square of mesh to cover the zoneblock
-void AZoneManager::AddQuad(ZoneBlock* block, int32 aX, int32 aY)
-{
-	int32 numTriangles = MyVertices.Num();
-
-	MyVertices.Add(FVector(aX * MyConfig.UnitSize + (MyConfig.UnitSize*0.5), (aY * MyConfig.UnitSize) - (MyConfig.UnitSize*0.5), block->bottomLeftCorner.height));
-	MyVertices.Add(FVector(aX * MyConfig.UnitSize - (MyConfig.UnitSize*0.5), (aY * MyConfig.UnitSize) - (MyConfig.UnitSize*0.5), block->bottomRightCorner.height));
-	MyVertices.Add(FVector((aX * MyConfig.UnitSize) + (MyConfig.UnitSize * 0.5), (aY * MyConfig.UnitSize) + (MyConfig.UnitSize*0.5), block->topLeftCorner.height));
-
-	MyVertices.Add(FVector((aX * MyConfig.UnitSize) - (MyConfig.UnitSize*0.5), (aY * MyConfig.UnitSize) - (MyConfig.UnitSize*0.5), block->bottomRightCorner.height));
-	MyVertices.Add(FVector((aX * MyConfig.UnitSize) - (MyConfig.UnitSize*0.5), (aY * MyConfig.UnitSize) + (MyConfig.UnitSize*0.5), block->topRightCorner.height));
-	MyVertices.Add(FVector((aX * MyConfig.UnitSize) + (MyConfig.UnitSize*0.5), (aY * MyConfig.UnitSize) + (MyConfig.UnitSize*0.5), block->topLeftCorner.height));
-	
-	MyTriangles.Add(numTriangles);
-	MyTriangles.Add(numTriangles + 1);
-	MyTriangles.Add(numTriangles + 2);
-	MyTriangles.Add(numTriangles + 3);
-	MyTriangles.Add(numTriangles + 4);
-	MyTriangles.Add(numTriangles + 5);
-
-	FVector t1Normal = CalcSurfaceNormalForTriangle(numTriangles);
-	FVector t2Normal = CalcSurfaceNormalForTriangle(numTriangles + 3);
-
-	MyNormals.Add(t1Normal);
-	MyNormals.Add(t1Normal);
-	MyNormals.Add(t1Normal);
-	MyNormals.Add(t2Normal);
-	MyNormals.Add(t2Normal);
-	MyNormals.Add(t2Normal);
-
-	MyUV0.Add(FVector2D(0, 0));
-	MyUV0.Add(FVector2D(0, 1));
-	MyUV0.Add(FVector2D(1, 0));
-	MyUV0.Add(FVector2D(0, 1));
-	MyUV0.Add(FVector2D(1, 1));
-	MyUV0.Add(FVector2D(1, 0));
-
-	MyVertexColors.Add(block->Color);
-	MyVertexColors.Add(block->Color);
-	MyVertexColors.Add(block->Color);
-	MyVertexColors.Add(block->Color);
-	MyVertexColors.Add(block->Color);
-	MyVertexColors.Add(block->Color);
-}
-
-void AZoneManager::CreateSection()
-{
-	MyProcMesh->SetMaterial(0, MyMaterial);
-	MyProcMesh->SetMaterial(1, MyWaterMaterial);
-	MyProcMesh->CreateMeshSection(0, MyVertices, MyTriangles, MyNormals, MyUV0, MyVertexColors, MyTangents, true);
-	MyProcMesh->AttachTo(RootComponent);
-}
 
 void AZoneManager::UpdateSection()
 {
-	//MyProcMesh->ClearMeshSection(0);
-	
-	MyProcMesh->UpdateMeshSection(0, MyVertices, MyNormals, MyUV0, MyVertexColors, MyTangents);
+	if (!hasCreatedMesh)
+	{
+		this->SetActorEnableCollision(true);
+
+		MyProcMesh->SetMaterial(0, MyMaterial);
+		MyProcMesh->SetMaterial(1, MyWaterMaterial);
+		MyProcMesh->CreateMeshSection(0, MyVertices, MyTriangles, MyNormals, MyUV0, MyVertexColors, MyTangents, true);
+		MyProcMesh->AttachTo(RootComponent);
+
+		hasCreatedMesh = true;
+	} 
+	else
+	{
+		MyProcMesh->UpdateMeshSection(0, MyVertices, MyNormals, MyUV0, MyVertexColors, MyTangents);
+		MyProcMesh->WakeRigidBody();
+	}
+
 }
 
 AZoneManager::~AZoneManager()
@@ -454,24 +402,15 @@ void AZoneManager::Tick(float DeltaTime)
 
 	if (workerThreadCompleted)
 	{
-		
+		MyWorldManager->MyNumThreads--;
 		workerThreadCompleted = false;
 		UpdateSection();
-		SetActorLocation(FVector(MyConfig.XUnits * MyConfig.UnitSize * MyOffset.x, MyConfig.YUnits * MyConfig.UnitSize * MyOffset.y, -10000.0f));
+		SetActorLocation(FVector(MyConfig.XUnits * MyConfig.UnitSize * MyOffset.x, MyConfig.YUnits * MyConfig.UnitSize * MyOffset.y, 0.0f));
 		delete Thread;
 		Thread = NULL;
 	}
 
-	if (GetActorLocation().Z < 0.0f)
-	{
-		FVector newLoc = GetActorLocation() + FVector(0.0f, 0.0f, 10000.0f * DeltaTime);
-		if (newLoc.Z > 0.0f)
-		{
-			newLoc.Z = 0.0f;
-		}
 
-		SetActorLocation(newLoc);
-	}
 	
 }
 
@@ -484,8 +423,6 @@ void AZoneManager::CreateWaterPlane(float aWaterHeight)
 	TArray<FVector2D> waterUVs;
 	TArray<FColor> waterVertColors;
 	TArray<FProcMeshTangent> waterTangents;
-
-
 
 	waterVerts.Add(FVector(MyConfig.XUnits * MyConfig.UnitSize, 1.0f * MyConfig.YUnits * MyConfig.UnitSize, waterHeight));//UL
 	waterVerts.Add(FVector(MyConfig.XUnits * MyConfig.UnitSize, 0.0f, waterHeight));//DL
@@ -509,14 +446,12 @@ void AZoneManager::CreateWaterPlane(float aWaterHeight)
 	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
 	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
 
-	waterUVs.Add(FVector2D(-20, 20));
-	waterUVs.Add(FVector2D(-20, 0));
+	waterUVs.Add(FVector2D(-50, 50));
+	waterUVs.Add(FVector2D(-50, 0));
 	waterUVs.Add(FVector2D(0, 0));
-	waterUVs.Add(FVector2D(-20, 20));
+	waterUVs.Add(FVector2D(-50, 50));
 	waterUVs.Add(FVector2D(0, 0));
-	waterUVs.Add(FVector2D(0, 20));
+	waterUVs.Add(FVector2D(0, 50));
 
-	MyProcMesh->CreateMeshSection(1, waterVerts, waterTriangles, waterNormals, waterUVs, waterVertColors, waterTangents, false);
-
-
+	MyProcMesh->CreateMeshSection(1, waterVerts, waterTriangles, waterNormals, waterUVs, waterVertColors, waterTangents, true);
 }

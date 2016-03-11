@@ -98,12 +98,8 @@ void FZoneGeneratorWorker::ProcessTerrainMap()
 			if ((*pZoneData)[x].blocks[y].Height > MyMaxHeight)
 			{
 				MyMaxHeight = (*pZoneData)[x].blocks[y].Height;
-			}
-
-			
+			}	
 		}
-
-
 	}
 
 	// Now run through and calculate vertex heights
@@ -152,91 +148,10 @@ void FZoneGeneratorWorker::UpdateOneBlockGeometry(ZoneBlock* aBlock, int32& aVer
 	(*pVertices)[(thisX + 1) + ((thisY + 1) * (pZoneConfig->XUnits + 1))].Y = (aBlock->MyY * pZoneConfig->UnitSize) + (pZoneConfig->UnitSize*0.5);
 	(*pVertices)[(thisX + 1) + ((thisY + 1) * (pZoneConfig->XUnits + 1))].Z = aBlock->topLeftCorner.height;
 
-
-
-
-	////TR
-	//(*pTriangles)[triCounter] = thisX + ((thisY + 1) * (pZoneConfig->XUnits + 1));
-	//triCounter++;
-	////BR
-	//(*pTriangles)[triCounter] = thisX + (thisY * (pZoneConfig->XUnits + 1));
-	//triCounter++;
-	////BL
-	//(*pTriangles)[triCounter] = (thisX + 1) + (thisY * (pZoneConfig->XUnits + 1));
-	//triCounter++;
-	////BL
-	//(*pTriangles)[triCounter] = (thisX + 1) + (thisY * (pZoneConfig->XUnits + 1));
-	//triCounter++;
-	//// TL
-	//(*pTriangles)[triCounter] = (thisX + 1) + ((thisY + 1) * (pZoneConfig->XUnits + 1));
-	//triCounter++;
-	////TR
-	//(*pTriangles)[triCounter] = thisX + ((thisY + 1) * (pZoneConfig->XUnits + 1));
-	//triCounter++;
 	
 }
 
-//void FZoneGeneratorWorker::UpdateOneBlockGeometry(ZoneBlock* aBlock, int32& aVertCounter, int32& triCounter)
-//{
-//	if (aBlock->MyX == 1 && aBlock->MyY == 1)
-//	{
-//		(*pVertices)[aVertCounter].X = (aBlock->MyX * pZoneConfig->UnitSize) - (pZoneConfig->UnitSize*0.5);
-//		(*pVertices)[aVertCounter].Y = (aBlock->MyY * pZoneConfig->UnitSize) - (pZoneConfig->UnitSize*0.5);
-//		(*pVertices)[aVertCounter].Z = aBlock->bottomRightCorner.height;
-//		(*pTriangles)[triCounter] = aVertCounter;
-//		triCounter++;
-//		aVertCounter++;
-//	}
-//	else
-//	{
-//		(*pTriangles)[triCounter] = aVertCounter - 2;
-//		triCounter++;
-//	}
-//	
-//	if (aBlock->MyX == 1)
-//	{
-//		(*pVertices)[aVertCounter].X = (aBlock->MyX * pZoneConfig->UnitSize) - (pZoneConfig->UnitSize*0.5);
-//		(*pVertices)[aVertCounter].Y = (aBlock->MyY * pZoneConfig->UnitSize) + (pZoneConfig->UnitSize*0.5);
-//		(*pVertices)[aVertCounter].Z = aBlock->topRightCorner.height;
-//		(*pTriangles)[triCounter] = aVertCounter;
-//		triCounter++;
-//		aVertCounter++;
-//	}
-//	else
-//	{
-//		(*pTriangles)[triCounter] = aVertCounter - 1;
-//		triCounter++;
-//	}
-//
-//	if (aBlock->MyY == 1)
-//	{
-//		(*pVertices)[aVertCounter].X = (aBlock->MyX * pZoneConfig->UnitSize) + (pZoneConfig->UnitSize*0.5);
-//		(*pVertices)[aVertCounter].Y = (aBlock->MyY * pZoneConfig->UnitSize) - (pZoneConfig->UnitSize*0.5);
-//		(*pVertices)[aVertCounter].Z = aBlock->bottomLeftCorner.height;
-//		(*pTriangles)[triCounter] = aVertCounter;
-//		triCounter++;
-//		aVertCounter++;
-//	}
-//	else
-//	{
-//		(*pTriangles)[triCounter] = aVertCounter - 2;
-//		triCounter++;
-//	}
-//
-//	(*pVertices)[aVertCounter].X = (aBlock->MyX * pZoneConfig->UnitSize) + (pZoneConfig->UnitSize*0.5);
-//	(*pVertices)[aVertCounter].Y = (aBlock->MyY * pZoneConfig->UnitSize) + (pZoneConfig->UnitSize*0.5);
-//	(*pVertices)[aVertCounter].Z = aBlock->topLeftCorner.height;
-//	(*pTriangles)[triCounter] = aVertCounter;
-//	aVertCounter++;
-//	triCounter++;
-//
-//	(*pTriangles)[triCounter] = aVertCounter - 1;
-//	triCounter++;
-//	(*pTriangles)[triCounter] = aVertCounter - 2;
-//	triCounter++;
-//	
-//
-//}
+
 //
 //void FZoneGeneratorWorker::UpdateOneBlockGeometry(ZoneBlock* aBlock, int32 aVertCounter)
 //{

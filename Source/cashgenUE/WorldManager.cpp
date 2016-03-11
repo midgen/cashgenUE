@@ -37,13 +37,15 @@ void AWorldManager::Tick( float DeltaTime )
 		HandleZoneChange(newPos - oldPos);
 	}
 
-	for (int i = 0; i < UpdatesPerFrame; ++i)
+	int32 indexToRegen = -1;
+	
+	if (MyNumThreads < 1)
 	{
-		int32 indexToRegen = -1;
 		if (MyRegenQueue.Dequeue(indexToRegen))
 		{
 			if (indexToRegen >= 0)
 			{
+				MyNumThreads++;
 				ZonesMaster[indexToRegen]->RegenerateZone();
 			}
 		}
@@ -54,7 +56,7 @@ void AWorldManager::Tick( float DeltaTime )
 
 void AWorldManager::HandleZoneChange(FVector2D delta)
 {
-	GEngine->AddOnScreenDebugMessage(2, 5.0f, FColor::Green, delta.ToString());
+	//GEngine->AddOnScreenDebugMessage(2, 5.0f, FColor::Green, delta.ToString());
 
 	int32 minX = 0;
 	int32 maxX = 0;

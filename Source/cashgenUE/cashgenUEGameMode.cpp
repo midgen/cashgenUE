@@ -4,10 +4,10 @@
 #include "cashgenUEGameMode.h"
 #include "MyRTSPlayerController.h"
 #include "MyRTSPawn.h"
+#include "FlyingThiefPawn.h"
 
 AcashgenUEGameMode::AcashgenUEGameMode()
 {
-
 	PlayerControllerClass = AMyRTSPlayerController::StaticClass();
-	//DefaultPawnClass = AMyRTSPawn::StaticClass();
+	DefaultPawnClass = AFlyingThiefPawn::StaticClass();
 }

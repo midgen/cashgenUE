@@ -41,6 +41,8 @@ class CASHGENUE_API AZoneManager : public AActor
 	FRunnableThread* Thread;
 
 	ZoneConfig MyConfig;
+
+	bool hasCreatedMesh;
 	
 	AWorldManager* MyWorldManager;
 	TArray<GridRow> MyZoneData;
@@ -51,7 +53,7 @@ class CASHGENUE_API AZoneManager : public AActor
 	void PopulateDataStructures();
 	void InitialiseBlockPointers();
 	void CalculateTriangles();
-	void AddQuad(ZoneBlock* block, int32 aX, int32 aY);
+	void CalculateUV0();
 
 	TArray<FVector> MyVertices;
 	TArray<int32> MyTriangles;
@@ -59,8 +61,6 @@ class CASHGENUE_API AZoneManager : public AActor
 	TArray<FVector2D> MyUV0;
 	TArray<FColor> MyVertexColors;
 	TArray<FProcMeshTangent> MyTangents;
-
-	FVector CalcSurfaceNormalForTriangle(const int32 aStartTriangle);
 
 	void CreateWaterPlane(float aWaterHeight);
 
