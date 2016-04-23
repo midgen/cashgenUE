@@ -6,6 +6,8 @@
 #include "ProceduralMeshComponent.h"
 #include "Point.h"
 #include "ZoneBlock.h"
+#include "ZoneConfig.h"
+#include "MeshData.h"
 #include "ZoneManager.generated.h"
 
 
@@ -15,54 +17,41 @@ struct GridRow
 	TArray<ZoneBlock> blocks;
 };
 
-enum ZonePos { C, U, D, L, R, UL, UR, DL, DR };
-struct ZoneConfig
-{
-	int32 XUnits;
-	int32 YUnits;
-	float UnitSize;
-	float FloorDepth;
-	float FloorHeight;
-	float Persistence;
-	float Frequency;
-	float Amplitude;
-	int32 Octaves;
-	int32 RandomSeed;
-};
+enum eLODStatus { BUILDING_REQUIRES_CREATE, READY_TO_DRAW_REQUIRES_CREATE, BUILDING, READY_TO_DRAW, IDLE, PENDING_DRAW_REQUIRES_CREATE, PENDING_DRAW, DRAWING_REQUIRES_CREATE, DRAWING };
 
 UCLASS()
 class CASHGENUE_API AZoneManager : public AActor
 {
 	GENERATED_BODY()
-	UProceduralMeshComponent* MyProcMesh;
-	UMaterial* MyMaterial;
-	UMaterial* MyWaterMaterial;
+	// Procedural mesh component for terrain and water meshes
+	//UProceduralMeshComponent* MyProcMesh;
 
+	TMap<uint8, UProceduralMeshComponent*> MyProcMeshComponents;
+	// List of instanced mesh components for spawning foliage and other meshes
+	TArray<UInstancedStaticMeshComponent*> MyInstancedMeshComponents;
+
+	// Zone configuration parameters
+	FZoneConfig MyConfig;
+
+	// Worker thread for building mesh data
 	FRunnableThread* Thread;
-
-	ZoneConfig MyConfig;
-
-	bool hasCreatedMesh;
+	// For tracking blocks that still need to be processed for foliage spawning
+	int32 MyBlocksToSpawnFoliageOn;
 	
 	AWorldManager* MyWorldManager;
-	TArray<GridRow> MyZoneData;
-	TArray<float> MyHeightMap;
 	
-	void CreateSection();
-	void UpdateSection();
-	void PopulateDataStructures();
-	void InitialiseBlockPointers();
-	void CalculateTriangles();
-	void CalculateUV0();
 
-	TArray<FVector> MyVertices;
-	TArray<int32> MyTriangles;
-	TArray<FVector> MyNormals;
-	TArray<FVector2D> MyUV0;
-	TArray<FColor> MyVertexColors;
-	TArray<FProcMeshTangent> MyTangents;
+	void PopulateZoneData(const uint8 aLOD);
+	void PopulateMeshData(const uint8 aLOD);
+	void InitialiseBlockPointers(const uint8 aLOD);
+	void CalculateTriangles(const uint8 aLOD);
 
-	void CreateWaterPlane(float aWaterHeight);
+	TMap<uint8, TArray<GridRow>> MyLODZoneData;
+	TMap<uint8, FMeshData> MyLODMeshData;
+	
+	void CreateWaterPlane(const float aWaterHeight);
+	bool SpawnTreesAtIndex(int32* aIndex);
+	bool GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitPos, FVector* aNormalVector);
 
 public:	
 	// Sets default values for this actor's properties
@@ -70,13 +59,16 @@ public:
 	~AZoneManager();
 	bool isStale = false;
 	Point MyOffset;
-	FVector MyTargetLocation;
+	TMap<uint8, eLODStatus> MyLODMeshStatus;
+	uint8 currentlyDisplayedLOD;
+	int32 MyZoneID;
 
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
-
-	bool workerThreadCompleted = false;
 	
-	void SetupZone(AWorldManager* aWorldManager, Point aOffset, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, UMaterial* aWaterMaterial, float aFloorDepth, float aFloorHeight, float aWaterHeight, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed);
-	void RegenerateZone();
+	void SetupZone(int32 aZoneID, AWorldManager* aWorldManager, const Point aOffset, FZoneConfig aZoneConfig);
+	void RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdate);
+	void UpdateMesh(const uint8 aLOD);
+
+	FVector GetCentrePos();
 };

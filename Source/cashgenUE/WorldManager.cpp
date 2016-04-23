@@ -2,68 +2,122 @@
 
 #include "cashgenUE.h"
 #include "WorldManager.h"
+#include "ZoneConfig.h"
 
-
-// Sets default values
 AWorldManager::AWorldManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
 void AWorldManager::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
 // Called every frame
-void AWorldManager::Tick( float DeltaTime )
+void AWorldManager::Tick(float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
-	FVector2D oldPos = currentPlayerZone;
-	
-	if (currentPlayerPawn)
-	{
-		currentPlayerZone.X = floor(currentPlayerPawn->GetActorLocation().X / (MyGridSize* MyXUnits));
-		currentPlayerZone.Y = floor(currentPlayerPawn->GetActorLocation().Y / (MyGridSize* MyYUnits));
-	}
+	TimeSinceLastSweep += DeltaTime;
 
-	FVector2D newPos = currentPlayerZone;
-
-	if (oldPos.X != newPos.X || oldPos.Y != newPos.Y)
+	if (isSetup)
 	{
-		HandleZoneChange(newPos - oldPos);
-	}
+		FVector2D oldPos = currentPlayerZone;
 
-	int32 indexToRegen = -1;
-	
-	if (MyNumThreads < 1)
-	{
-		if (MyRegenQueue.Dequeue(indexToRegen))
+		if (currentPlayerPawn)
 		{
-			if (indexToRegen >= 0)
+			currentPlayerZone.X = floor(currentPlayerPawn->GetActorLocation().X / (MyZoneConfigMaster.UnitSize * MyZoneConfigMaster.XUnits));
+			currentPlayerZone.Y = floor(currentPlayerPawn->GetActorLocation().Y / (MyZoneConfigMaster.UnitSize * MyZoneConfigMaster.YUnits));
+		}
+
+		FVector2D newPos = currentPlayerZone;
+
+		if (oldPos.X != newPos.X || oldPos.Y != newPos.Y)
+		{
+			HandleZoneChange(newPos - oldPos);
+		}
+
+		FZoneJob renderJob;
+		uint8 tokensRemaining = RenderTokens;
+
+		while (tokensRemaining > 0)
+		{
+			if (MyRenderQueue.Dequeue(renderJob))
 			{
-				MyNumThreads++;
-				ZonesMaster[indexToRegen]->RegenerateZone();
+				if (ZonesMaster[renderJob.zoneID]->MyLODMeshStatus[renderJob.LOD] == PENDING_DRAW)
+				{
+					ZonesMaster[renderJob.zoneID]->MyLODMeshStatus[renderJob.LOD] = DRAWING;
+					ZonesMaster[renderJob.zoneID]->UpdateMesh(renderJob.LOD);
+				}
+				else if (ZonesMaster[renderJob.zoneID]->MyLODMeshStatus[renderJob.LOD] == PENDING_DRAW_REQUIRES_CREATE)
+				{
+					ZonesMaster[renderJob.zoneID]->MyLODMeshStatus[renderJob.LOD] = DRAWING_REQUIRES_CREATE;
+					ZonesMaster[renderJob.zoneID]->UpdateMesh(renderJob.LOD);
+				}
+				tokensRemaining -= 4 - renderJob.LOD;
 			}
+			else {
+				tokensRemaining = 0;
+			}
+		}
+
+		uint8 dummy;
+		while (MyRegenQueue.Num() > 0 && MyAvailableThreads.Dequeue(dummy))
+		{
+			ZonesMaster[MyRegenQueue.Last().zoneID]->RegenerateZone(MyRegenQueue.Last().LOD, MyRegenQueue.Last().isInPlaceLODUpdate);
+			// If it's a 10 (don't render) LOD, give the thread back to the queue
+			if (MyRegenQueue.Last().LOD == 10) {
+				MyAvailableThreads.Enqueue(1);
+			}
+			MyRegenQueue.RemoveAt(MyRegenQueue.Num() - 1);
+		}
+		
+		if (MyRegenQueue.Num() <= 0)
+		{
+			currentPlayerPawn->GetCharacterMovement()->GravityScale = 1.0f;
+		}
+
+		// Sweep the zones for LOD changes
+		if (TimeSinceLastSweep > SweepInterval)
+		{
+		
+			for (int i = 0; i < ZonesMaster.Num(); ++i)
+			{
+				uint8 newLOD = GetLODForZoneManagerIndex(i);
+				if (ZonesMaster[i]->currentlyDisplayedLOD > newLOD)
+				{
+					bool IsAlreadyQueued = false;
+					for (auto& job : MyRegenQueue) {
+						if (job.zoneID == i) {
+							IsAlreadyQueued = true;
+							break;
+						}
+					}
+					if (!IsAlreadyQueued) {
+						CreateZoneRefreshJob(i, newLOD, true);
+					}	
+				}
+			}
+			TimeSinceLastSweep = 0.0f;
 		}
 	}
 
-	GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Red, currentPlayerZone.ToString());
+	FString output = "Zone Update Queue Length : " + FString::FromInt(MyRegenQueue.Num());
+	
+
+	GEngine->AddOnScreenDebugMessage(0, 3.0f, FColor::Red, output);
 }
 
-void AWorldManager::HandleZoneChange(FVector2D delta)
+void AWorldManager::HandleZoneChange(const FVector2D delta)
 {
-	//GEngine->AddOnScreenDebugMessage(2, 5.0f, FColor::Green, delta.ToString());
-
 	int32 minX = 0;
 	int32 maxX = 0;
 	int32 minY = 0;
 	int32 maxY = 0;
 
-	// Find our min/max TODO: optimise out and track
+	// TODO: Replace all this with a distance based lifecycle state machine for LOD implementation
+
 	for (int i = 0; i < ZonesMaster.Num(); ++i)
 	{
 		if (i == 0) {
@@ -86,66 +140,115 @@ void AWorldManager::HandleZoneChange(FVector2D delta)
 		}
 	}
 
-
-
 	for (int i = 0; i < ZonesMaster.Num(); ++i)
 	{
-		ZonesMaster[i]->isStale = false;
-
 		// Moving left on X axis, flip left column to the right
 		if (delta.X < -0.1 && ZonesMaster[i]->MyOffset.x == maxX)
 		{
 			ZonesMaster[i]->MyOffset.x = minX - 1;
-			MyRegenQueue.Enqueue(i);
+			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 		}
 		// Moving right on X, flip right column to left
 		if (delta.X > 0.1 && ZonesMaster[i]->MyOffset.x == minX)
 		{
 			ZonesMaster[i]->MyOffset.x = maxX + 1;
-			MyRegenQueue.Enqueue(i);
+			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 		}
 		// Movin down on Y, flip top row to bottom
 		if (delta.Y < -0.1 && ZonesMaster[i]->MyOffset.y == maxY)
 		{
 			ZonesMaster[i]->MyOffset.y = minY - 1;
-			MyRegenQueue.Enqueue(i);
+			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 		}
 		// Moving up on Y, flip bottom wor to top
 		if (delta.Y > 0.1 && ZonesMaster[i]->MyOffset.y == minY)
 		{
 			ZonesMaster[i]->MyOffset.y = maxY + 1;
-			MyRegenQueue.Enqueue(i);
+			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 		}
-
 	}
 }
 
+void AWorldManager::CreateZoneRefreshJob(const int32 aZoneIndex, const uint8 aLOD, const bool aIsInPlaceLODUpdate)
+{
+	MyRegenQueue.Add(FZoneJob(aZoneIndex, aLOD, aIsInPlaceLODUpdate));
+}
 
+uint8 AWorldManager::GetLODForZoneManagerIndex(const int32 aZoneIndex)
+{
+	FVector diff;
 
-void AWorldManager::SpawnZones(AActor* aPlayerPawn, int32 aNumXZones, int32 aNumYZones, int32 aX, int32 aY, float aUnitSize, UMaterial* aMaterial, UMaterial* aWaterMaterial, float aFloorDepth, float aFloorHeight, float aWaterHeight, float aPersistence, float aFrequency, float aAmplitude, int32 aOctaves, int32 aRandomseed, int32 aNumThreads)
+	FVector centreOfZone = ZonesMaster[aZoneIndex]->GetCentrePos();
+	
+	
+	diff = currentPlayerPawn->GetActorLocation() - centreOfZone;
+
+	float distance = diff.Size();
+
+	if (distance <= MyZoneConfigMaster.LOD0Range)
+	{
+		return 0;
+	}
+	if (distance > MyZoneConfigMaster.LOD0Range && distance <= MyZoneConfigMaster.LOD1Range)
+	{
+		return 1;
+	}
+	if (distance > MyZoneConfigMaster.LOD1Range && distance <= MyZoneConfigMaster.LOD2Range)
+	{
+		return 2;
+	}
+	if (distance > MyZoneConfigMaster.LOD2Range && distance <= MyZoneConfigMaster.LOD3Range)
+	{
+		return 3;
+	}
+	if (distance > MyZoneConfigMaster.LOD3Range)
+	{
+		return 10;
+	}
+	return 0;
+}
+
+uint8 AWorldManager::GetLODForOffset(const Point aOffset)
+{ 
+	return 0;
+}
+
+void AWorldManager::SpawnZones(ACharacter* aPlayerPawn, const FZoneConfig aZoneConfig, const int32 aNumXZones, const int32 aNumYZones, const int32 aMaxThreads, const uint8 aRenderTokens)
 {
 	world = GetWorld();
+	MyZoneConfigMaster = aZoneConfig;
 	MyNumXZones = aNumXZones;
 	MyNumYZones = aNumYZones;
-	MyXUnits = aX; MyYUnits = aY, MyGridSize = aUnitSize;
-	MyPersistence = aPersistence;
-	MyFrequency = aFrequency; MyAmplitude = aAmplitude;
-	MyOctaves = aOctaves; MySeed = aRandomseed;
-	MyNumThreads = aNumThreads;
+	MyMaxThreads = aMaxThreads;
+	RenderTokens = aRenderTokens;
 
 	currentPlayerPawn = aPlayerPawn;
+	currentPlayerPawn->GetCharacterMovement()->GravityScale = 0.0f;
 
-	currentPlayerPawn->SetActorLocation(FVector(MyNumXZones * MyXUnits * MyGridSize * 0.5f, MyNumYZones * MyYUnits * MyGridSize * 0.5f, 50.0f));
+	for (int i = 0; i < MyMaxThreads; ++i)
+	{
+		MyAvailableThreads.Enqueue(1);
+	}
+	
+	currentPlayerPawn->SetActorLocation(FVector((MyNumXZones/ 2.0f) * MyZoneConfigMaster.XUnits * MyZoneConfigMaster.UnitSize, (MyNumYZones / 2.0f) * MyZoneConfigMaster.YUnits * MyZoneConfigMaster.UnitSize, 40000.0f));
+
+	if (currentPlayerPawn)
+	{
+		currentPlayerZone.X = floor(currentPlayerPawn->GetActorLocation().X / (MyZoneConfigMaster.UnitSize * MyZoneConfigMaster.XUnits));
+		currentPlayerZone.Y = floor(currentPlayerPawn->GetActorLocation().Y / (MyZoneConfigMaster.UnitSize * MyZoneConfigMaster.YUnits));
+	}
 
 	for (int32 i = 0; i < MyNumXZones * MyNumYZones; ++i )
 	{
-		ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), FVector(MyXUnits * MyGridSize * GetXYfromIdx(i).x, MyYUnits * MyGridSize * GetXYfromIdx(i).y, 0.0f), FRotator(0.0f)));
+		ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), FVector(MyZoneConfigMaster.XUnits * MyZoneConfigMaster.UnitSize * GetXYfromIdx(i).x, MyZoneConfigMaster.YUnits * MyZoneConfigMaster.UnitSize * GetXYfromIdx(i).y, 0.0f), FRotator(0.0f)));
 	}
 
 	for (int i = 0; i < ZonesMaster.Num(); ++i)
 	{
-		ZonesMaster[i]->SetupZone(this, GetXYfromIdx(i), MyXUnits, MyYUnits, MyGridSize, aMaterial, aWaterMaterial, aFloorDepth, aFloorHeight, aWaterHeight, MyPersistence, MyFrequency, MyAmplitude, MyOctaves, MySeed);
-		MyRegenQueue.Enqueue(i);
+		ZonesMaster[i]->SetupZone(i, this, GetXYfromIdx(i), MyZoneConfigMaster);
+		CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 	}
+
+	isSetup = true;
 }
 

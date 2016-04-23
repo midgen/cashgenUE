@@ -3,4 +3,5 @@
 #pragma once
 
 #include "Engine.h"
+#define ECC_Terrain        ECC_GameTraceChannel1
 
