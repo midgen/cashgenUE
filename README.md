@@ -8,3 +8,9 @@ Code now refactored into plugin format. Included is a fixed version of UnrealLib
 
 CashGen plugin is released under the MIT license (see LICENSE.TXT)
 UnrealLibNoise is as per the author, LGPL3
+
+Feel free to contribute! Known issues/TODO :
+
+* Normals/Tangents at the edge of mesh sections are wonky
+* Biome spawning needs a bit of tweaking
+* Some decent materials would be nice
