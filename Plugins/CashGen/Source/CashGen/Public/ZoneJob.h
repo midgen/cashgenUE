@@ -13,6 +13,6 @@ struct FZoneJob
 	uint8 LOD;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Job Config")
 	bool isInPlaceLODUpdate;
-	FZoneJob(int32 aZoneID, uint8 aLOD, bool aisInPlaceLODUpdate) : zoneID{ aZoneID }, LOD{ aLOD }, isInPlaceLODUpdate{ aisInPlaceLODUpdate } {}
-	FZoneJob() : zoneID{ -1 }, LOD{ 0 }, isInPlaceLODUpdate{ false } {}
+	FZoneJob(int32 aZoneID, uint8 aLOD, bool aisInPlaceLODUpdate) : zoneID{ aZoneID }, LOD{ aLOD }, isInPlaceLODUpdate{ aisInPlaceLODUpdate } {};
+	FZoneJob() : zoneID{ -1 }, LOD{ 0 }, isInPlaceLODUpdate{ false } {};
 };

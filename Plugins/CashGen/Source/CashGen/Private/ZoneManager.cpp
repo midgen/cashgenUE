@@ -10,15 +10,11 @@ AZoneManager::AZoneManager()
 	USphereComponent* SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RootComponent"));
 	RootComponent = SphereComponent;
 
+	// A proc mesh component for each of the LOD levels - will make this configurable
 	MyProcMeshComponents.Add(0, CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh0")));
 	MyProcMeshComponents.Add(1, CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh1")));
 	MyProcMeshComponents.Add(2, CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh2")));
 	MyProcMeshComponents.Add(3, CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh3")));
-
-	//MyProcMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh"));
-
-
-
 
 	this->SetActorEnableCollision(true);
 	MyProcMeshComponents[0]->AttachTo(RootComponent);
@@ -30,18 +26,22 @@ AZoneManager::AZoneManager()
 	MyProcMeshComponents[2]->BodyInstance.SetResponseToAllChannels(ECR_Block);
 	MyProcMeshComponents[3]->BodyInstance.SetResponseToAllChannels(ECR_Block);
 
+	// LOD 10 = do not render
 	currentlyDisplayedLOD = 10;
 }
 
 // Initial setup of the zone
 void AZoneManager::SetupZone(int32 aZoneID, AWorldManager* aWorldManager, const Point aOffset, FZoneConfig aZoneConfig)
 {
+	// The world offset of this zone
 	MyOffset.x	= aOffset.x;
 	MyOffset.y	= aOffset.y;
+	// Config, manager pointers etc.
 	MyConfig	= aZoneConfig;
 	MyWorldManager = aWorldManager;
 	MyZoneID = aZoneID;
 
+	// This section creates an instanced mesh component for each one specified in the Biome configuration
 	int32 compIndex = 0;
 	for (int32 BiomeIndex = 0; BiomeIndex < MyConfig.BiomeConfig.Num(); ++BiomeIndex)
 	{
@@ -49,7 +49,7 @@ void AZoneManager::SetupZone(int32 aZoneID, AWorldManager* aWorldManager, const 
 		{
 			FString compString = FString::FromInt(MyOffset.x) + FString::FromInt(MyOffset.y) + FString::FromInt(MeshIndex) + FString::FromInt(BiomeIndex);
 			FName compName = FName(*compString);
-			MyInstancedMeshComponents.Add(ConstructObject<UInstancedStaticMeshComponent>(UInstancedStaticMeshComponent::StaticClass(), this, compName));
+			MyInstancedMeshComponents.Add(NewObject<UInstancedStaticMeshComponent>(this, UInstancedStaticMeshComponent::StaticClass()));
 			MyInstancedMeshComponents[compIndex]->RegisterComponent();
 			MyInstancedMeshComponents[compIndex]->SetStaticMesh(MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].Mesh);
 			MyInstancedMeshComponents[compIndex]->bCastDynamicShadow = true;
@@ -68,13 +68,13 @@ void AZoneManager::SetupZone(int32 aZoneID, AWorldManager* aWorldManager, const 
 			++compIndex;
 		}
 	}
-
-	MyBlocksToSpawnFoliageOn = MyConfig.XUnits * MyConfig.YUnits;
+	
 }
 
+// Populates the zoneblock data structures for a given LOD 
 void AZoneManager::PopulateZoneData(const uint8 aLOD)
 {
-
+	
 	MyLODZoneData.Add(aLOD, TArray<GridRow>());
 	int32 exX = aLOD == 0 ? MyConfig.XUnits + 2 : (MyConfig.XUnits / (FMath::Pow(2, aLOD))) + 2;
 	int32 exY = aLOD == 0 ? MyConfig.YUnits + 2 : (MyConfig.YUnits / (FMath::Pow(2, aLOD))) + 2;
@@ -92,6 +92,7 @@ void AZoneManager::PopulateZoneData(const uint8 aLOD)
 	}
 }
 
+// Populates the mesh data structures for a given LOD
 void AZoneManager::PopulateMeshData(const uint8 aLOD)
 {
 	int32 exX = aLOD == 0 ? MyConfig.XUnits + 2 : (MyConfig.XUnits / (FMath::Pow(2, aLOD))) + 2;
@@ -113,7 +114,7 @@ void AZoneManager::PopulateMeshData(const uint8 aLOD)
 	CalculateTriangles(aLOD);
 }
 
-
+// Trash all the instanced mesh instances on this zone (expensive, optimising to be done)
 void AZoneManager::ClearAllInstancedMeshes()
 {
 	int32 compIndex = 0;
@@ -128,6 +129,7 @@ void AZoneManager::ClearAllInstancedMeshes()
 	}
 }
 
+// Calculate the triangles and UVs for this LOD
 void AZoneManager::CalculateTriangles(const uint8 aLOD)
 {
 	int32 triCounter = 0;
@@ -177,6 +179,7 @@ void AZoneManager::CalculateTriangles(const uint8 aLOD)
 	}
 }
 
+// Sets neighbour pointers for the block corners
 void AZoneManager::InitialiseBlockPointers(const uint8 aLOD)
 {
 	int32 exX = aLOD == 0 ? MyConfig.XUnits + 2 : (MyConfig.XUnits / (FMath::Pow(2, aLOD))) + 2;
@@ -396,6 +399,8 @@ void AZoneManager::InitialiseBlockPointers(const uint8 aLOD)
 	}
 }
 
+// Main method for regenerating a zone
+// Inplace update means the zone isn't moving it's just a LOD change (from 1 to 0)
 void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdate)
 {
 	if (!isInPlaceLODUpdate) {
@@ -460,10 +465,9 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 }
 
 
+// Performs the creation/update of the Procedural Mesh Component
 void AZoneManager::UpdateMesh(const uint8 aLOD)
 {
-
-
 	// Create the mesh sections if they haven't been done already
 	if (MyLODMeshStatus[aLOD] == eLODStatus::DRAWING_REQUIRES_CREATE)
 	{
@@ -499,7 +503,8 @@ void AZoneManager::UpdateMesh(const uint8 aLOD)
 
 }
 
-bool AZoneManager::SpawnTreesAtIndex(int32* aIndex)
+// Spawns in instanced meshes for this block as defined in the biome configuration
+bool AZoneManager::SpawnInstancedMeshesAtIndex(int32* aIndex)
 {
 	int32 counter_Temp = (MyConfig.XUnits * MyConfig.YUnits) - (*aIndex);
 
@@ -576,87 +581,52 @@ void AZoneManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Run through each LOD we have on the zone
 	for (auto& lod : MyLODMeshStatus)
 	{
+		// A thread has finished generating updated mesh data, and is ready to draw
 		if (lod.Value == eLODStatus::READY_TO_DRAW)
 		{
 			lod.Value = eLODStatus::PENDING_DRAW;
 
-			// Thread finished, give it back to the queue
+			// Hand the thread token back to the world manager
 			MyWorldManager->MyAvailableThreads.Enqueue(1);
 
-			//UpdateMesh(lod.Key);
+			// Add a render (ProcMesh Update) task to the world manager queue
 			MyWorldManager->MyRenderQueue.Enqueue(FZoneJob(MyZoneID, lod.Key, false));
+			// Clean up
 			delete Thread;
 			Thread = NULL;
 		}
+		// A thread has finished generating initial mesh data, and is ready to draw for the first time
 		else if (lod.Value == eLODStatus::READY_TO_DRAW_REQUIRES_CREATE)
 		{
 			lod.Value = eLODStatus::PENDING_DRAW_REQUIRES_CREATE;
 
-			// Thread finished, give it back to the queue
+			// Hand the thread token back to the world manager
 			MyWorldManager->MyAvailableThreads.Enqueue(1);
+			// Add a render task to the world manager
 			MyWorldManager->MyRenderQueue.Enqueue(FZoneJob(MyZoneID, lod.Key, false));
+			// Clean up
 			delete Thread;
 			Thread = NULL;
 		}
 
 	}
 
+	// If this is LOD 0 and the mesh has already been updated, start spawning biome instanced meshes
 	if (MyLODMeshStatus.Contains(0) && MyLODMeshStatus[0] == eLODStatus::IDLE)
 	{
 		for (int i = 0; i < 50; ++i)
 		{
-			while (MyBlocksToSpawnFoliageOn > 0 && !SpawnTreesAtIndex(&MyBlocksToSpawnFoliageOn));
+			while (MyBlocksToSpawnFoliageOn > 0 && !SpawnInstancedMeshesAtIndex(&MyBlocksToSpawnFoliageOn));
 		}
 	}
 
 
 }
 
-void AZoneManager::CreateWaterPlane(const float aWaterHeight)
-{
-	float waterHeight = aWaterHeight;
-	TArray<FVector> waterVerts;
-	TArray<int32> waterTriangles;
-	TArray<FVector> waterNormals;
-	TArray<FVector2D> waterUVs;
-	TArray<FColor> waterVertColors;
-	TArray<FProcMeshTangent> waterTangents;
-
-	waterVerts.Add(FVector(MyConfig.XUnits * MyConfig.UnitSize, 1.0f * MyConfig.YUnits * MyConfig.UnitSize, waterHeight));//UL
-	waterVerts.Add(FVector(MyConfig.XUnits * MyConfig.UnitSize, 0.0f, waterHeight));//DL
-	waterVerts.Add(FVector(0.0f, 0.0f, waterHeight)); //DR
-
-	waterVerts.Add(FVector(MyConfig.XUnits * MyConfig.UnitSize, 1.0f * MyConfig.YUnits * MyConfig.UnitSize, waterHeight)); // UL
-	waterVerts.Add(FVector(0.0f, 0.0f, waterHeight)); //DR
-	waterVerts.Add(FVector(0.0f, 1.0f * MyConfig.YUnits * MyConfig.UnitSize, waterHeight)); //UR
-
-	waterTriangles.Add(0);
-	waterTriangles.Add(1);
-	waterTriangles.Add(2);
-	waterTriangles.Add(3);
-	waterTriangles.Add(4);
-	waterTriangles.Add(5);
-
-	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
-	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
-	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
-	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
-	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
-	waterNormals.Add(FVector(0.0f, 0.0f, 1.0f));
-
-	waterUVs.Add(FVector2D(-50, 50));
-	waterUVs.Add(FVector2D(-50, 0));
-	waterUVs.Add(FVector2D(0, 0));
-	waterUVs.Add(FVector2D(-50, 50));
-	waterUVs.Add(FVector2D(0, 0));
-	waterUVs.Add(FVector2D(0, 50));
-
-	//MyProcMesh->CreateMeshSection(1, waterVerts, waterTriangles, waterNormals, waterUVs, waterVertColors, waterTangents, true);
-}
-
-// Raycasts vertically down from the given point and returns the point it strikes the terrain
+// Raycasts vertically down from the given point and returns the hit location and normal to the caller 
 bool AZoneManager::GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitPos, FVector* aNormalVector)
 {
 	const FName TraceTag("MyTraceTag");
@@ -686,11 +656,9 @@ bool AZoneManager::GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitP
 
 	return false;
 
-
-
-
 }
 
+// Return the location of the center of the zone
 FVector AZoneManager::GetCentrePos()
 {
 	return  FVector(MyOffset.x * MyConfig.XUnits * MyConfig.UnitSize, MyOffset.y * MyConfig.YUnits * MyConfig.UnitSize, 0.0f);

@@ -23,9 +23,7 @@ UCLASS()
 class AZoneManager : public AActor
 {
 	GENERATED_BODY()
-	// Procedural mesh component for terrain and water meshes
-	//UProceduralMeshComponent* MyProcMesh;
-
+	// Map of the procedural mesh components (we have one for each LOD)
 	TMap<uint8, UProceduralMeshComponent*> MyProcMeshComponents;
 	// List of instanced mesh components for spawning foliage and other meshes
 	TArray<UInstancedStaticMeshComponent*> MyInstancedMeshComponents;
@@ -51,15 +49,13 @@ class AZoneManager : public AActor
 	TMap<uint8, TArray<GridRow>> MyLODZoneData;
 	TMap<uint8, FMeshData> MyLODMeshData;
 
-	void CreateWaterPlane(const float aWaterHeight);
-	bool SpawnTreesAtIndex(int32* aIndex);
+	bool SpawnInstancedMeshesAtIndex(int32* aIndex);
 	bool GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitPos, FVector* aNormalVector);
 
 public:
 	// Sets default values for this actor's properties
 	AZoneManager();
 	~AZoneManager();
-	bool isStale = false;
 	Point MyOffset;
 	TMap<uint8, eLODStatus> MyLODMeshStatus;
 	uint8 currentlyDisplayedLOD;
