@@ -2,16 +2,16 @@
 
 using UnrealBuildTool;
 
-public class cashgenUE : ModuleRules
+public class CashGen : ModuleRules
 {
-	public cashgenUE(TargetInfo Target)
+	public CashGen(TargetInfo Target)
 	{
         
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent"  });
 		PublicIncludePaths.AddRange(new string[] { "ProceduralMeshComponent/Public", "ProceduralMeshComponent/Classes" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "ProceduralMeshComponent", "UnrealLibNoise", "CashGen" });
-		PrivateIncludePathModuleNames.AddRange(new string[] { "UnrealLibNoise", "CashGen" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "ProceduralMeshComponent", "UnrealLibNoise" });
+		PrivateIncludePathModuleNames.AddRange(new string[] { "UnrealLibNoise" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

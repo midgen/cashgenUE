@@ -12,7 +12,7 @@
 
 #define Msg(Text) if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Green, TEXT(Text));
 
-class FCashgenUE : public IModuleInterface
+class FCashGen : public IModuleInterface
 {
 public:
 

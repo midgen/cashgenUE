@@ -1,9 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
-
-#include "Engine.h"
-#define ECC_Terrain        ECC_GameTraceChannel1
+// Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -12,7 +7,7 @@
 
 #define Msg(Text) if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Green, TEXT(Text));
 
-class FCashgenUE : public IModuleInterface
+class FUnrealLibNoiseModule : public IModuleInterface
 {
 public:
 

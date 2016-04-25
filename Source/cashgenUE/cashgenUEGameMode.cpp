@@ -2,9 +2,8 @@
 
 #include "cashgenUE.h"
 #include "cashgenUEGameMode.h"
-#include "FlyingThiefPawn.h"
 
 AcashgenUEGameMode::AcashgenUEGameMode()
 {
-	DefaultPawnClass = AFlyingThiefPawn::StaticClass();
+	
 }
