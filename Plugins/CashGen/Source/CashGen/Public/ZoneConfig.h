@@ -1,7 +1,6 @@
 #pragma once
 #include "cashgen.h"
 #include "BiomeConfig.h"
-#include "ZoneBlock.h"
 #include "NoiseModule.h"
 #include "ZoneConfig.generated.h"
 

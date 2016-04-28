@@ -8,8 +8,6 @@
 class FZoneGeneratorWorker : public FRunnable
 {
 	AZoneManager* pCallingZoneManager;
-
-	TArray<GridRow>*	pZoneData;
 	FZoneConfig*			pZoneConfig;
 	Point*				pOffset;
 	TMap<uint8, eLODStatus>* pZoneJobData;
@@ -23,12 +21,13 @@ class FZoneGeneratorWorker : public FRunnable
 	TArray<FVector2D>*	pUV0;
 	TArray<FColor>*		pVertexColors;
 	TArray<FProcMeshTangent>* pTangents;
+	TArray<FVector>* pHeightMap;
 
 	void ProcessTerrainMap();
 	void ProcessGeometry();
-	void ProcessChildMeshSpawns();
-	void UpdateOneBlockGeometry(ZoneBlock* aBlock, int32& aVertCounter, int32& triCounter);
-	FVector CalcSurfaceNormalForTriangle(FVector v1, FVector v2, FVector v3);
+	FVector GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY);
+	void UpdateOneBlockGeometry(const int aX, const int aY, int32& aVertCounter, int32& triCounter);
+	
 
 public:
 	FZoneGeneratorWorker(AZoneManager*		apZoneManager,
@@ -36,13 +35,13 @@ public:
 		Point*				aOffSet,
 		TMap<uint8, eLODStatus>* pZoneJobData,
 		uint8 MyLOD,
-		TArray<GridRow>*	aZoneData,
 		TArray<FVector>*	aVertices,
 		TArray<int32>*		aTriangles,
 		TArray<FVector>*	aNormals,
 		TArray<FVector2D>*	aUV0,
 		TArray<FColor>*		aVertexColors,
-		TArray<FProcMeshTangent>* aTangents);
+		TArray<FProcMeshTangent>* aTangents,
+		TArray<FVector>* aHeightMap);
 
 	virtual ~FZoneGeneratorWorker();
 

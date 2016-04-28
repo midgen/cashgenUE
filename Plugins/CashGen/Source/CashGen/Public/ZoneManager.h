@@ -5,17 +5,12 @@
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
 #include "Point.h"
-#include "ZoneBlock.h"
 #include "MeshData.h"
 #include "ZoneConfig.h"
 #include "ZoneManager.generated.h"
 
 
 class AWorldManager;
-struct GridRow
-{
-	TArray<ZoneBlock> blocks;
-};
 
 enum eLODStatus { BUILDING_REQUIRES_CREATE, READY_TO_DRAW_REQUIRES_CREATE, BUILDING, READY_TO_DRAW, IDLE, PENDING_DRAW_REQUIRES_CREATE, PENDING_DRAW, DRAWING_REQUIRES_CREATE, DRAWING };
 
@@ -38,15 +33,11 @@ class AZoneManager : public AActor
 
 	AWorldManager* MyWorldManager;
 
-
-	void PopulateZoneData(const uint8 aLOD);
 	void PopulateMeshData(const uint8 aLOD);
-	void InitialiseBlockPointers(const uint8 aLOD);
 	void CalculateTriangles(const uint8 aLOD);
 
 	void ClearAllInstancedMeshes();
 
-	TMap<uint8, TArray<GridRow>> MyLODZoneData;
 	TMap<uint8, FMeshData> MyLODMeshData;
 
 	bool SpawnInstancedMeshesAtIndex(int32* aIndex);

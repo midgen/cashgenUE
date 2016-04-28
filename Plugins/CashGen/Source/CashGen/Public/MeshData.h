@@ -20,6 +20,8 @@ struct FMeshData
 	TArray<FColor> MyVertexColors;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
 	TArray<FProcMeshTangent> MyTangents;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
+	TArray<FVector> MyHeightMap;
 };
 
 

@@ -10,26 +10,26 @@ FZoneGeneratorWorker::FZoneGeneratorWorker(AZoneManager*		apZoneManager,
 	Point*				aOffSet,
 	TMap<uint8, eLODStatus>*   aZoneJobData,
 	uint8 aLOD,
-	TArray<GridRow>*	aZoneData,
 	TArray<FVector>*	aVertices,
 	TArray<int32>*		aTriangles,
 	TArray<FVector>*	aNormals,
 	TArray<FVector2D>*	aUV0,
 	TArray<FColor>*		aVertexColors,
-	TArray<FProcMeshTangent>* aTangents)
+	TArray<FProcMeshTangent>* aTangents,
+	TArray<FVector>* aHeightMap)
 {
 	pCallingZoneManager = apZoneManager;
 	pOffset = aOffSet;
 	pZoneJobData = aZoneJobData;
 	MyLOD = aLOD;
 	pZoneConfig = aZoneConfig;
-	pZoneData = aZoneData;
 	pVertices = aVertices;
 	pTriangles = aTriangles;
 	pNormals = aNormals;
 	pUV0 = aUV0;
 	pVertexColors = aVertexColors;
 	pTangents = aTangents;
+	pHeightMap = aHeightMap;
 
 }
 
@@ -48,10 +48,6 @@ uint32 FZoneGeneratorWorker::Run()
 	ProcessTerrainMap();
 
 	ProcessGeometry();
-
-	ProcessChildMeshSpawns();
-
-	UKismetProceduralMeshLibrary::CalculateTangentsForMesh(*pVertices, *pTriangles, *pUV0, *pNormals, *pTangents);
 
 	if (pCallingZoneManager->MyLODMeshStatus[MyLOD] == eLODStatus::BUILDING_REQUIRES_CREATE) {
 		pCallingZoneManager->MyLODMeshStatus[MyLOD] = eLODStatus::READY_TO_DRAW_REQUIRES_CREATE;
@@ -79,8 +75,8 @@ void FZoneGeneratorWorker::ProcessTerrainMap()
 {
 	MyMaxHeight = 0.0f;
 
-	int32 exX = MyLOD == 0 ? pZoneConfig->XUnits + 2 : (pZoneConfig->XUnits / (FMath::Pow(2, MyLOD))) + 2;
-	int32 exY = MyLOD == 0 ? pZoneConfig->YUnits + 2 : (pZoneConfig->YUnits / (FMath::Pow(2, MyLOD))) + 2;
+	int32 exX = MyLOD == 0 ? pZoneConfig->XUnits + 3 : (pZoneConfig->XUnits / (FMath::Pow(2, MyLOD))) + 3;
+	int32 exY = MyLOD == 0 ? pZoneConfig->YUnits + 3 : (pZoneConfig->YUnits / (FMath::Pow(2, MyLOD))) + 3;
 
 	int32 exUnitSize = MyLOD == 0 ? pZoneConfig->UnitSize : pZoneConfig->UnitSize * (FMath::Pow(2, MyLOD));
 
@@ -89,149 +85,98 @@ void FZoneGeneratorWorker::ProcessTerrainMap()
 	{
 		for (int y = 0; y < exY; ++y)
 		{
-			int32 thisX = (pOffset->x * (exX - 2) + x) * exUnitSize;
-			int32 thisY = (pOffset->y * (exY - 2) + y) * exUnitSize;
-			(*pZoneData)[x].blocks[y].Height = pZoneConfig->noiseModule->GetValue(FVector(thisX, thisY, 0.0f)) * pZoneConfig->Amplitude;
-		}
-	}
-
-	// Now run through and calculate vertex heights
-	for (int x = 0; x < exX; ++x)
-	{
-		for (int y = 0; y < exY; ++y)
-		{
-			(*pZoneData)[x].blocks[y].ProcessCorners(MyMaxHeight, exUnitSize);
-
+			int32 worldX = (((pOffset->x * (exX - 3) + x)) * exUnitSize) - exUnitSize;
+			int32 worldY = (((pOffset->y * (exY - 3) + y)) * exUnitSize) - exUnitSize;
+			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pZoneConfig->noiseModule->GetValue(FVector(worldX, worldY, 0.0f)) * pZoneConfig->Amplitude);
 		}
 	}
 }
 
-void FZoneGeneratorWorker::ProcessChildMeshSpawns()
-{
-	int32 exX = MyLOD == 0 ? pZoneConfig->XUnits + 2 : (pZoneConfig->XUnits / (FMath::Pow(2, MyLOD))) + 2;
-	int32 exY = MyLOD == 0 ? pZoneConfig->YUnits + 2 : (pZoneConfig->YUnits / (FMath::Pow(2, MyLOD))) + 2;
-	int32 exUnitSize = MyLOD == 0 ? pZoneConfig->UnitSize : pZoneConfig->UnitSize * (FMath::Pow(2, MyLOD));
-
-	for (int x = 0; x < exX; ++x)
-	{
-		for (int y = 0; y < exY; ++y)
-		{
-			int32 thisWorldX = (pOffset->x * (exX - 2) + x) * exUnitSize;
-			int32 thisWorldY = (pOffset->y * (exY - 2) + y) * exUnitSize;
-
-			float biomeMaskValue = pZoneConfig->biomeMask->GetValue(FVector(thisWorldX, thisWorldY, 0.0f));
-
-			// Mountains
-			if (biomeMaskValue < pZoneConfig->BiomeMaskThreshold)
-			{
-				if ((*pZoneData)[x].blocks[y].Slope < pZoneConfig->FlatMaxSlope)
-				{
-					(*pZoneData)[x].blocks[y].Biome = EBiome::MountainFlat;
-				}
-				else if ((*pZoneData)[x].blocks[y].Slope < pZoneConfig->SlopeMaxSlope)
-				{
-					(*pZoneData)[x].blocks[y].Biome = EBiome::MountainSlope;
-				}
-				else
-				{
-					(*pZoneData)[x].blocks[y].Biome = EBiome::MountainCliff;
-				}
-			}
-			// Plains and coast
-			else
-			{
-				if ((*pZoneData)[x].blocks[y].Height < 0.0f)
-				{
-					(*pZoneData)[x].blocks[y].Biome = EBiome::Underwater;
-				}
-				else if ((*pZoneData)[x].blocks[y].Height < pZoneConfig->ShoreLineHeight)
-				{
-					(*pZoneData)[x].blocks[y].Biome = EBiome::Shoreline;
-				}
-				else if ((*pZoneData)[x].blocks[y].Height < pZoneConfig->CoastLineHeight)
-				{
-					(*pZoneData)[x].blocks[y].Biome = EBiome::Coast;
-				}
-				else
-				{
-					if ((*pZoneData)[x].blocks[y].Slope < pZoneConfig->FlatMaxSlope)
-					{
-						(*pZoneData)[x].blocks[y].Biome = EBiome::PlainFlat;
-					}
-					else if ((*pZoneData)[x].blocks[y].Slope < pZoneConfig->SlopeMaxSlope)
-					{
-						(*pZoneData)[x].blocks[y].Biome = EBiome::PlainSlope;
-					}
-					else
-					{
-						(*pZoneData)[x].blocks[y].Biome = EBiome::PlainCliff;
-					}
-				}
-
-			}
-		}
-	}
-
-
-}
-
+// Builds the geometry for the mesh
 void FZoneGeneratorWorker::ProcessGeometry()
 {
 	int32 vertCounter = 0;
 	int32 triCounter = 0;
-	// Generate the mesh data
-	for (int32 y = 0; y < (*pZoneData)[0].blocks.Num() - 2; ++y)
+
+	int32 xUnits = MyLOD == 0 ? pZoneConfig->XUnits : (pZoneConfig->XUnits / (FMath::Pow(2, MyLOD)));
+	int32 yUnits = MyLOD == 0 ? pZoneConfig->YUnits : (pZoneConfig->YUnits / (FMath::Pow(2, MyLOD)));
+
+	// Generate the mesh data for each block
+	for (int32 y = 0; y < yUnits; ++y)
 	{
-		for (int32 x = 0; x < pZoneData->Num() - 2; ++x)
+		for (int32 x = 0; x < xUnits; ++x)
 		{
-			UpdateOneBlockGeometry(&(*pZoneData)[x + 1].blocks[y + 1], vertCounter, triCounter);
+			UpdateOneBlockGeometry(x, y, vertCounter, triCounter);
 		}
 	}
 }
 
-void FZoneGeneratorWorker::UpdateOneBlockGeometry(ZoneBlock* aBlock, int32& aVertCounter, int32& triCounter)
+// Updates the vertices and other data for a single block (two tris)
+void FZoneGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int aY, int32& aVertCounter, int32& triCounter)
 {
-	int32 thisX = aBlock->MyX - 1;
-	int32 thisY = aBlock->MyY - 1;
+	int32 thisX = aX;
+	int32 thisY = aY;
+	int32 heightMapX = thisX + 1;
+	int32 heightMapY = thisY + 1;
 
-	int32 lodX = MyLOD == 0 ? pZoneConfig->XUnits + 1 : (pZoneConfig->XUnits / (FMath::Pow(2, MyLOD)) + 1);
+	int32 rowLength = MyLOD == 0 ? pZoneConfig->XUnits + 1 : (pZoneConfig->XUnits / (FMath::Pow(2, MyLOD)) + 1);
+	int32 heightMapRowLength = rowLength + 2;
 
 	int32 exUnitSize = MyLOD == 0 ? pZoneConfig->UnitSize : pZoneConfig->UnitSize * (FMath::Pow(2, MyLOD));
 
-	int32 blockOffSetAmount = exUnitSize * 0.5f;
-	int32 zoneOffSetAmount = exUnitSize * 0.5f;
+	FVector heightMapToWorldOffset = FVector(exUnitSize, exUnitSize, 0.0f);
+
+	// BR
+	(*pVertices)[thisX + (thisY * rowLength)]				= (*pHeightMap)[heightMapX + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
+	// TR
+	(*pVertices)[thisX + ((thisY + 1) * rowLength)]			= (*pHeightMap)[heightMapX + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
+	// BL
+	(*pVertices)[(thisX + 1) + (thisY * rowLength)]			= (*pHeightMap)[(heightMapX + 1) + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
+	// BR
+	(*pVertices)[(thisX + 1) + ((thisY + 1) * rowLength)]	= (*pHeightMap)[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
 
 
-	(*pVertices)[thisX + (thisY * lodX)].X = (aBlock->MyX * exUnitSize) - blockOffSetAmount - zoneOffSetAmount;
-	(*pVertices)[thisX + (thisY * lodX)].Y = (aBlock->MyY * exUnitSize) - blockOffSetAmount - zoneOffSetAmount;
-	(*pVertices)[thisX + (thisY * lodX)].Z = aBlock->bottomRightCorner.height;
+	(*pNormals)[thisX + (thisY * rowLength)]				= GetNormalFromHeightMapForVertex(thisX, thisY);
+	(*pNormals)[thisX + ((thisY + 1) * rowLength)]			= GetNormalFromHeightMapForVertex(thisX, thisY + 1);
+	(*pNormals)[(thisX + 1) + (thisY * rowLength)]			= GetNormalFromHeightMapForVertex(thisX + 1, thisY);
+	(*pNormals)[(thisX + 1) + ((thisY + 1) * rowLength)]	= GetNormalFromHeightMapForVertex(thisX + 1, thisY + 1);
 
-	(*pVertices)[thisX + ((thisY + 1) * lodX)].X = (aBlock->MyX * exUnitSize) - blockOffSetAmount - zoneOffSetAmount;
-	(*pVertices)[thisX + ((thisY + 1) * lodX)].Y = (aBlock->MyY * exUnitSize) + blockOffSetAmount - zoneOffSetAmount;
-	(*pVertices)[thisX + ((thisY + 1) * lodX)].Z = aBlock->topRightCorner.height;
-
-	(*pVertices)[(thisX + 1) + (thisY * lodX)].X = (aBlock->MyX * exUnitSize) + blockOffSetAmount - zoneOffSetAmount;
-	(*pVertices)[(thisX + 1) + (thisY * lodX)].Y = (aBlock->MyY * exUnitSize) - blockOffSetAmount - zoneOffSetAmount;
-	(*pVertices)[(thisX + 1) + (thisY * lodX)].Z = aBlock->bottomLeftCorner.height;
-
-	(*pVertices)[(thisX + 1) + ((thisY + 1) * lodX)].X = (aBlock->MyX * exUnitSize) + blockOffSetAmount - zoneOffSetAmount;
-	(*pVertices)[(thisX + 1) + ((thisY + 1) * lodX)].Y = (aBlock->MyY * exUnitSize) + blockOffSetAmount - zoneOffSetAmount;
-	(*pVertices)[(thisX + 1) + ((thisY + 1) * lodX)].Z = aBlock->topLeftCorner.height;
-
-	(*pVertexColors)[thisX + (thisY * lodX)].R = (255 / 50000.0f) * aBlock->Height;
-	(*pVertexColors)[thisX + ((thisY + 1) * lodX)].R = (255 / 50000.0f) * aBlock->Height;
-	(*pVertexColors)[(thisX + 1) + (thisY * lodX)].R = (255 / 50000.0f) * aBlock->Height;
-	(*pVertexColors)[(thisX + 1) + ((thisY + 1) * lodX)].R = (255 / 50000.0f) * aBlock->Height;
-
+	//TODO: This isn't doing anything at the moment 
+	(*pVertexColors)[thisX + (thisY * rowLength)].R = (255 / 50000.0f);
+	(*pVertexColors)[thisX + ((thisY + 1) * rowLength)].R = (255 / 50000.0f);
+	(*pVertexColors)[(thisX + 1) + (thisY * rowLength)].R = (255 / 50000.0f);
+	(*pVertexColors)[(thisX + 1) + ((thisY + 1) * rowLength)].R = (255 / 50000.0f);
 
 }
 
-
-FVector FZoneGeneratorWorker::CalcSurfaceNormalForTriangle(FVector v1, FVector v2, FVector v3)
+FVector FZoneGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY)
 {
-	FVector U = v2 - v1;
-	FVector V = v3 - v1;
+	FVector result;
 
-	return FVector::CrossProduct(V, U).GetSafeNormal();
+	int32 rowLength = MyLOD == 0 ? pZoneConfig->XUnits + 1 : (pZoneConfig->XUnits / (FMath::Pow(2, MyLOD)) + 1);
+	int32 heightMapRowLength = rowLength + 2;
+
+	// the heightmapIndex for this vertex index
+	int32 heightMapIndex = vertexX + 1 + ((vertexY + 1) * heightMapRowLength);
+
+	// Get the 4 edges from this point
+	FVector up, down, left, right;
+
+	up		= (*pHeightMap)[heightMapIndex + heightMapRowLength] - (*pHeightMap)[heightMapIndex];
+	down	= (*pHeightMap)[heightMapIndex - heightMapRowLength] - (*pHeightMap)[heightMapIndex];
+	left	= (*pHeightMap)[heightMapIndex + 1] - (*pHeightMap)[heightMapIndex];
+	right	= (*pHeightMap)[heightMapIndex - 1] - (*pHeightMap)[heightMapIndex];
+	
+	// Now the four normals from the triangles this forms
+	FVector n1, n2, n3, n4;
+
+	n1 = FVector::CrossProduct(left, up);
+	n2 = FVector::CrossProduct(up, right);
+	n3 = FVector::CrossProduct(right, down);
+	n4 = FVector::CrossProduct(down, left);
+
+	// and return the average
+	result = n1.GetSafeNormal() + n2.GetSafeNormal() + n3.GetSafeNormal() + n4.GetSafeNormal() / 4.0f;
+
+	return result.GetSafeNormal();
 }
-
