@@ -26,9 +26,9 @@ class FZoneGeneratorWorker : public FRunnable
 	void ProcessTerrainMap();
 	void ProcessGeometry();
 	FVector GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY);
+	FProcMeshTangent GetTangentFromNormal(const FVector aNormal);
 	void UpdateOneBlockGeometry(const int aX, const int aY, int32& aVertCounter, int32& triCounter);
 	
-
 public:
 	FZoneGeneratorWorker(AZoneManager*		apZoneManager,
 		FZoneConfig*			aZoneConfig,

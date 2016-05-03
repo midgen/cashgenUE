@@ -9,7 +9,6 @@
 #include "ZoneConfig.h"
 #include "ZoneManager.generated.h"
 
-
 class AWorldManager;
 
 enum eLODStatus { BUILDING_REQUIRES_CREATE, READY_TO_DRAW_REQUIRES_CREATE, BUILDING, READY_TO_DRAW, IDLE, PENDING_DRAW_REQUIRES_CREATE, PENDING_DRAW, DRAWING_REQUIRES_CREATE, DRAWING };
@@ -55,7 +54,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
 
-	void SetupZone(int32 aZoneID, AWorldManager* aWorldManager, const Point aOffset, FZoneConfig aZoneConfig);
+	void SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, const Point aOffset, const FZoneConfig aZoneConfig);
 	void RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdate);
 	void UpdateMesh(const uint8 aLOD);
 

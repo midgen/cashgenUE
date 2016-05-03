@@ -87,7 +87,7 @@ void FZoneGeneratorWorker::ProcessTerrainMap()
 		{
 			int32 worldX = (((pOffset->x * (exX - 3) + x)) * exUnitSize) - exUnitSize;
 			int32 worldY = (((pOffset->y * (exY - 3) + y)) * exUnitSize) - exUnitSize;
-			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pZoneConfig->noiseModule->GetValue(FVector(worldX, worldY, 0.0f)) * pZoneConfig->Amplitude);
+			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pZoneConfig->noiseModule->GetValue(worldX, worldY, 0.0f) * pZoneConfig->Amplitude);
 		}
 	}
 }
@@ -135,11 +135,15 @@ void FZoneGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int aY, in
 	// BR
 	(*pVertices)[(thisX + 1) + ((thisY + 1) * rowLength)]	= (*pHeightMap)[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
 
-
 	(*pNormals)[thisX + (thisY * rowLength)]				= GetNormalFromHeightMapForVertex(thisX, thisY);
 	(*pNormals)[thisX + ((thisY + 1) * rowLength)]			= GetNormalFromHeightMapForVertex(thisX, thisY + 1);
 	(*pNormals)[(thisX + 1) + (thisY * rowLength)]			= GetNormalFromHeightMapForVertex(thisX + 1, thisY);
 	(*pNormals)[(thisX + 1) + ((thisY + 1) * rowLength)]	= GetNormalFromHeightMapForVertex(thisX + 1, thisY + 1);
+
+	(*pTangents)[thisX + (thisY * rowLength)] = GetTangentFromNormal((*pNormals)[thisX + (thisY * rowLength)]);
+	(*pTangents)[thisX + ((thisY + 1) * rowLength)] = GetTangentFromNormal((*pNormals)[thisX + ((thisY + 1) * rowLength)]);
+	(*pTangents)[(thisX + 1) + (thisY * rowLength)] = GetTangentFromNormal((*pNormals)[(thisX + 1) + (thisY * rowLength)]);
+	(*pTangents)[(thisX + 1) + ((thisY + 1) * rowLength)] = GetTangentFromNormal((*pNormals)[(thisX + 1) + ((thisY + 1) * rowLength)]);
 
 	//TODO: This isn't doing anything at the moment 
 	(*pVertexColors)[thisX + (thisY * rowLength)].R = (255 / 50000.0f);
@@ -147,6 +151,31 @@ void FZoneGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int aY, in
 	(*pVertexColors)[(thisX + 1) + (thisY * rowLength)].R = (255 / 50000.0f);
 	(*pVertexColors)[(thisX + 1) + ((thisY + 1) * rowLength)].R = (255 / 50000.0f);
 
+}
+
+// I won't even pretend to know what this is doing
+FProcMeshTangent FZoneGeneratorWorker::GetTangentFromNormal(const FVector aNormal)
+{
+	FVector tangentVec, bitangentVec;
+	FVector c1, c2;
+
+	c1 = FVector::CrossProduct(aNormal, FVector(0.0f, 0.0f, 1.0f));
+	c2 = FVector::CrossProduct(aNormal, FVector(0.0f, 1.0f, 0.0f));
+
+	if (c1.Size() > c2.Size())
+	{
+		tangentVec = c1;
+	}
+	else
+	{
+		tangentVec = c2;
+	}
+
+	tangentVec = tangentVec.GetSafeNormal();
+	bitangentVec = FVector::CrossProduct(aNormal, tangentVec);
+
+
+	return FProcMeshTangent(bitangentVec, false );
 }
 
 FVector FZoneGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY)
@@ -159,24 +188,32 @@ FVector FZoneGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 vertex
 	// the heightmapIndex for this vertex index
 	int32 heightMapIndex = vertexX + 1 + ((vertexY + 1) * heightMapRowLength);
 
-	// Get the 4 edges from this point
-	FVector up, down, left, right;
+	// Get the 8 neighbouring points
+	FVector up, down, left, right, upleft, upright, downleft, downright;
 
 	up		= (*pHeightMap)[heightMapIndex + heightMapRowLength] - (*pHeightMap)[heightMapIndex];
 	down	= (*pHeightMap)[heightMapIndex - heightMapRowLength] - (*pHeightMap)[heightMapIndex];
 	left	= (*pHeightMap)[heightMapIndex + 1] - (*pHeightMap)[heightMapIndex];
 	right	= (*pHeightMap)[heightMapIndex - 1] - (*pHeightMap)[heightMapIndex];
+	upleft = (*pHeightMap)[heightMapIndex + 1 + heightMapRowLength] - (*pHeightMap)[heightMapIndex];
+	upright = (*pHeightMap)[heightMapIndex - 1 + heightMapRowLength] - (*pHeightMap)[heightMapIndex];
+	downleft = (*pHeightMap)[heightMapIndex + 1 - heightMapRowLength] - (*pHeightMap)[heightMapIndex];
+	downright = (*pHeightMap)[heightMapIndex - 1 - heightMapRowLength] - (*pHeightMap)[heightMapIndex];
+
+	// Now the eight normals from the triangles this forms
+	FVector n1, n2, n3, n4, n5, n6, n7, n8;
+
+	n1 = FVector::CrossProduct(left, upleft);
+	n2 = FVector::CrossProduct(upleft, up);
+	n3 = FVector::CrossProduct(up, upright);
+	n4 = FVector::CrossProduct(upright, right);
+	n5 = FVector::CrossProduct(right, downright);
+	n6 = FVector::CrossProduct(downright, down);
+	n7 = FVector::CrossProduct(down, downleft);
+	n8 = FVector::CrossProduct(downleft, left);
+
 	
-	// Now the four normals from the triangles this forms
-	FVector n1, n2, n3, n4;
-
-	n1 = FVector::CrossProduct(left, up);
-	n2 = FVector::CrossProduct(up, right);
-	n3 = FVector::CrossProduct(right, down);
-	n4 = FVector::CrossProduct(down, left);
-
-	// and return the average
-	result = n1.GetSafeNormal() + n2.GetSafeNormal() + n3.GetSafeNormal() + n4.GetSafeNormal() / 4.0f;
+	result = n1 + n2 + n3 + n4 + n5 + n6 + n7 + n8;
 
 	return result.GetSafeNormal();
 }

@@ -1,8 +1,9 @@
 #pragma once
 #include "cashgen.h"
 #include "BiomeConfig.h"
-#include "NoiseModule.h"
+#include "NoiseGenerator.h"
 #include "ZoneConfig.generated.h"
+
 
 /** Struct defines all applicable attributes for managing generation of a single zone */
 USTRUCT()
@@ -11,13 +12,16 @@ struct FZoneConfig
 	GENERATED_USTRUCT_BODY()
 	/** Reference to the noiseModule for the final heightmap */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-	TWeakObjectPtr<UNoiseModule> noiseModule;
+	TScriptInterface<INoiseGenerator> noiseModule;
 	/** Reference to the noiseModule for the biome mask  */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-	TWeakObjectPtr<UNoiseModule> biomeMask;
+	TScriptInterface<INoiseGenerator> biomeMask;
 	/** Threshold for biome mask*/
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Zone Config Struct")
-	float BiomeMaskThreshold;
+	float BiomeMaskUpperThreshold;
+	/** Threshold for biome mask*/
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Zone Config Struct")
+	float BiomeMaskLowerThreshold;
 	/** Number of blocks along a zone's X axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 		int32 XUnits;
@@ -60,8 +64,4 @@ struct FZoneConfig
 	float LOD2Range;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	float LOD3Range;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-	float LODCullRange;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-	float LODDropDistance;
 };

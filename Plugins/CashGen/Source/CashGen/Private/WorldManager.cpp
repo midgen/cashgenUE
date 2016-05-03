@@ -81,7 +81,6 @@ void AWorldManager::Tick(float DeltaTime )
 		// Sweep the zones for LOD changes
 		if (TimeSinceLastSweep > SweepInterval)
 		{
-
 			for (int i = 0; i < ZonesMaster.Num(); ++i)
 			{
 				uint8 newLOD = GetLODForZoneManagerIndex(i);
@@ -104,7 +103,6 @@ void AWorldManager::Tick(float DeltaTime )
 	}
 
 	FString output = "Zone Update Queue Length : " + FString::FromInt(MyRegenQueue.Num());
-
 
 	GEngine->AddOnScreenDebugMessage(0, 3.0f, FColor::Red, output);
 }

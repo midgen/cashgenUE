@@ -31,7 +31,7 @@ AZoneManager::AZoneManager()
 }
 
 // Initial setup of the zone
-void AZoneManager::SetupZone(int32 aZoneID, AWorldManager* aWorldManager, const Point aOffset, FZoneConfig aZoneConfig)
+void AZoneManager::SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, const Point aOffset, const FZoneConfig aZoneConfig)
 {
 	// The world offset of this zone
 	MyOffset.x	= aOffset.x;
@@ -85,6 +85,7 @@ void AZoneManager::PopulateMeshData(const uint8 aLOD)
 		MyLODMeshData[aLOD].MyNormals.Add(FVector(0.0f, 0.0f, 1.0f));
 		MyLODMeshData[aLOD].MyUV0.Add(FVector2D(0.0f, 0.0f));
 		MyLODMeshData[aLOD].MyVertexColors.Add(FColor::Black);
+		MyLODMeshData[aLOD].MyTangents.Add(FProcMeshTangent(0.0f, 0.0f, 0.0f));
 	}
 
 	// Heightmap needs to be larger than the mesh
@@ -126,6 +127,7 @@ void AZoneManager::CalculateTriangles(const uint8 aLOD)
 	int32 rowLength;
 
 	rowLength = aLOD == 0 ? MyConfig.XUnits + 1 : (MyConfig.XUnits / (FMath::Pow(2, aLOD)) + 1);
+	float maxUV = aLOD == 0 ? 1.0f : 1.0f / aLOD;
 	
 	int32 exX = aLOD == 0 ? MyConfig.XUnits : (MyConfig.XUnits / (FMath::Pow(2, aLOD)));
 	int32 exY = aLOD == 0 ? MyConfig.YUnits : (MyConfig.YUnits / (FMath::Pow(2, aLOD)));
@@ -157,14 +159,16 @@ void AZoneManager::CalculateTriangles(const uint8 aLOD)
 			(MyLODMeshData[aLOD].MyTriangles)[triCounter] = (thisX + 1) + ((thisY + 1) * (rowLength));
 			triCounter++;
 
+
+
 			//TR
-			MyLODMeshData[aLOD].MyUV0[thisX + ((thisY + 1) * (rowLength))] = FVector2D(thisX * 1.0f, (thisY+1.0f) * 1.0f);
+			MyLODMeshData[aLOD].MyUV0[thisX + ((thisY + 1) * (rowLength))] = FVector2D(thisX * maxUV, (thisY+1.0f) * maxUV);
 			//BR
-			MyLODMeshData[aLOD].MyUV0[thisX + (thisY * (rowLength))] = FVector2D(thisX * 1.0f, thisY * 1.0f);
+			MyLODMeshData[aLOD].MyUV0[thisX + (thisY * (rowLength))] = FVector2D(thisX * maxUV, thisY * maxUV);
 			//BL
-			MyLODMeshData[aLOD].MyUV0[(thisX + 1) + (thisY * (rowLength))] = FVector2D((thisX + 1.0f) * 1.0f, thisY * 1.0f);
+			MyLODMeshData[aLOD].MyUV0[(thisX + 1) + (thisY * (rowLength))] = FVector2D((thisX + 1.0f) * maxUV, thisY * maxUV);
 			//TL
-			MyLODMeshData[aLOD].MyUV0[(thisX + 1) + ((thisY + 1) * (rowLength))] = FVector2D((thisX +1.0f)* 1.0f, (thisY+1.0f) * 1.0f);
+			MyLODMeshData[aLOD].MyUV0[(thisX + 1) + ((thisY + 1) * (rowLength))] = FVector2D((thisX +1.0f)* maxUV, (thisY+1.0f) * maxUV);
 
 		}
 	}
@@ -273,12 +277,6 @@ bool AZoneManager::SpawnInstancedMeshesAtIndex(int32* aIndex)
 	return true;
 }
 
-
-AZoneManager::~AZoneManager()
-{
-
-}
-
 // Called when the game starts or when spawned
 void AZoneManager::BeginPlay()
 {
@@ -367,4 +365,11 @@ bool AZoneManager::GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitP
 FVector AZoneManager::GetCentrePos()
 {
 	return  FVector(MyOffset.x * MyConfig.XUnits * MyConfig.UnitSize, MyOffset.y * MyConfig.YUnits * MyConfig.UnitSize, 0.0f);
+}
+
+AZoneManager::~AZoneManager()
+{
+	MyLODMeshData.Empty();
+	MyLODMeshStatus.Empty();
+
 }

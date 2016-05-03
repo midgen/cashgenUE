@@ -9,11 +9,10 @@
 #include "ZoneJob.h"
 #include "WorldManager.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType, Blueprintable)
 class AWorldManager : public AActor
 {
 	GENERATED_BODY()
-
 	// All our child zones
 	FZoneConfig MyZoneConfigMaster;
 	TArray<AZoneManager*> ZonesMaster;
@@ -32,7 +31,7 @@ class AWorldManager : public AActor
 	// Queue for managing zone generation jobs
 	TArray<FZoneJob> MyRegenQueue;
 
-
+	// Couple of helper functions for accessing the zone array using coords
 	int32 GetIdxfromXY(const Point point) { return point.x * MyNumYZones + point.y; };
 	Point GetXYfromIdx(const int32 idx) { return Point(idx % MyNumYZones, idx / MyNumYZones); }
 
@@ -43,13 +42,13 @@ class AWorldManager : public AActor
 
 public:
 	AWorldManager();
+	// Queues for managing the number of threads
 	TQueue<uint8, EQueueMode::Mpsc> MyAvailableThreads;
+	// Queue for managing mesh updates
 	TQueue<FZoneJob, EQueueMode::Mpsc> MyRenderQueue;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen Manager")
 		FVector2D currentPlayerZone;
-
-
 
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
