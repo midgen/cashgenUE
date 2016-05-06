@@ -73,11 +73,6 @@ void AWorldManager::Tick(float DeltaTime )
 			MyRegenQueue.RemoveAt(MyRegenQueue.Num() - 1);
 		}
 
-		if (MyRegenQueue.Num() <= 0)
-		{
-			currentPlayerPawn->GetCharacterMovement()->GravityScale = 1.0f;
-		}
-
 		// Sweep the zones for LOD changes
 		if (TimeSinceLastSweep > SweepInterval)
 		{
@@ -211,7 +206,7 @@ uint8 AWorldManager::GetLODForOffset(const Point aOffset)
 	return 0;
 }
 
-void AWorldManager::SpawnZones(ACharacter* aPlayerPawn, const FZoneConfig aZoneConfig, const int32 aNumXZones, const int32 aNumYZones, const int32 aMaxThreads, const uint8 aRenderTokens)
+void AWorldManager::SpawnZones(APawn* aPlayerPawn, const FZoneConfig aZoneConfig, const int32 aNumXZones, const int32 aNumYZones, const int32 aMaxThreads, const uint8 aRenderTokens)
 {
 	world = GetWorld();
 	MyZoneConfigMaster = aZoneConfig;
@@ -221,7 +216,7 @@ void AWorldManager::SpawnZones(ACharacter* aPlayerPawn, const FZoneConfig aZoneC
 	RenderTokens = aRenderTokens;
 
 	currentPlayerPawn = aPlayerPawn;
-	currentPlayerPawn->GetCharacterMovement()->GravityScale = 0.0f;
+	
 
 	for (int i = 0; i < MyMaxThreads; ++i)
 	{

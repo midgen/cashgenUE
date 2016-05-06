@@ -21,26 +21,19 @@ class AZoneManager : public AActor
 	TMap<uint8, UProceduralMeshComponent*> MyProcMeshComponents;
 	// List of instanced mesh components for spawning foliage and other meshes
 	TArray<UInstancedStaticMeshComponent*> MyInstancedMeshComponents;
+	// Map of mesh data for each LOD
+	TMap<uint8, FMeshData> MyLODMeshData;
 
 	// Zone configuration parameters
 	FZoneConfig MyConfig;
 
 	// Worker thread for building mesh data
 	FRunnableThread* Thread;
-	// For tracking blocks that still need to be processed for foliage spawning
-	int32 MyBlocksToSpawnFoliageOn;
 
 	AWorldManager* MyWorldManager;
 
 	void PopulateMeshData(const uint8 aLOD);
 	void CalculateTriangles(const uint8 aLOD);
-
-	void ClearAllInstancedMeshes();
-
-	TMap<uint8, FMeshData> MyLODMeshData;
-
-	bool SpawnInstancedMeshesAtIndex(int32* aIndex);
-	bool GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitPos, FVector* aNormalVector);
 
 public:
 	// Sets default values for this actor's properties

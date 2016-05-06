@@ -4,6 +4,7 @@
 #include "ZoneJob.h"
 #include "Point.h"
 #include "ZoneConfig.h"
+#include "FastNoise.h"
 
 class FZoneGeneratorWorker : public FRunnable
 {
@@ -14,6 +15,8 @@ class FZoneGeneratorWorker : public FRunnable
 	uint8 MyLOD;
 
 	float MyMaxHeight;
+
+	UFastNoise* fastNoise;
 
 	TArray<FVector>*	pVertices;
 	TArray<int32>*		pTriangles;

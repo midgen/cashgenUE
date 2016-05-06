@@ -21,7 +21,7 @@ class AWorldManager : public AActor
 
 	int32 MyMaxThreads;
 
-	ACharacter* currentPlayerPawn;
+	APawn* currentPlayerPawn;
 	UWorld* world;
 
 	uint8 RenderTokens;
@@ -57,7 +57,7 @@ public:
 	uint8 GetLODForZoneManagerIndex(const int32 aZoneIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "World Manager")
-	void SpawnZones(ACharacter* aPlayerPawn, const FZoneConfig aZoneConfig, const int32 aNumXZones, const int32 aNumYZones, const int32 aMaxThreads, const uint8 aRenderTokens);
+	void SpawnZones(APawn* aPlayerPawn, const FZoneConfig aZoneConfig, const int32 aNumXZones, const int32 aNumYZones, const int32 aMaxThreads, const uint8 aRenderTokens);
 
 	void CreateZoneRefreshJob(const int32 aZoneIndex, const uint8 aLOD, const bool aIsInPlaceLODUpdate);
 

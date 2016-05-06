@@ -39,36 +39,7 @@ void AZoneManager::SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, 
 	// Config, manager pointers etc.
 	MyConfig	= aZoneConfig;
 	MyWorldManager = aWorldManager;
-	MyZoneID = aZoneID;
-
-	// This section creates an instanced mesh component for each one specified in the Biome configuration
-	int32 compIndex = 0;
-	for (int32 BiomeIndex = 0; BiomeIndex < MyConfig.BiomeConfig.Num(); ++BiomeIndex)
-	{
-		for (int32 MeshIndex = 0; MeshIndex < MyConfig.BiomeConfig[BiomeIndex].MeshConfigs.Num(); ++MeshIndex)
-		{
-			FString compString = FString::FromInt(MyOffset.x) + FString::FromInt(MyOffset.y) + FString::FromInt(MeshIndex) + FString::FromInt(BiomeIndex);
-			FName compName = FName(*compString);
-			MyInstancedMeshComponents.Add(NewObject<UInstancedStaticMeshComponent>(this, UInstancedStaticMeshComponent::StaticClass()));
-			MyInstancedMeshComponents[compIndex]->RegisterComponent();
-			MyInstancedMeshComponents[compIndex]->SetStaticMesh(MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].Mesh);
-			MyInstancedMeshComponents[compIndex]->bCastDynamicShadow = true;
-			MyInstancedMeshComponents[compIndex]->CastShadow = true;
-			MyInstancedMeshComponents[compIndex]->SetHiddenInGame(false);
-			MyInstancedMeshComponents[compIndex]->SetMobility(EComponentMobility::Movable);
-
-			MyInstancedMeshComponents[compIndex]->BodyInstance.SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-			MyInstancedMeshComponents[compIndex]->BodyInstance.SetObjectType(ECC_WorldDynamic);
-			MyInstancedMeshComponents[compIndex]->BodyInstance.SetResponseToAllChannels(ECR_Ignore);
-			MyInstancedMeshComponents[compIndex]->BodyInstance.SetResponseToChannel(ECC_WorldStatic, ECR_Block);
-			MyInstancedMeshComponents[compIndex]->BodyInstance.SetResponseToChannel(ECC_Terrain, ECR_Ignore);
-			MyInstancedMeshComponents[compIndex]->BodyInstance.SetResponseToChannel(ECC_Pawn, MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].PawnCollisionResponse);
-			MyInstancedMeshComponents[compIndex]->BodyInstance.SetResponseToChannel(ECC_WorldDynamic, ECR_Block);
-
-			++compIndex;
-		}
-	}
-	
+	MyZoneID = aZoneID;	
 }
 
 // Populates the mesh data structures for a given LOD
@@ -89,6 +60,8 @@ void AZoneManager::PopulateMeshData(const uint8 aLOD)
 	}
 
 	// Heightmap needs to be larger than the mesh
+	// Using vectors here is a bit wasteful, but it does make normal/tangent or any other
+	// Geometric calculations based on the heightmap a bit easier. Easy enough to change to floats
 	for (int32 i = 0; i < (numXVerts + 2) * (numYVerts + 2); ++i)
 	{
 		MyLODMeshData[aLOD].MyHeightMap.Add(FVector(0.0f));
@@ -103,20 +76,6 @@ void AZoneManager::PopulateMeshData(const uint8 aLOD)
 	CalculateTriangles(aLOD);
 }
 
-// Trash all the instanced mesh instances on this zone (expensive, optimising to be done)
-void AZoneManager::ClearAllInstancedMeshes()
-{
-	int32 compIndex = 0;
-	for (int32 BiomeIndex = 0; BiomeIndex < MyConfig.BiomeConfig.Num(); ++BiomeIndex)
-	{
-		for (int32 MeshIndex = 0; MeshIndex < MyConfig.BiomeConfig[BiomeIndex].MeshConfigs.Num(); ++MeshIndex)
-		{
-			MyInstancedMeshComponents[compIndex]->ClearInstances();
-
-			++compIndex;
-		}
-	}
-}
 
 // Calculate the triangles and UVs for this LOD
 // TODO: Create proper UVs
@@ -159,8 +118,6 @@ void AZoneManager::CalculateTriangles(const uint8 aLOD)
 			(MyLODMeshData[aLOD].MyTriangles)[triCounter] = (thisX + 1) + ((thisY + 1) * (rowLength));
 			triCounter++;
 
-
-
 			//TR
 			MyLODMeshData[aLOD].MyUV0[thisX + ((thisY + 1) * (rowLength))] = FVector2D(thisX * maxUV, (thisY+1.0f) * maxUV);
 			//BR
@@ -188,19 +145,13 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 		GEngine->AddOnScreenDebugMessage(5, 3.0f, FColor::Red, TEXT("In place update!"));
 	}
 
-	// Trash any existing instanced meshes
-	if (currentlyDisplayedLOD == 0)
-	{
-		ClearAllInstancedMeshes();
-	}
-
 	currentlyDisplayedLOD = aLOD;
 
 	if (aLOD != 10)
 	{
 		FString threadName = "ZoneWorker" + FString::FromInt(MyOffset.x) + FString::FromInt(MyOffset.y) + FString::FromInt(aLOD);
 
-		// If the data structures for this LOD aren't ready, build them.
+		// If we haven't used this LOD before, populate the data structures and apply the material
 		if (!MyLODMeshData.Contains(aLOD))
 		{
 			MyLODMeshStatus.Add(aLOD, eLODStatus::BUILDING_REQUIRES_CREATE);
@@ -238,7 +189,7 @@ void AZoneManager::UpdateMesh(const uint8 aLOD)
 	// Create the mesh sections if they haven't been done already
 	if (MyLODMeshStatus[aLOD] == eLODStatus::DRAWING_REQUIRES_CREATE)
 	{
-		// Only generate collsion if this is LOD0
+		// Only generate collision if this is LOD0
 		MyProcMeshComponents[aLOD]->CreateMeshSection(0, MyLODMeshData[aLOD].MyVertices, MyLODMeshData[aLOD].MyTriangles, MyLODMeshData[aLOD].MyNormals, MyLODMeshData[aLOD].MyUV0, MyLODMeshData[aLOD].MyVertexColors, MyLODMeshData[aLOD].MyTangents, aLOD == 0);
 		MyLODMeshStatus[aLOD] = IDLE;
 	}
@@ -254,7 +205,6 @@ void AZoneManager::UpdateMesh(const uint8 aLOD)
 			{
 				InstancedStaticMeshComponent->ClearInstances();
 			}
-			MyBlocksToSpawnFoliageOn = MyConfig.XUnits * MyConfig.YUnits;
 		}
 	}
 
@@ -269,12 +219,6 @@ void AZoneManager::UpdateMesh(const uint8 aLOD)
 		}
 	}
 
-}
-
-// Spawns in instanced meshes for this block as defined in the biome configuration
-bool AZoneManager::SpawnInstancedMeshesAtIndex(int32* aIndex)
-{
-	return true;
 }
 
 // Called when the game starts or when spawned
@@ -314,51 +258,7 @@ void AZoneManager::Tick(float DeltaTime)
 			delete Thread;
 			Thread = NULL;
 		}
-
-
 	}
-
-	// If this is LOD 0 and the mesh has already been updated, start spawning biome instanced meshes
-	if (MyLODMeshStatus.Contains(0) && MyLODMeshStatus[0] == eLODStatus::IDLE)
-	{
-		for (int i = 0; i < 50; ++i)
-		{
-			while (MyBlocksToSpawnFoliageOn > 0 && !SpawnInstancedMeshesAtIndex(&MyBlocksToSpawnFoliageOn));
-		}
-	}
-
-
-}
-
-// Raycasts vertically down from the given point and returns the hit location and normal to the caller 
-bool AZoneManager::GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitPos, FVector* aNormalVector)
-{
-	const FName TraceTag("MyTraceTag");
-	FCollisionQueryParams MyTraceParams = FCollisionQueryParams(FName(TEXT("TreeTrace")), true);
-	MyTraceParams.bTraceComplex = false;
-	MyTraceParams.bTraceAsyncScene = true;
-	MyTraceParams.bReturnPhysicalMaterial = false;
-	//MyTraceParams.TraceTag = TraceTag;
-	//GetWorld()->DebugDrawTraceTag = TraceTag;
-
-	FCollisionResponseParams MyResponseParams = FCollisionResponseParams();
-
-	FHitResult MyHitResult(ForceInit);
-
-	FVector MyCastDirection = FVector(0.0f, 0.0f, -1.0f);
-
-	if (GetWorld()->LineTraceSingleByChannel(MyHitResult, aVectorToStart, aVectorToStart + (MyCastDirection * 900000.0f), ECC_Terrain, MyTraceParams, MyResponseParams))
-	{
-		AActor* hitActor = MyHitResult.GetActor();
-		if (hitActor)
-		{
-			(*aNormalVector) = MyHitResult.Normal;
-			(*aHitPos) = MyHitResult.ImpactPoint;
-			return true;
-		}
-	}
-
-	return false;
 }
 
 // Return the location of the center of the zone
@@ -369,7 +269,7 @@ FVector AZoneManager::GetCentrePos()
 
 AZoneManager::~AZoneManager()
 {
+	// GC will do this anyway, but won't hurt to clear them down
 	MyLODMeshData.Empty();
 	MyLODMeshStatus.Empty();
-
 }

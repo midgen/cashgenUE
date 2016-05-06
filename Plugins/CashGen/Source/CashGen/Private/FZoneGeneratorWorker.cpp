@@ -2,7 +2,6 @@
 
 #include "cashgen.h"
 #include "FZoneGeneratorWorker.h"
-#include "UnrealLibNoise.h"
 #include "KismetProceduralMeshLibrary.h"
 
 FZoneGeneratorWorker::FZoneGeneratorWorker(AZoneManager*		apZoneManager,
@@ -31,6 +30,7 @@ FZoneGeneratorWorker::FZoneGeneratorWorker(AZoneManager*		apZoneManager,
 	pTangents = aTangents;
 	pHeightMap = aHeightMap;
 
+	fastNoise = NewObject<UFastNoise>(UFastNoise::StaticClass());
 }
 
 FZoneGeneratorWorker::~FZoneGeneratorWorker()
@@ -57,18 +57,17 @@ uint32 FZoneGeneratorWorker::Run()
 		pCallingZoneManager->MyLODMeshStatus[MyLOD] = eLODStatus::READY_TO_DRAW;
 	}
 
-
 	return 1;
 }
 
 void FZoneGeneratorWorker::Stop()
 {
-
+	fastNoise = nullptr;
 }
 
 void FZoneGeneratorWorker::Exit()
 {
-
+	fastNoise = nullptr;
 }
 
 void FZoneGeneratorWorker::ProcessTerrainMap()
@@ -80,6 +79,13 @@ void FZoneGeneratorWorker::ProcessTerrainMap()
 
 	int32 exUnitSize = MyLOD == 0 ? pZoneConfig->UnitSize : pZoneConfig->UnitSize * (FMath::Pow(2, MyLOD));
 
+	fastNoise->SetSeed(pZoneConfig->noiseConfig.Seed);
+	fastNoise->SetNoiseType(pZoneConfig->noiseConfig.Noise_Type);
+	fastNoise->SetFrequency(pZoneConfig->noiseConfig.Frequency);
+	fastNoise->SetFractalLacunarity(pZoneConfig->noiseConfig.Lacunarity);
+	fastNoise->SetFractalType(pZoneConfig->noiseConfig.Fractal_Type);
+	fastNoise->SetFractalOctaves(pZoneConfig->noiseConfig.Octaves);
+
 	// Calculate the new noisemap
 	for (int x = 0; x < exX; ++x)
 	{
@@ -87,9 +93,9 @@ void FZoneGeneratorWorker::ProcessTerrainMap()
 		{
 			int32 worldX = (((pOffset->x * (exX - 3) + x)) * exUnitSize) - exUnitSize;
 			int32 worldY = (((pOffset->y * (exY - 3) + y)) * exUnitSize) - exUnitSize;
-			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pZoneConfig->noiseModule->GetValue(worldX, worldY, 0.0f) * pZoneConfig->Amplitude);
+			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, fastNoise->GetNoise(worldX * pZoneConfig->noiseConfig.SampleFactor, worldY * pZoneConfig->noiseConfig.SampleFactor, 0.0f) * pZoneConfig->Amplitude);
 		}
-	}
+	} 
 }
 
 // Builds the geometry for the mesh
@@ -118,10 +124,10 @@ void FZoneGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int aY, in
 	int32 thisY = aY;
 	int32 heightMapX = thisX + 1;
 	int32 heightMapY = thisY + 1;
-
+	// LOD adjusted dimensions
 	int32 rowLength = MyLOD == 0 ? pZoneConfig->XUnits + 1 : (pZoneConfig->XUnits / (FMath::Pow(2, MyLOD)) + 1);
 	int32 heightMapRowLength = rowLength + 2;
-
+	// LOD adjusted unit size
 	int32 exUnitSize = MyLOD == 0 ? pZoneConfig->UnitSize : pZoneConfig->UnitSize * (FMath::Pow(2, MyLOD));
 
 	FVector heightMapToWorldOffset = FVector(exUnitSize, exUnitSize, 0.0f);
@@ -153,7 +159,7 @@ void FZoneGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int aY, in
 
 }
 
-// I won't even pretend to know what this is doing
+// Erm, I think this fudge works
 FProcMeshTangent FZoneGeneratorWorker::GetTangentFromNormal(const FVector aNormal)
 {
 	FVector tangentVec, bitangentVec;
@@ -174,10 +180,10 @@ FProcMeshTangent FZoneGeneratorWorker::GetTangentFromNormal(const FVector aNorma
 	tangentVec = tangentVec.GetSafeNormal();
 	bitangentVec = FVector::CrossProduct(aNormal, tangentVec);
 
-
 	return FProcMeshTangent(bitangentVec, false );
 }
 
+// Gets a smoothed normal based on the 8 neighbouring vertices
 FVector FZoneGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY)
 {
 	FVector result;

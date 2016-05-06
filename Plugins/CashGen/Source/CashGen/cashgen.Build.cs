@@ -10,8 +10,7 @@ public class CashGen : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent"  });
 		PublicIncludePaths.AddRange(new string[] { "ProceduralMeshComponent/Public", "ProceduralMeshComponent/Classes" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "ProceduralMeshComponent", "UnrealLibNoise" });
-		PrivateIncludePathModuleNames.AddRange(new string[] { "UnrealLibNoise" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "ProceduralMeshComponent" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
