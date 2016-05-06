@@ -4,7 +4,8 @@ Infinite Procedural World Generator for UE 4.10
 
 This initial release of the plugin has been pared back to the basic terrain generation element. It was previously built on UnrealLibNoise which provided a nice modular noise system but as it was LGPL I had to ditch it in favour of FastNoise (https://github.com/Auburns/FastNoise) which is MIT licensed so ready to use in your UE projects.
 
-Instructions:
+Instructions
+============
 
 Copy the Cashgen plugin to your project's Plugins folder. Optionally copy the example map and blueprinted WorldManager.
 
