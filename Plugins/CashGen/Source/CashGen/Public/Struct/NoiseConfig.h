@@ -25,5 +25,7 @@ struct FNoiseConfig
 	float Gain;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise Config Struct")
 	float SampleFactor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Noise Config Struct")
+	bool Invert;
 
 };

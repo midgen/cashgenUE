@@ -93,7 +93,8 @@ void FZoneGeneratorWorker::ProcessTerrainMap()
 		{
 			int32 worldX = (((pOffset->x * (exX - 3) + x)) * exUnitSize) - exUnitSize;
 			int32 worldY = (((pOffset->y * (exY - 3) + y)) * exUnitSize) - exUnitSize;
-			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, fastNoise->GetNoise(worldX * pZoneConfig->noiseConfig.SampleFactor, worldY * pZoneConfig->noiseConfig.SampleFactor, 0.0f) * pZoneConfig->Amplitude);
+			float inv = pZoneConfig->noiseConfig.Invert ? -1.0f : 1.0f;
+			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, fastNoise->GetNoise(worldX * pZoneConfig->noiseConfig.SampleFactor, worldY * pZoneConfig->noiseConfig.SampleFactor, 0.0f) * pZoneConfig->Amplitude * inv);
 		}
 	} 
 }
