@@ -27,7 +27,8 @@ class FZoneGeneratorWorker : public FRunnable
 	TArray<FVector>* pHeightMap;
 
 	void ProcessTerrainMap();
-	void ProcessGeometry();
+	void ProcessPerBlockGeometry();
+	void ProcessPerVertexTasks();
 	FVector GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY);
 	FProcMeshTangent GetTangentFromNormal(const FVector aNormal);
 	void UpdateOneBlockGeometry(const int aX, const int aY, int32& aVertCounter, int32& triCounter);
