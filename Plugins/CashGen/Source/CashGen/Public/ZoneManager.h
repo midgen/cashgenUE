@@ -32,6 +32,8 @@ class AZoneManager : public AActor
 
 	AWorldManager* MyWorldManager;
 
+	FVector* worldOffset;
+
 	void PopulateMeshData(const uint8 aLOD);
 	void CalculateTriangles(const uint8 aLOD);
 
@@ -47,7 +49,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
 
-	void SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, const Point aOffset, const FZoneConfig aZoneConfig);
+	void SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, const Point aOffset, const FZoneConfig aZoneConfig, FVector* aWorldOffset);
 	void RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdate);
 	void UpdateMesh(const uint8 aLOD);
 

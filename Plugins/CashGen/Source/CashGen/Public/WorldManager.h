@@ -24,6 +24,8 @@ class AWorldManager : public AActor
 	APawn* currentPlayerPawn;
 	UWorld* world;
 
+	FVector worldOffset;
+
 	uint8 RenderTokens;
 	float TimeSinceLastSweep;
 	const float SweepInterval = 1.0f;

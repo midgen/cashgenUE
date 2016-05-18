@@ -31,11 +31,14 @@ AZoneManager::AZoneManager()
 }
 
 // Initial setup of the zone
-void AZoneManager::SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, const Point aOffset, const FZoneConfig aZoneConfig)
+void AZoneManager::SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, const Point aOffset, const FZoneConfig aZoneConfig, FVector* aWorldOffset)
 {
-	// The world offset of this zone
+	// The world grid offset of this zone
 	MyOffset.x	= aOffset.x;
 	MyOffset.y	= aOffset.y;
+
+	// The full world offset (always apply this)
+	worldOffset = aWorldOffset;
 	// Config, manager pointers etc.
 	MyConfig	= aZoneConfig;
 	MyWorldManager = aWorldManager;
@@ -141,10 +144,6 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 			MyProcMeshComponents[i]->SetMeshSectionVisible(0, false);
 		}
 	}
-	else {
-		GEngine->AddOnScreenDebugMessage(5, 3.0f, FColor::Red, TEXT("In place update!"));
-	}
-
 	currentlyDisplayedLOD = aLOD;
 
 	if (aLOD != 10)
@@ -179,7 +178,7 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 			0, TPri_BelowNormal);
 	}
 
-	SetActorLocation(FVector(MyConfig.XUnits * MyConfig.UnitSize * MyOffset.x, MyConfig.YUnits * MyConfig.UnitSize * MyOffset.y, 0.0f));
+	SetActorLocation(FVector((MyConfig.XUnits * MyConfig.UnitSize * MyOffset.x) - worldOffset->X, (MyConfig.YUnits * MyConfig.UnitSize * MyOffset.y) - worldOffset->Y, 0.0f));
 }
 
 
@@ -264,7 +263,7 @@ void AZoneManager::Tick(float DeltaTime)
 // Return the location of the center of the zone
 FVector AZoneManager::GetCentrePos()
 {
-	return  FVector(MyOffset.x * MyConfig.XUnits * MyConfig.UnitSize, MyOffset.y * MyConfig.YUnits * MyConfig.UnitSize, 0.0f);
+	return  FVector((MyOffset.x * MyConfig.XUnits * MyConfig.UnitSize) - worldOffset->X, (MyOffset.y * MyConfig.YUnits * MyConfig.UnitSize) - worldOffset->Y, 0.0f);
 }
 
 AZoneManager::~AZoneManager()

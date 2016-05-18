@@ -97,9 +97,9 @@ void AWorldManager::Tick(float DeltaTime )
 		}
 	}
 
-	FString output = "Zone Update Queue Length : " + FString::FromInt(MyRegenQueue.Num());
+	FString ZUoutput = "Zone Update Queue Length : " + FString::FromInt(MyRegenQueue.Num());
 
-	GEngine->AddOnScreenDebugMessage(0, 3.0f, FColor::Red, output);
+	GEngine->AddOnScreenDebugMessage(0, 3.0f, FColor::Red, ZUoutput);
 }
 
 void AWorldManager::HandleZoneChange(const FVector2D delta)
@@ -223,22 +223,22 @@ void AWorldManager::SpawnZones(APawn* aPlayerPawn, const FZoneConfig aZoneConfig
 		MyAvailableThreads.Enqueue(1);
 	}
 
-	currentPlayerPawn->SetActorLocation(FVector((MyNumXZones/ 2.0f) * MyZoneConfigMaster.XUnits * MyZoneConfigMaster.UnitSize, (MyNumYZones / 2.0f) * MyZoneConfigMaster.YUnits * MyZoneConfigMaster.UnitSize, 40000.0f));
+	worldOffset = FVector((MyNumXZones / 2.0f) * MyZoneConfigMaster.XUnits * MyZoneConfigMaster.UnitSize, (MyNumYZones / 2.0f) * MyZoneConfigMaster.YUnits * MyZoneConfigMaster.UnitSize, 0.0f);
 
 	if (currentPlayerPawn)
 	{
-		currentPlayerZone.X = floor(currentPlayerPawn->GetActorLocation().X / (MyZoneConfigMaster.UnitSize * MyZoneConfigMaster.XUnits));
-		currentPlayerZone.Y = floor(currentPlayerPawn->GetActorLocation().Y / (MyZoneConfigMaster.UnitSize * MyZoneConfigMaster.YUnits));
+		currentPlayerZone.X = floor(currentPlayerPawn->GetActorLocation().X / ((MyZoneConfigMaster.UnitSize * MyZoneConfigMaster.XUnits) - worldOffset.X));
+		currentPlayerZone.Y = floor(currentPlayerPawn->GetActorLocation().Y / ((MyZoneConfigMaster.UnitSize * MyZoneConfigMaster.YUnits) - worldOffset.Y));
 	}
 
 	for (int32 i = 0; i < MyNumXZones * MyNumYZones; ++i )
 	{
-		ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), FVector(MyZoneConfigMaster.XUnits * MyZoneConfigMaster.UnitSize * GetXYfromIdx(i).x, MyZoneConfigMaster.YUnits * MyZoneConfigMaster.UnitSize * GetXYfromIdx(i).y, 0.0f), FRotator(0.0f)));
+		ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), FVector((MyZoneConfigMaster.XUnits * MyZoneConfigMaster.UnitSize * GetXYfromIdx(i).x) - worldOffset.X, (MyZoneConfigMaster.YUnits * MyZoneConfigMaster.UnitSize * GetXYfromIdx(i).y) - worldOffset.Y, 0.0f) - worldOffset, FRotator(0.0f)));
 	}
 
 	for (int i = 0; i < ZonesMaster.Num(); ++i)
 	{
-		ZonesMaster[i]->SetupZone(i, this, GetXYfromIdx(i), MyZoneConfigMaster);
+		ZonesMaster[i]->SetupZone(i, this, GetXYfromIdx(i), MyZoneConfigMaster, &worldOffset);
 		CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 	}
 

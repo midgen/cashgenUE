@@ -47,7 +47,9 @@ uint32 FZoneGeneratorWorker::Run()
 {
 	ProcessTerrainMap();
 
-	ProcessGeometry();
+	ProcessPerBlockGeometry();
+
+	ProcessPerVertexTasks();
 
 	if (pCallingZoneManager->MyLODMeshStatus[MyLOD] == eLODStatus::BUILDING_REQUIRES_CREATE) {
 		pCallingZoneManager->MyLODMeshStatus[MyLOD] = eLODStatus::READY_TO_DRAW_REQUIRES_CREATE;
@@ -70,6 +72,9 @@ void FZoneGeneratorWorker::Exit()
 	fastNoise = nullptr;
 }
 
+/************************************************************************/
+/* Builds the heightmap structure using the noise parameters            */
+/************************************************************************/
 void FZoneGeneratorWorker::ProcessTerrainMap()
 {
 	MyMaxHeight = 0.0f;
@@ -99,8 +104,25 @@ void FZoneGeneratorWorker::ProcessTerrainMap()
 	} 
 }
 
+// Calculates the normals and tangents for each vertex
+void FZoneGeneratorWorker::ProcessPerVertexTasks()
+{
+	int32 xUnits = MyLOD == 0 ? pZoneConfig->XUnits : (pZoneConfig->XUnits / (FMath::Pow(2, MyLOD)));
+	int32 yUnits = MyLOD == 0 ? pZoneConfig->YUnits : (pZoneConfig->YUnits / (FMath::Pow(2, MyLOD)));
+	int32 rowLength = MyLOD == 0 ? pZoneConfig->XUnits + 1 : (pZoneConfig->XUnits / (FMath::Pow(2, MyLOD)) + 1);
+
+	for (int32 y = 0; y < yUnits + 1; ++y)
+	{
+		for (int32 x = 0; x < xUnits + 1; ++x)
+		{
+			(*pNormals)[x + (y * rowLength)] = GetNormalFromHeightMapForVertex(x, y);
+			(*pTangents)[x + (y * rowLength)] = GetTangentFromNormal((*pNormals)[x + (y * rowLength)]);
+		}
+	}
+}
+
 // Builds the geometry for the mesh
-void FZoneGeneratorWorker::ProcessGeometry()
+void FZoneGeneratorWorker::ProcessPerBlockGeometry()
 {
 	int32 vertCounter = 0;
 	int32 triCounter = 0;
@@ -141,16 +163,6 @@ void FZoneGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int aY, in
 	(*pVertices)[(thisX + 1) + (thisY * rowLength)]			= (*pHeightMap)[(heightMapX + 1) + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
 	// BR
 	(*pVertices)[(thisX + 1) + ((thisY + 1) * rowLength)]	= (*pHeightMap)[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
-
-	(*pNormals)[thisX + (thisY * rowLength)]				= GetNormalFromHeightMapForVertex(thisX, thisY);
-	(*pNormals)[thisX + ((thisY + 1) * rowLength)]			= GetNormalFromHeightMapForVertex(thisX, thisY + 1);
-	(*pNormals)[(thisX + 1) + (thisY * rowLength)]			= GetNormalFromHeightMapForVertex(thisX + 1, thisY);
-	(*pNormals)[(thisX + 1) + ((thisY + 1) * rowLength)]	= GetNormalFromHeightMapForVertex(thisX + 1, thisY + 1);
-
-	(*pTangents)[thisX + (thisY * rowLength)] = GetTangentFromNormal((*pNormals)[thisX + (thisY * rowLength)]);
-	(*pTangents)[thisX + ((thisY + 1) * rowLength)] = GetTangentFromNormal((*pNormals)[thisX + ((thisY + 1) * rowLength)]);
-	(*pTangents)[(thisX + 1) + (thisY * rowLength)] = GetTangentFromNormal((*pNormals)[(thisX + 1) + (thisY * rowLength)]);
-	(*pTangents)[(thisX + 1) + ((thisY + 1) * rowLength)] = GetTangentFromNormal((*pNormals)[(thisX + 1) + ((thisY + 1) * rowLength)]);
 
 	//TODO: This isn't doing anything at the moment 
 	(*pVertexColors)[thisX + (thisY * rowLength)].R = (255 / 50000.0f);
