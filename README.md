@@ -6,8 +6,11 @@ This initial release of the plugin has been pared back to the basic terrain gene
 
 #Instructions
 
-
 Copy the Cashgen plugin to your project's Plugins folder. The main class is WorldManager, there is an example map and level to demonstrate setup.
+
+There is a development thread on the UnrealEngine forums which contains some example blueprints you can use.
+
+https://forums.unrealengine.com/showthread.php?109894-Cashgen-(kinda)-Infinite-Procedural-World-Generator
 
 Configration is done in the SpawnWorld blueprint function. You must provide a Pawn reference for the world to be populated around. Some example configuration values to get you started :
 
