@@ -4,6 +4,9 @@
 *.o
 *.obj
 
+*.opendb
+*.opensdf
+
 # Precompiled Headers
 *.gch
 *.pch
