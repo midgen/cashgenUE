@@ -55,8 +55,7 @@ Feel free to contribute! This is and will remain an open-source project. In part
 
 Known issues/TODO :
 
-* Not sure if the tangents are correct
-* Flicker on LOD change (hope to update to 4.11 and use dithered transition
+* LOD change flicker, will update to 4.11 and use dithered LOD transition effect
 * Implement noise modules and masking 
 * Re-implement instanced mesh spawning with weightmap based configuration
 
