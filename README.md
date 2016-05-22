@@ -2,17 +2,15 @@
 
 Infinite Procedural World Generator for UE 4.10
 
-This initial release of the plugin has been pared back to the basic terrain generation element. It was previously built on UnrealLibNoise which provided a nice modular noise system but as it was LGPL I had to ditch it in favour of FastNoise (https://github.com/Auburns/FastNoise) which is MIT licensed so ready to use in your UE projects.
+This initial release of the plugin has been pared back to the basic terrain generation element. It is built using the MIT-licensed FastNoise for noise generation (https://github.com/Auburns/FastNoise).
 
 #Instructions
 
-Copy the Cashgen plugin to your project's Plugins folder. The main class is WorldManager, there is an example map and level to demonstrate setup.
+Copy the Cashgen plugin to your project's Plugins folder. The main class you are interested in is WorldManager, place an instance in your level and call the SpawnZones function, passing in a reference to the player pawn and the noise generation parameters (see below for examples).
 
 There is a development thread on the UnrealEngine forums which contains some example blueprints you can use.
 
 https://forums.unrealengine.com/showthread.php?109894-Cashgen-(kinda)-Infinite-Procedural-World-Generator
-
-Configration is done in the SpawnWorld blueprint function. You must provide a Pawn reference for the world to be populated around. Some example configuration values to get you started :
 
 ##NoiseConfig
 
