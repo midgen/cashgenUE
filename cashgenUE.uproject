@@ -12,10 +12,6 @@
 	],
 	"Plugins": [
 		{
-			"Name": "UnrealLibNoise",
-			"Enabled": true
-		},
-		{
 			"Name": "CashGen",
 			"Enabled": true
 		}
