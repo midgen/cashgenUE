@@ -1,8 +1,14 @@
 "# cashgen" 
 
-Infinite Procedural World Generator for UE 4.10
+Infinite Procedural World Generator for UE 4.12
 
-This initial release of the plugin has been pared back to the basic terrain generation element. It is built using the MIT-licensed FastNoise for noise generation (https://github.com/Auburns/FastNoise).
+See 4.10 branch for older version.
+
+This release has been updated to use the RuntimeMeshComponent from Chris Conway (Koderz). It also uses the OceanProject ocean and sky blueprint. It is built using the MIT-licensed FastNoise for noise generation (https://github.com/Auburns/FastNoise).
+
+https://forums.unrealengine.com/showthread.php?113432-Runtime-Mesh-Component-Rendering-high-performance-runtime-generated-meshes!&highlight=koderz
+https://forums.unrealengine.com/showthread.php?42092-Community-Project-WIP-Weather-amp-Ocean-Water-Shader
+
 
 #Instructions
 
@@ -53,7 +59,7 @@ Feel free to contribute! This is and will remain an open-source project. In part
 
 Known issues/TODO :
 
-* LOD change flicker, will update to 4.11 and use dithered LOD transition effect
+* LOD change flicker, will use dithered LOD transition effect
 * Implement noise modules and masking 
 * Re-implement instanced mesh spawning with weightmap based configuration
 
