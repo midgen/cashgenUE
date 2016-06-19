@@ -23,14 +23,14 @@ class FZoneGeneratorWorker : public FRunnable
 	TArray<FVector>*	pNormals;
 	TArray<FVector2D>*	pUV0;
 	TArray<FColor>*		pVertexColors;
-	TArray<FProcMeshTangent>* pTangents;
+	TArray<FRuntimeMeshTangent>* pTangents;
 	TArray<FVector>* pHeightMap;
 
 	void ProcessTerrainMap();
 	void ProcessPerBlockGeometry();
 	void ProcessPerVertexTasks();
 	FVector GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY);
-	FProcMeshTangent GetTangentFromNormal(const FVector aNormal);
+	FRuntimeMeshTangent GetTangentFromNormal(const FVector aNormal);
 	void UpdateOneBlockGeometry(const int aX, const int aY, int32& aVertCounter, int32& triCounter);
 	
 public:
@@ -44,7 +44,7 @@ public:
 		TArray<FVector>*	aNormals,
 		TArray<FVector2D>*	aUV0,
 		TArray<FColor>*		aVertexColors,
-		TArray<FProcMeshTangent>* aTangents,
+		TArray<FRuntimeMeshTangent>* aTangents,
 		TArray<FVector>* aHeightMap);
 
 	virtual ~FZoneGeneratorWorker();

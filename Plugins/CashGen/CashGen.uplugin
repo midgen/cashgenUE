@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 1,
-	"VersionName": "0.1",
+	"Version": 2,
+	"VersionName": "0.2",
 	"FriendlyName": "CashGen",
 	"Description": "An Infinite Procedural World Generator",
 	"Category": "Procedural Generation",

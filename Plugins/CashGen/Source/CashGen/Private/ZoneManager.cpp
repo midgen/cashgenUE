@@ -10,21 +10,21 @@ AZoneManager::AZoneManager()
 	USphereComponent* SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RootComponent"));
 	RootComponent = SphereComponent;
 
-	// A proc mesh component for each of the LOD levels - will make this configurable
-	MyProcMeshComponents.Add(0, CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh0")));
-	MyProcMeshComponents.Add(1, CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh1")));
-	MyProcMeshComponents.Add(2, CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh2")));
-	MyProcMeshComponents.Add(3, CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh3")));
+	// A runtime mesh component for each of the LOD levels - will make this configurable
+	MyRuntimeMeshComponents.Add(0, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("GeneratedMesh0")));
+	MyRuntimeMeshComponents.Add(1, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("GeneratedMesh1")));
+	MyRuntimeMeshComponents.Add(2, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("GeneratedMesh2")));
+	MyRuntimeMeshComponents.Add(3, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("GeneratedMesh3")));
 
 	this->SetActorEnableCollision(true);
-	MyProcMeshComponents[0]->AttachTo(RootComponent);
-	MyProcMeshComponents[1]->AttachTo(RootComponent);
-	MyProcMeshComponents[2]->AttachTo(RootComponent);
-	MyProcMeshComponents[3]->AttachTo(RootComponent);
-	MyProcMeshComponents[0]->BodyInstance.SetResponseToAllChannels(ECR_Block);
-	MyProcMeshComponents[1]->BodyInstance.SetResponseToAllChannels(ECR_Block);
-	MyProcMeshComponents[2]->BodyInstance.SetResponseToAllChannels(ECR_Block);
-	MyProcMeshComponents[3]->BodyInstance.SetResponseToAllChannels(ECR_Block);
+	MyRuntimeMeshComponents[0]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	MyRuntimeMeshComponents[1]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	MyRuntimeMeshComponents[2]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	MyRuntimeMeshComponents[3]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	MyRuntimeMeshComponents[0]->BodyInstance.SetResponseToAllChannels(ECR_Block);
+	MyRuntimeMeshComponents[1]->BodyInstance.SetResponseToAllChannels(ECR_Block);
+	MyRuntimeMeshComponents[2]->BodyInstance.SetResponseToAllChannels(ECR_Block);
+	MyRuntimeMeshComponents[3]->BodyInstance.SetResponseToAllChannels(ECR_Block);
 
 	// LOD 10 = do not render
 	currentlyDisplayedLOD = 10;
@@ -59,7 +59,7 @@ void AZoneManager::PopulateMeshData(const uint8 aLOD)
 		MyLODMeshData[aLOD].MyNormals.Add(FVector(0.0f, 0.0f, 1.0f));
 		MyLODMeshData[aLOD].MyUV0.Add(FVector2D(0.0f, 0.0f));
 		MyLODMeshData[aLOD].MyVertexColors.Add(FColor::Black);
-		MyLODMeshData[aLOD].MyTangents.Add(FProcMeshTangent(0.0f, 0.0f, 0.0f));
+		MyLODMeshData[aLOD].MyTangents.Add(FRuntimeMeshTangent(0.0f, 0.0f, 0.0f));
 	}
 
 	// Heightmap needs to be larger than the mesh
@@ -139,9 +139,9 @@ void AZoneManager::CalculateTriangles(const uint8 aLOD)
 void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdate)
 {
 	if (!isInPlaceLODUpdate) {
-		for (uint8 i = 0; i < MyProcMeshComponents.Num(); ++i)
+		for (uint8 i = 0; i < MyRuntimeMeshComponents.Num(); ++i)
 		{
-			MyProcMeshComponents[i]->SetMeshSectionVisible(0, false);
+			MyRuntimeMeshComponents[i]->SetMeshSectionVisible(0, false);
 		}
 	}
 	currentlyDisplayedLOD = aLOD;
@@ -155,7 +155,7 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 		{
 			MyLODMeshStatus.Add(aLOD, eLODStatus::BUILDING_REQUIRES_CREATE);
 			PopulateMeshData(aLOD);
-			MyProcMeshComponents[aLOD]->SetMaterial(0, MyConfig.TerrainMaterial);
+			MyRuntimeMeshComponents[aLOD]->SetMaterial(0, MyConfig.TerrainMaterial);
 		}
 		else
 		{
@@ -189,13 +189,13 @@ void AZoneManager::UpdateMesh(const uint8 aLOD)
 	if (MyLODMeshStatus[aLOD] == eLODStatus::DRAWING_REQUIRES_CREATE)
 	{
 		// Only generate collision if this is LOD0
-		MyProcMeshComponents[aLOD]->CreateMeshSection(0, MyLODMeshData[aLOD].MyVertices, MyLODMeshData[aLOD].MyTriangles, MyLODMeshData[aLOD].MyNormals, MyLODMeshData[aLOD].MyUV0, MyLODMeshData[aLOD].MyVertexColors, MyLODMeshData[aLOD].MyTangents, aLOD == 0);
+		MyRuntimeMeshComponents[aLOD]->CreateMeshSection(0, MyLODMeshData[aLOD].MyVertices, MyLODMeshData[aLOD].MyTriangles, MyLODMeshData[aLOD].MyNormals, MyLODMeshData[aLOD].MyUV0, MyLODMeshData[aLOD].MyVertexColors, MyLODMeshData[aLOD].MyTangents, aLOD == 0, EUpdateFrequency::Average);
 		MyLODMeshStatus[aLOD] = IDLE;
 	}
 	// Or just update them
 	else if (MyLODMeshStatus[aLOD] == eLODStatus::DRAWING)
 	{
-		MyProcMeshComponents[aLOD]->UpdateMeshSection(0, MyLODMeshData[aLOD].MyVertices, MyLODMeshData[aLOD].MyNormals, MyLODMeshData[aLOD].MyUV0, MyLODMeshData[aLOD].MyVertexColors, MyLODMeshData[aLOD].MyTangents);
+		MyRuntimeMeshComponents[aLOD]->UpdateMeshSection(0, MyLODMeshData[aLOD].MyVertices, MyLODMeshData[aLOD].MyNormals, MyLODMeshData[aLOD].MyUV0, MyLODMeshData[aLOD].MyVertexColors, MyLODMeshData[aLOD].MyTangents);
 		MyLODMeshStatus[aLOD] = IDLE;
 
 		if (aLOD == 0)
@@ -208,13 +208,13 @@ void AZoneManager::UpdateMesh(const uint8 aLOD)
 	}
 
 	// Now show the new section
-	for (uint8 i = 0; i < MyProcMeshComponents.Num(); ++i)
+	for (uint8 i = 0; i < MyRuntimeMeshComponents.Num(); ++i)
 	{
 		if (i == aLOD) {
-			MyProcMeshComponents[i]->SetMeshSectionVisible(0, true);
+			MyRuntimeMeshComponents[i]->SetMeshSectionVisible(0, true);
 		}
 		else {
-			MyProcMeshComponents[i]->SetMeshSectionVisible(0, false);
+			MyRuntimeMeshComponents[i]->SetMeshSectionVisible(0, false);
 		}
 	}
 

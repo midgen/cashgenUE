@@ -542,7 +542,8 @@ float UFastNoise::_Value(int seed, float x, float y, float z)
 	int y1 = y0 + 1;
 	int z1 = z0 + 1;
 
-	float xs, ys, zs;
+	float xs = 0.0f, ys = 0.0f, zs = 0.0f;
+
 	switch (m_interp)
 	{
 	case EInterp::InterpLinear:
@@ -669,7 +670,7 @@ float UFastNoise::_Value(int seed, float x, float y)
 	int x1 = x0 + 1;
 	int y1 = y0 + 1;
 
-	float xs, ys;
+	float xs = 0.0f, ys = 0.0f;
 	switch (m_interp)
 	{
 	case EInterp::InterpLinear:
@@ -795,7 +796,7 @@ float UFastNoise::_Gradient(int seed, float x, float y, float z)
 	int y1 = y0 + 1;
 	int z1 = z0 + 1;
 
-	float xs, ys, zs;
+	float xs = 0.0f, ys = 0.0f, zs = 0.0f;
 	switch (m_interp)
 	{
 	case EInterp::InterpLinear:
@@ -928,7 +929,7 @@ float UFastNoise::_Gradient(int seed, float x, float y)
 	int x1 = x0 + 1;
 	int y1 = y0 + 1;
 
-	float xs, ys;
+	float xs = 0.0f, ys = 0.0f;
 	switch (m_interp)
 	{
 	case EInterp::InterpLinear:
@@ -1451,7 +1452,7 @@ float UFastNoise::_Cellular(float x, float y, float z)
 	float newDistance;
 	float vec[3];
 	int lutPos;
-	int xc, yc, zc;
+	int xc = 0, yc = 0, zc = 0;
 
 	switch (m_cellularDistanceFunction)
 	{
@@ -1722,7 +1723,7 @@ float UFastNoise::_CellularHQ(float x, float y, float z)
 	float newDistance;
 	float vec[3];
 	int lutPos;
-	int xc, yc, zc;
+	int xc = 0, yc = 0, zc = 0;
 
 	switch (m_cellularDistanceFunction)
 	{
@@ -1991,7 +1992,7 @@ float UFastNoise::_Cellular(float x, float y)
 	float newDistance;
 	float vec[2];
 	int lutPos;
-	int xc, yc;
+	int xc = 0, yc = 0;
 
 	switch (m_cellularDistanceFunction)
 	{
@@ -2227,7 +2228,7 @@ float UFastNoise::_CellularHQ(float x, float y)
 	float newDistance;
 	float vec[2];
 	int lutPos;
-	int xc, yc;
+	int xc = 0, yc = 0;
 
 	switch (m_cellularDistanceFunction)
 	{

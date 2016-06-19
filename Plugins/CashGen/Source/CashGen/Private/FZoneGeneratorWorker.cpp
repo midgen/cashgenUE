@@ -2,7 +2,6 @@
 
 #include "cashgen.h"
 #include "FZoneGeneratorWorker.h"
-#include "KismetProceduralMeshLibrary.h"
 
 FZoneGeneratorWorker::FZoneGeneratorWorker(AZoneManager*		apZoneManager,
 	FZoneConfig*			aZoneConfig,
@@ -14,7 +13,7 @@ FZoneGeneratorWorker::FZoneGeneratorWorker(AZoneManager*		apZoneManager,
 	TArray<FVector>*	aNormals,
 	TArray<FVector2D>*	aUV0,
 	TArray<FColor>*		aVertexColors,
-	TArray<FProcMeshTangent>* aTangents,
+	TArray<FRuntimeMeshTangent>* aTangents,
 	TArray<FVector>* aHeightMap)
 {
 	pCallingZoneManager = apZoneManager;
@@ -173,7 +172,7 @@ void FZoneGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int aY, in
 }
 
 // Erm, I think this fudge works
-FProcMeshTangent FZoneGeneratorWorker::GetTangentFromNormal(const FVector aNormal)
+FRuntimeMeshTangent FZoneGeneratorWorker::GetTangentFromNormal(const FVector aNormal)
 {
 	FVector tangentVec, bitangentVec;
 	FVector c1, c2;
@@ -193,7 +192,7 @@ FProcMeshTangent FZoneGeneratorWorker::GetTangentFromNormal(const FVector aNorma
 	tangentVec = tangentVec.GetSafeNormal();
 	bitangentVec = FVector::CrossProduct(aNormal, tangentVec);
 
-	return FProcMeshTangent(bitangentVec, false );
+	return FRuntimeMeshTangent(bitangentVec, false );
 }
 
 // Gets a smoothed normal based on the 8 neighbouring vertices

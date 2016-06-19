@@ -1,6 +1,6 @@
 #pragma once
 #include "cashgen.h"
-#include "ProceduralMeshComponent.h"
+#include "RuntimeMeshComponent.h"
 #include "Meshdata.generated.h"
 
 /** Defines the data required for a single procedural mesh section */
@@ -19,7 +19,7 @@ struct FMeshData
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
 	TArray<FColor> MyVertexColors;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
-	TArray<FProcMeshTangent> MyTangents;
+	TArray<FRuntimeMeshTangent> MyTangents;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
 	TArray<FVector> MyHeightMap;
 };

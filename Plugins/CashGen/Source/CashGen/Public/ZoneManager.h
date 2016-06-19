@@ -3,7 +3,7 @@
 #pragma once
 #include "cashgen.h"
 #include "GameFramework/Actor.h"
-#include "ProceduralMeshComponent.h"
+#include "RuntimeMeshComponent.h"
 #include "Point.h"
 #include "MeshData.h"
 #include "ZoneConfig.h"
@@ -17,8 +17,9 @@ UCLASS()
 class AZoneManager : public AActor
 {
 	GENERATED_BODY()
-	// Map of the procedural mesh components (we have one for each LOD)
-	TMap<uint8, UProceduralMeshComponent*> MyProcMeshComponents;
+	// Map of the Runtime mesh components (we have one for each LOD)
+	TMap<uint8, URuntimeMeshComponent*> MyRuntimeMeshComponents;
+
 	// List of instanced mesh components for spawning foliage and other meshes
 	TArray<UInstancedStaticMeshComponent*> MyInstancedMeshComponents;
 	// Map of mesh data for each LOD
