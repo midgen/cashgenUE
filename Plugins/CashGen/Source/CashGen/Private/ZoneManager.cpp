@@ -138,12 +138,12 @@ void AZoneManager::CalculateTriangles(const uint8 aLOD)
 // Inplace update means the zone isn't moving it's just a LOD change (from 1 to 0)
 void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdate)
 {
-	if (!isInPlaceLODUpdate) {
-		for (uint8 i = 0; i < MyRuntimeMeshComponents.Num(); ++i)
-		{
-			MyRuntimeMeshComponents[i]->SetMeshSectionVisible(0, false);
-		}
-	}
+	//if (!isInPlaceLODUpdate) {
+	//	for (uint8 i = 0; i < MyRuntimeMeshComponents.Num(); ++i)
+	//	{
+	//		MyRuntimeMeshComponents[i]->SetMeshSectionVisible(0, false);
+	//	}
+	//}
 	currentlyDisplayedLOD = aLOD;
 
 	if (aLOD != 10)
@@ -189,7 +189,7 @@ void AZoneManager::UpdateMesh(const uint8 aLOD)
 	if (MyLODMeshStatus[aLOD] == eLODStatus::DRAWING_REQUIRES_CREATE)
 	{
 		// Only generate collision if this is LOD0
-		MyRuntimeMeshComponents[aLOD]->CreateMeshSection(0, MyLODMeshData[aLOD].MyVertices, MyLODMeshData[aLOD].MyTriangles, MyLODMeshData[aLOD].MyNormals, MyLODMeshData[aLOD].MyUV0, MyLODMeshData[aLOD].MyVertexColors, MyLODMeshData[aLOD].MyTangents, aLOD == 0, EUpdateFrequency::Average);
+		MyRuntimeMeshComponents[aLOD]->CreateMeshSection(0, MyLODMeshData[aLOD].MyVertices, MyLODMeshData[aLOD].MyTriangles, MyLODMeshData[aLOD].MyNormals, MyLODMeshData[aLOD].MyUV0, MyLODMeshData[aLOD].MyVertexColors, MyLODMeshData[aLOD].MyTangents, aLOD == 0, EUpdateFrequency::Frequent);
 		MyLODMeshStatus[aLOD] = IDLE;
 	}
 	// Or just update them
@@ -207,16 +207,16 @@ void AZoneManager::UpdateMesh(const uint8 aLOD)
 		}
 	}
 
-	// Now show the new section
-	for (uint8 i = 0; i < MyRuntimeMeshComponents.Num(); ++i)
-	{
-		if (i == aLOD) {
-			MyRuntimeMeshComponents[i]->SetMeshSectionVisible(0, true);
-		}
-		else {
-			MyRuntimeMeshComponents[i]->SetMeshSectionVisible(0, false);
-		}
-	}
+	//// Now show the new section
+	//for (uint8 i = 0; i < MyRuntimeMeshComponents.Num(); ++i)
+	//{
+	//	if (i == aLOD) {
+	//		MyRuntimeMeshComponents[i]->SetMeshSectionVisible(0, true);
+	//	}
+	//	else {
+	//		MyRuntimeMeshComponents[i]->SetMeshSectionVisible(0, false);
+	//	}
+	//}
 
 }
 
