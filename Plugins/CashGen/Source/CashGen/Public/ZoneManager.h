@@ -4,6 +4,7 @@
 #include "cashgen.h"
 #include "GameFramework/Actor.h"
 #include "RuntimeMeshComponent.h"
+#include "Runtime/Engine/Classes/Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Point.h"
 #include "MeshData.h"
 #include "ZoneConfig.h"
@@ -11,7 +12,7 @@
 
 class AWorldManager;
 
-enum eLODStatus { BUILDING_REQUIRES_CREATE, READY_TO_DRAW_REQUIRES_CREATE, BUILDING, READY_TO_DRAW, IDLE, PENDING_DRAW_REQUIRES_CREATE, PENDING_DRAW, DRAWING_REQUIRES_CREATE, DRAWING };
+enum eLODStatus { BUILDING_REQUIRES_CREATE, READY_TO_DRAW_REQUIRES_CREATE, BUILDING, READY_TO_DRAW, IDLE, PENDING_DRAW_REQUIRES_CREATE, PENDING_DRAW, DRAWING_REQUIRES_CREATE, DRAWING, SEGUE };
 
 UCLASS()
 class AZoneManager : public AActor
@@ -21,7 +22,10 @@ class AZoneManager : public AActor
 	TMap<uint8, URuntimeMeshComponent*> MyRuntimeMeshComponents;
 
 	// List of instanced mesh components for spawning foliage and other meshes
-	TArray<UInstancedStaticMeshComponent*> MyInstancedMeshComponents;
+	TArray<UHierarchicalInstancedStaticMeshComponent*> MyInstancedMeshComponents;
+	// For tracking blocks that still need to be processed for foliage spawning
+	int32 MyBlocksToSpawnFoliageOn;
+
 	// Map of mesh data for each LOD
 	TMap<uint8, FMeshData> MyLODMeshData;
 
@@ -35,8 +39,13 @@ class AZoneManager : public AActor
 
 	FVector* worldOffset;
 
+	const float SEGUE_DROP = 100000.0f;
+
 	void PopulateMeshData(const uint8 aLOD);
 	void CalculateTriangles(const uint8 aLOD);
+
+	bool SpawnTreesAtIndex(int32* aIndex);
+	bool GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitPos, FVector* aNormalVector);
 
 public:
 	// Sets default values for this actor's properties

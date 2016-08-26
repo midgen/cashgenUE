@@ -24,7 +24,7 @@ ATP_FlyingPawn::ATP_FlyingPawn()
 	// Create a spring arm component
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm0"));
 	SpringArm->AttachTo(RootComponent);
-	SpringArm->TargetArmLength = 160.0f; // The camera follows at this distance behind the character	
+	SpringArm->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
 	SpringArm->SocketOffset = FVector(0.f,0.f,60.f);
 	SpringArm->bEnableCameraLag = false;
 	SpringArm->CameraLagSpeed = 15.f;
@@ -35,9 +35,9 @@ ATP_FlyingPawn::ATP_FlyingPawn()
 	Camera->bUsePawnControlRotation = false; // Don't rotate camera with controller
 
 	// Set handling parameters
-	Acceleration = 500.f;
+	Acceleration = 10000.0f;
 	TurnSpeed = 50.f;
-	MaxSpeed = 4000.f;
+	MaxSpeed = 500000.0f;
 	MinSpeed = 500.f;
 	CurrentForwardSpeed = 500.f;
 }
@@ -86,7 +86,7 @@ void ATP_FlyingPawn::ThrustInput(float Val)
 	// Is there no input?
 	bool bHasInput = !FMath::IsNearlyEqual(Val, 0.f);
 	// If input is not held down, reduce speed
-	float CurrentAcc = bHasInput ? (Val * Acceleration) : (-0.5f * Acceleration);
+	float CurrentAcc = bHasInput ? (Val * Acceleration) : 0.0f;
 	// Calculate new speed
 	float NewForwardSpeed = CurrentForwardSpeed + (GetWorld()->GetDeltaSeconds() * CurrentAcc);
 	// Clamp between MinSpeed and MaxSpeed

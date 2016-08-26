@@ -1,6 +1,7 @@
 #pragma once
 #include "cashgen.h"
 #include "RuntimeMeshComponent.h"
+#include "BiomeWeights.h"
 #include "Meshdata.generated.h"
 
 /** Defines the data required for a single procedural mesh section */
@@ -22,6 +23,8 @@ struct FMeshData
 	TArray<FRuntimeMeshTangent> MyTangents;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
 	TArray<FVector> MyHeightMap;
+	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Mesh Data Struct")
+	TArray<FBiomeWeights> BiomeWeightMap;
 };
 
 

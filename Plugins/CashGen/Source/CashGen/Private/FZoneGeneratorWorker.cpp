@@ -1,6 +1,7 @@
 
 
 #include "cashgen.h"
+#include "UFNNoiseGenerator.h"
 #include "FZoneGeneratorWorker.h"
 
 FZoneGeneratorWorker::FZoneGeneratorWorker(AZoneManager*		apZoneManager,
@@ -14,7 +15,8 @@ FZoneGeneratorWorker::FZoneGeneratorWorker(AZoneManager*		apZoneManager,
 	TArray<FVector2D>*	aUV0,
 	TArray<FColor>*		aVertexColors,
 	TArray<FRuntimeMeshTangent>* aTangents,
-	TArray<FVector>* aHeightMap)
+	TArray<FVector>* aHeightMap,
+	TArray<FBiomeWeights>* aBiomeWeightMap)
 {
 	pCallingZoneManager = apZoneManager;
 	pOffset = aOffSet;
@@ -28,8 +30,7 @@ FZoneGeneratorWorker::FZoneGeneratorWorker(AZoneManager*		apZoneManager,
 	pVertexColors = aVertexColors;
 	pTangents = aTangents;
 	pHeightMap = aHeightMap;
-
-	fastNoise = NewObject<UFastNoise>(UFastNoise::StaticClass());
+	pBiomeWeightMap = aBiomeWeightMap;
 }
 
 FZoneGeneratorWorker::~FZoneGeneratorWorker()
@@ -50,6 +51,11 @@ uint32 FZoneGeneratorWorker::Run()
 
 	ProcessPerVertexTasks();
 
+	if (MyLOD == 0)
+	{
+		ProcessBiomeWeightMap();
+	}
+
 	if (pCallingZoneManager->MyLODMeshStatus[MyLOD] == eLODStatus::BUILDING_REQUIRES_CREATE) {
 		pCallingZoneManager->MyLODMeshStatus[MyLOD] = eLODStatus::READY_TO_DRAW_REQUIRES_CREATE;
 	}
@@ -63,12 +69,12 @@ uint32 FZoneGeneratorWorker::Run()
 
 void FZoneGeneratorWorker::Stop()
 {
-	fastNoise = nullptr;
+	
 }
 
 void FZoneGeneratorWorker::Exit()
 {
-	fastNoise = nullptr;
+	
 }
 
 /************************************************************************/
@@ -83,13 +89,6 @@ void FZoneGeneratorWorker::ProcessTerrainMap()
 
 	int32 exUnitSize = MyLOD == 0 ? pZoneConfig->UnitSize : pZoneConfig->UnitSize * (FMath::Pow(2, MyLOD));
 
-	fastNoise->SetSeed(pZoneConfig->noiseConfig.Seed);
-	fastNoise->SetNoiseType(pZoneConfig->noiseConfig.Noise_Type);
-	fastNoise->SetFrequency(pZoneConfig->noiseConfig.Frequency);
-	fastNoise->SetFractalLacunarity(pZoneConfig->noiseConfig.Lacunarity);
-	fastNoise->SetFractalType(pZoneConfig->noiseConfig.Fractal_Type);
-	fastNoise->SetFractalOctaves(pZoneConfig->noiseConfig.Octaves);
-
 	// Calculate the new noisemap
 	for (int x = 0; x < exX; ++x)
 	{
@@ -97,8 +96,8 @@ void FZoneGeneratorWorker::ProcessTerrainMap()
 		{
 			int32 worldX = (((pOffset->x * (exX - 3) + x)) * exUnitSize) - exUnitSize;
 			int32 worldY = (((pOffset->y * (exY - 3) + y)) * exUnitSize) - exUnitSize;
-			float inv = pZoneConfig->noiseConfig.Invert ? -1.0f : 1.0f;
-			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, fastNoise->GetNoise(worldX * pZoneConfig->noiseConfig.SampleFactor, worldY * pZoneConfig->noiseConfig.SampleFactor, 0.0f) * pZoneConfig->Amplitude * inv);
+			
+			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pZoneConfig->noiseGen->GetNoise2D(worldX, worldY) * pZoneConfig->Amplitude);
 		}
 	} 
 }
@@ -118,6 +117,39 @@ void FZoneGeneratorWorker::ProcessPerVertexTasks()
 			(*pTangents)[x + (y * rowLength)] = GetTangentFromNormal((*pNormals)[x + (y * rowLength)]);
 		}
 	}
+}
+
+void FZoneGeneratorWorker::ProcessBiomeWeightMap()
+{
+	int32 xUnits = MyLOD == 0 ? pZoneConfig->XUnits : (pZoneConfig->XUnits / (FMath::Pow(2, MyLOD)));
+	int32 yUnits = MyLOD == 0 ? pZoneConfig->YUnits : (pZoneConfig->YUnits / (FMath::Pow(2, MyLOD)));
+
+	for (int32 y = 0; y < yUnits; ++y)
+	{
+		for (int32 x = 0; x < xUnits; ++x)
+		{
+			if ((*pHeightMap)[(x+1) + ((y+1)* (pZoneConfig->YUnits + 3))].Z > 500.0f && (*pHeightMap)[(x + 1) + ((y + 1)* (pZoneConfig->YUnits + 3))].Z <= 15000.0f)
+			{
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Trees, 0.0f));
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Grass, 1.0f));
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Rocks, 0.0f));
+			}
+			else if ((*pHeightMap)[(x + 1) + ((y + 1)* (pZoneConfig->YUnits + 3))].Z > 15000.0f)
+			{
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Trees, 0.2f));
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Grass, 0.0f));
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Rocks, 1.0f));
+			}
+			else
+			{
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Trees, 0.0f));
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Grass, 0.0f));
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Rocks, 0.0f));
+			}
+			
+		}
+	}
+
 }
 
 // Builds the geometry for the mesh

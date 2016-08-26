@@ -1,0 +1,24 @@
+{
+	"FileVersion": 1,
+	"Version": 1,
+	"VersionName": "0.1",
+	"FriendlyName": "UnrealFastNoisePlugin",
+	"Description": "Visual Noise Generator Plugin",
+	"Category": "Noise",
+	"CreatedBy": "Chris Ashworth",
+	"CreatedByURL": "http://www.cashworth.net",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"Modules": [
+		{
+			"Name": "UnrealFastNoisePlugin",
+			"Type": "Developer",
+			"LoadingPhase": "Default"
+		}
+	],
+	"EnabledByDefault": false,
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"Installed": false
+}

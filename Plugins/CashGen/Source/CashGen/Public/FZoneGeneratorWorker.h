@@ -3,8 +3,8 @@
 #include "ZoneManager.h"
 #include "ZoneJob.h"
 #include "Point.h"
+#include "BiomeWeights.h"
 #include "ZoneConfig.h"
-#include "FastNoise.h"
 
 class FZoneGeneratorWorker : public FRunnable
 {
@@ -16,7 +16,6 @@ class FZoneGeneratorWorker : public FRunnable
 
 	float MyMaxHeight;
 
-	UFastNoise* fastNoise;
 
 	TArray<FVector>*	pVertices;
 	TArray<int32>*		pTriangles;
@@ -25,10 +24,12 @@ class FZoneGeneratorWorker : public FRunnable
 	TArray<FColor>*		pVertexColors;
 	TArray<FRuntimeMeshTangent>* pTangents;
 	TArray<FVector>* pHeightMap;
+	TArray<FBiomeWeights>* pBiomeWeightMap;
 
 	void ProcessTerrainMap();
 	void ProcessPerBlockGeometry();
 	void ProcessPerVertexTasks();
+	void ProcessBiomeWeightMap();
 	FVector GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY);
 	FRuntimeMeshTangent GetTangentFromNormal(const FVector aNormal);
 	void UpdateOneBlockGeometry(const int aX, const int aY, int32& aVertCounter, int32& triCounter);
@@ -45,7 +46,8 @@ public:
 		TArray<FVector2D>*	aUV0,
 		TArray<FColor>*		aVertexColors,
 		TArray<FRuntimeMeshTangent>* aTangents,
-		TArray<FVector>* aHeightMap);
+		TArray<FVector>* aHeightMap,
+		TArray<FBiomeWeights>* aBiomeWeightMap);
 
 	virtual ~FZoneGeneratorWorker();
 

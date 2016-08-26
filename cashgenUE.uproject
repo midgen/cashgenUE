@@ -14,6 +14,10 @@
 		{
 			"Name": "CashGen",
 			"Enabled": true
+		},
+		{
+			"Name": "UnrealFastNoisePlugin",
+			"Enabled": true	
 		}
 	]
 }

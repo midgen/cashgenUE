@@ -1,7 +1,7 @@
 #pragma once
 #include "cashgen.h"
+#include "UFNNoiseGenerator.h"
 #include "BiomeConfig.h"
-#include "NoiseConfig.h"
 #include "ZoneConfig.generated.h"
 
 
@@ -12,7 +12,7 @@ struct FZoneConfig
 	GENERATED_USTRUCT_BODY()
 	/** Noise Generator configuration struct */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-	FNoiseConfig noiseConfig;
+	UUFNNoiseGenerator* noiseGen;
 	/** Number of blocks along a zone's X axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 		int32 XUnits;
@@ -40,4 +40,6 @@ struct FZoneConfig
 	/** Do no render range **/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	float LOD3Range;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	TArray<FBiomeConfig> BiomeConfig;
 };
