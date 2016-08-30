@@ -11,7 +11,8 @@ public:
 
 	virtual float GetNoise3D(float aX, float aY, float aZ) override;
 	virtual float GetNoise2D(float aX, float aY) override;
-
+	
+	UPROPERTY()
 	UUFNNoiseGenerator* inputModule;
 
 	float scale;
