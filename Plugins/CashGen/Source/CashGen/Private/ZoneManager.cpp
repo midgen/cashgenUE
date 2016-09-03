@@ -58,7 +58,7 @@ void AZoneManager::SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, 
 		{
 			FString compString = FString::FromInt(MyOffset.x) + FString::FromInt(MyOffset.y) + FString::FromInt(MeshIndex) + FString::FromInt(BiomeIndex);
 			FName compName = FName(*compString);
-			MyInstancedMeshComponents.Add(ConstructObject<UHierarchicalInstancedStaticMeshComponent>(UHierarchicalInstancedStaticMeshComponent::StaticClass(), this, compName));
+			MyInstancedMeshComponents.Add(NewObject<UHierarchicalInstancedStaticMeshComponent>(this, compName));
 			MyInstancedMeshComponents[compIndex]->RegisterComponent();
 			MyInstancedMeshComponents[compIndex]->SetStaticMesh(MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].Mesh);
 			MyInstancedMeshComponents[compIndex]->bCastDynamicShadow = true;
@@ -315,7 +315,7 @@ void AZoneManager::Tick(float DeltaTime)
 		}
 		else if (currentlyDisplayedLOD == 0 && lod.Value == eLODStatus::IDLE)
 		{
-			for (int i = 0; i < 50; ++i)
+			for (int i = 0; i < 10; ++i)
 			{
 				while (MyBlocksToSpawnFoliageOn > 0 && !SpawnTreesAtIndex(&MyBlocksToSpawnFoliageOn));
 			}

@@ -7,6 +7,8 @@
 AWorldManager::AWorldManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	miniMapGenerator = CreateDefaultSubobject<UMiniMapGenerator>(FName("MiniMapGenerator"));
 }
 
 void AWorldManager::BeginPlay()
@@ -96,10 +98,6 @@ void AWorldManager::Tick(float DeltaTime )
 			TimeSinceLastSweep = 0.0f;
 		}
 	}
-
-	FString ZUoutput = "Zone Update Queue Length : " + FString::FromInt(MyRegenQueue.Num());
-
-	GEngine->AddOnScreenDebugMessage(0, 3.0f, FColor::Red, ZUoutput);
 }
 
 void AWorldManager::HandleZoneChange(const FVector2D delta)
@@ -160,12 +158,27 @@ void AWorldManager::HandleZoneChange(const FVector2D delta)
 			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 		}
 	}
+
+	// TODO: Implement the minimap generator
+	//RefreshMiniMapTexture();
 }
 
 void AWorldManager::CreateZoneRefreshJob(const int32 aZoneIndex, const uint8 aLOD, const bool aIsInPlaceLODUpdate)
 {
 	MyRegenQueue.Add(FZoneJob(aZoneIndex, aLOD, aIsInPlaceLODUpdate));
 }
+
+
+
+void AWorldManager::RefreshMiniMapTexture()
+{
+	if (miniMapGenerator)
+	{
+		miniMapGenerator->UpdateHeightmapTexture();
+		NotifiyMiniMapUpdated();
+	}
+}
+
 
 uint8 AWorldManager::GetLODForZoneManagerIndex(const int32 aZoneIndex)
 {
@@ -216,6 +229,11 @@ void AWorldManager::SpawnZones(APawn* aPlayerPawn, const FZoneConfig aZoneConfig
 	RenderTokens = aRenderTokens;
 
 	currentPlayerPawn = aPlayerPawn;
+
+
+
+	miniMapGenerator->Init(this, aZoneConfig);
+	miniMapGenerator->CreateHeightmapTexture();
 	
 
 	for (int i = 0; i < MyMaxThreads; ++i)
@@ -244,4 +262,6 @@ void AWorldManager::SpawnZones(APawn* aPlayerPawn, const FZoneConfig aZoneConfig
 
 	isSetup = true;
 }
+
+
 

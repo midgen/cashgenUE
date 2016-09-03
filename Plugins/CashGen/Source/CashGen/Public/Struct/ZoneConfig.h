@@ -1,6 +1,7 @@
 #pragma once
 #include "cashgen.h"
 #include "UFNNoiseGenerator.h"
+#include "UFNBlendModule.h"
 #include "BiomeConfig.h"
 #include "ZoneConfig.generated.h"
 
@@ -13,6 +14,8 @@ struct FZoneConfig
 	/** Noise Generator configuration struct */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	UUFNNoiseGenerator* noiseGen;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	UUFNBlendModule* BiomeBlendModule;
 	/** Number of blocks along a zone's X axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 		int32 XUnits;

@@ -7,14 +7,18 @@
 #include "Point.h"
 #include "ZoneConfig.h"
 #include "ZoneJob.h"
+#include "MiniMapGenerator.h"
 #include "WorldManager.generated.h"
+
+#define WORLD_HEIGHTMAP_TEXTURE_SIZE 1024
+#define WORLD_HEIGHTMAP_DATA_LENGTH WORLD_HEIGHTMAP_TEXTURE_SIZE * WORLD_HEIGHTMAP_TEXTURE_SIZE
 
 UCLASS(BlueprintType, Blueprintable)
 class AWorldManager : public AActor
 {
 	GENERATED_BODY()
 	// All our child zones
-	FZoneConfig MyZoneConfigMaster;
+
 	TArray<AZoneManager*> ZonesMaster;
 	int32 MyNumXZones;
 	int32 MyNumYZones;
@@ -24,7 +28,7 @@ class AWorldManager : public AActor
 	APawn* currentPlayerPawn;
 	UWorld* world;
 
-	FVector worldOffset;
+	
 
 	uint8 RenderTokens;
 	float TimeSinceLastSweep;
@@ -49,6 +53,13 @@ public:
 	// Queue for managing mesh updates
 	TQueue<FZoneJob, EQueueMode::Mpsc> MyRenderQueue;
 
+	FZoneConfig MyZoneConfigMaster;
+
+	FVector worldOffset;
+
+	UPROPERTY(Instanced)
+	UMiniMapGenerator* miniMapGenerator;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen Manager")
 		FVector2D currentPlayerZone;
 
@@ -63,5 +74,13 @@ public:
 
 	void CreateZoneRefreshJob(const int32 aZoneIndex, const uint8 aLOD, const bool aIsInPlaceLODUpdate);
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "World Manager")
+	UTexture2D* MiniMapTexture;
+
+	UFUNCTION(BlueprintCallable, Category = "World Manager")
+	void RefreshMiniMapTexture();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "WorldManager")
+	void NotifiyMiniMapUpdated();
 
 };

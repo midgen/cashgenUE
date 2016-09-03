@@ -1,6 +1,7 @@
 #include "UnrealFastNoisePlugin.h"
 #include "FastNoise/FastNoise.h"
 #include "UFNSelectModule.h"
+#include "UFN3SelectModule.h"
 #include "UFNBlendModule.h"
 #include "UFNScaleBiasModule.h"
 #include "UFNConstantModule.h"
@@ -156,6 +157,27 @@ UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateCellularNoiseGenerator(U
 	noiseGen->SetPositionWarpType(positionWarpType);
 
 	return noiseGen;
+}
+
+UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::Create3SelectModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* inputModule3, UUFNNoiseGenerator* selectModule, float lowerThreshold /*= 0.0f*/, float upperThreshold /*= 0.0f*/, ESelectInterpType interpolationType /*= ESelectInterpType::None*/, float falloff /*= 0.0f*/, int32 steps /*= 4*/)
+{
+	if (!(inputModule1 && inputModule2 && inputModule3 && selectModule && outer)) {
+		return nullptr;
+	}
+
+	UUFN3SelectModule* newSelectModule = NewObject<UUFN3SelectModule>(outer, FName("Select"));
+
+	newSelectModule->inputModule1 = inputModule1;
+	newSelectModule->inputModule2 = inputModule2;
+	newSelectModule->inputModule3 = inputModule3;
+	newSelectModule->selectModule = selectModule;
+	newSelectModule->falloff = falloff;
+	newSelectModule->lowerThreshold = lowerThreshold;
+	newSelectModule->upperThreshold = upperThreshold;
+	newSelectModule->interpType = interpolationType;
+	newSelectModule->numSteps = steps;
+
+	return newSelectModule;
 }
 
 UUFNBlueprintFunctionLibrary::UUFNBlueprintFunctionLibrary(const class FObjectInitializer& obj)
