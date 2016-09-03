@@ -214,7 +214,7 @@ uint8 AWorldManager::GetLODForZoneManagerIndex(const int32 aZoneIndex)
 	return 0;
 }
 
-uint8 AWorldManager::GetLODForOffset(const Point aOffset)
+uint8 AWorldManager::GetLODForOffset(const CGPoint aOffset)
 {
 	return 0;
 }

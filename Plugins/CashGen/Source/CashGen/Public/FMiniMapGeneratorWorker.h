@@ -8,7 +8,7 @@ class FMiniMapGeneratorWorker : public FRunnable
 {
 	AZoneManager* pCallingZoneManager;
 	FZoneConfig*  pZoneConfig;
-	Point*		  pOffset;
+	CGPoint*		  pOffset;
 
 	TArray<float>*	pHeightMapData;
 	TArray<FColor>*		pColorData;
@@ -18,7 +18,7 @@ class FMiniMapGeneratorWorker : public FRunnable
 public:
 	FMiniMapGeneratorWorker(AZoneManager*		apZoneManager,
 		FZoneConfig*			aZoneConfig,
-		Point*				aOffSet,
+		CGPoint*				aOffSet,
 		TArray<float>* aHeightMapData,
 		TArray<FColor>* aColorData);
 

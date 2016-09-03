@@ -2,7 +2,7 @@
 #include "cashgen.h"
 #include "ZoneManager.h"
 #include "ZoneJob.h"
-#include "Point.h"
+#include "CGPoint.h"
 #include "BiomeWeights.h"
 #include "ZoneConfig.h"
 
@@ -10,7 +10,7 @@ class FZoneGeneratorWorker : public FRunnable
 {
 	AZoneManager* pCallingZoneManager;
 	FZoneConfig*			pZoneConfig;
-	Point*				pOffset;
+	CGPoint*				pOffset;
 	TMap<uint8, eLODStatus>* pZoneJobData;
 	uint8 MyLOD;
 
@@ -37,7 +37,7 @@ class FZoneGeneratorWorker : public FRunnable
 public:
 	FZoneGeneratorWorker(AZoneManager*		apZoneManager,
 		FZoneConfig*			aZoneConfig,
-		Point*				aOffSet,
+		CGPoint*				aOffSet,
 		TMap<uint8, eLODStatus>* pZoneJobData,
 		uint8 MyLOD,
 		TArray<FVector>*	aVertices,

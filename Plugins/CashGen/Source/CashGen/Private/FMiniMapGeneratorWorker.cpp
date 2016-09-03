@@ -2,7 +2,7 @@
 #include "ZoneConfig.h"
 #include "ZoneManager.h"
 #include "FMiniMapGeneratorWorker.h"
-#include "Point.h"
+#include "CGPoint.h"
 
 void FMiniMapGeneratorWorker::GenerateMiniMapData()
 {
@@ -14,7 +14,7 @@ void FMiniMapGeneratorWorker::GenerateMiniMapData()
 	//}
 }
 
-FMiniMapGeneratorWorker::FMiniMapGeneratorWorker(AZoneManager* apZoneManager, FZoneConfig* aZoneConfig, Point* aOffSet, TArray<float>* aHeightMapData, TArray<FColor>* aColorData)
+FMiniMapGeneratorWorker::FMiniMapGeneratorWorker(AZoneManager* apZoneManager, FZoneConfig* aZoneConfig, CGPoint* aOffSet, TArray<float>* aHeightMapData, TArray<FColor>* aColorData)
 {
 
 }

@@ -38,7 +38,7 @@ AZoneManager::AZoneManager()
 }
 
 // Initial setup of the zone
-void AZoneManager::SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, const Point aOffset, const FZoneConfig aZoneConfig, FVector* aWorldOffset)
+void AZoneManager::SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, const CGPoint aOffset, const FZoneConfig aZoneConfig, FVector* aWorldOffset)
 {
 	// The world grid offset of this zone
 	MyOffset.x	= aOffset.x;

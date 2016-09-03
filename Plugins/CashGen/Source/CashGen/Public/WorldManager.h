@@ -4,7 +4,7 @@
 
 #include "GameFramework/Actor.h"
 #include "ZoneManager.h"
-#include "Point.h"
+#include "CGPoint.h"
 #include "ZoneConfig.h"
 #include "ZoneJob.h"
 #include "MiniMapGenerator.h"
@@ -38,8 +38,8 @@ class AWorldManager : public AActor
 	TArray<FZoneJob> MyRegenQueue;
 
 	// Couple of helper functions for accessing the zone array using coords
-	int32 GetIdxfromXY(const Point point) { return point.x * MyNumYZones + point.y; };
-	Point GetXYfromIdx(const int32 idx) { return Point(idx % MyNumYZones, idx / MyNumYZones); }
+	int32 GetIdxfromXY(const CGPoint point) { return point.x * MyNumYZones + point.y; };
+	CGPoint GetXYfromIdx(const int32 idx) { return CGPoint(idx % MyNumYZones, idx / MyNumYZones); }
 
 	// Called when the player pawn crosses a zone boundary
 	void HandleZoneChange(const FVector2D delta);
@@ -66,7 +66,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
 
-	uint8 GetLODForOffset(const Point aOffset);
+	uint8 GetLODForOffset(const CGPoint aOffset);
 	uint8 GetLODForZoneManagerIndex(const int32 aZoneIndex);
 
 	UFUNCTION(BlueprintCallable, Category = "World Manager")

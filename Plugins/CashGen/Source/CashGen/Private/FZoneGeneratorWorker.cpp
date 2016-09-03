@@ -6,7 +6,7 @@
 
 FZoneGeneratorWorker::FZoneGeneratorWorker(AZoneManager*		apZoneManager,
 	FZoneConfig*			aZoneConfig,
-	Point*				aOffSet,
+	CGPoint*				aOffSet,
 	TMap<uint8, eLODStatus>*   aZoneJobData,
 	uint8 aLOD,
 	TArray<FVector>*	aVertices,

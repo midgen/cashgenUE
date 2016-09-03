@@ -5,7 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "RuntimeMeshComponent.h"
 #include "Runtime/Engine/Classes/Components/HierarchicalInstancedStaticMeshComponent.h"
-#include "Point.h"
+#include "CGPoint.h"
 #include "MeshData.h"
 #include "ZoneConfig.h"
 #include "ZoneManager.generated.h"
@@ -51,7 +51,7 @@ public:
 	// Sets default values for this actor's properties
 	AZoneManager();
 	~AZoneManager();
-	Point MyOffset;
+	CGPoint MyOffset;
 	TMap<uint8, eLODStatus> MyLODMeshStatus;
 	uint8 currentlyDisplayedLOD;
 	int32 MyZoneID;
@@ -59,7 +59,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
 
-	void SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, const Point aOffset, const FZoneConfig aZoneConfig, FVector* aWorldOffset);
+	void SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, const CGPoint aOffset, const FZoneConfig aZoneConfig, FVector* aWorldOffset);
 	void RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdate);
 	void UpdateMesh(const uint8 aLOD);
 
