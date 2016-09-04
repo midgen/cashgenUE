@@ -20,6 +20,7 @@ class AZoneManager : public AActor
 	GENERATED_BODY()
 	// Map of the Runtime mesh components (we have one for each LOD)
 	TMap<uint8, URuntimeMeshComponent*> MyRuntimeMeshComponents;
+	TMap<uint8, UMaterialInstanceDynamic*> MyMaterialInstances;
 
 	// List of instanced mesh components for spawning foliage and other meshes
 	TArray<UHierarchicalInstancedStaticMeshComponent*> MyInstancedMeshComponents;
@@ -39,7 +40,9 @@ class AZoneManager : public AActor
 
 	FVector* worldOffset;
 
-	const float SEGUE_DROP = 100000.0f;
+	UMaterialInstance* materialInstance;
+
+	float LODTransitionOpacity = 0.0f;
 
 	void PopulateMeshData(const uint8 aLOD);
 	void CalculateTriangles(const uint8 aLOD);
@@ -54,6 +57,7 @@ public:
 	CGPoint MyOffset;
 	TMap<uint8, eLODStatus> MyLODMeshStatus;
 	uint8 currentlyDisplayedLOD;
+	uint8 previousDisplayedLOD;
 	int32 MyZoneID;
 
 	virtual void BeginPlay() override;

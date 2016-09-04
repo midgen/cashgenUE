@@ -191,23 +191,19 @@ uint8 AWorldManager::GetLODForZoneManagerIndex(const int32 aZoneIndex)
 
 	float distance = diff.Size();
 
-	if (distance <= MyZoneConfigMaster.LOD0Range)
+	if (distance <= MyZoneConfigMaster.LOD1Range)
 	{
 		return 0;
 	}
-	if (distance > MyZoneConfigMaster.LOD0Range && distance <= MyZoneConfigMaster.LOD1Range)
+	if (distance > MyZoneConfigMaster.LOD1Range && distance <= MyZoneConfigMaster.LOD2Range)
 	{
 		return 1;
 	}
-	if (distance > MyZoneConfigMaster.LOD1Range && distance <= MyZoneConfigMaster.LOD2Range)
+	if (distance > MyZoneConfigMaster.LOD2Range && distance <= MyZoneConfigMaster.LODCullRange)
 	{
 		return 2;
 	}
-	if (distance > MyZoneConfigMaster.LOD2Range && distance <= MyZoneConfigMaster.LOD3Range)
-	{
-		return 3;
-	}
-	if (distance > MyZoneConfigMaster.LOD3Range)
+	if (distance > MyZoneConfigMaster.LODCullRange)
 	{
 		return 10;
 	}
@@ -230,11 +226,8 @@ void AWorldManager::SpawnZones(APawn* aPlayerPawn, const FZoneConfig aZoneConfig
 
 	currentPlayerPawn = aPlayerPawn;
 
-
-
 	miniMapGenerator->Init(this, aZoneConfig);
 	miniMapGenerator->CreateHeightmapTexture();
-	
 
 	for (int i = 0; i < MyMaxThreads; ++i)
 	{

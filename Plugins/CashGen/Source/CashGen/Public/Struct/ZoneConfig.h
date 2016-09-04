@@ -18,31 +18,28 @@ struct FZoneConfig
 	UUFNBlendModule* BiomeBlendModule;
 	/** Number of blocks along a zone's X axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		int32 XUnits;
+	int32 XUnits;
 	/** Number of blocks along a zone's Y axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		int32 YUnits;
+	int32 YUnits;
 	/** Size of a single block in world units */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		float UnitSize;
+	float UnitSize;
 	/** Multiplier for heightmap*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		float Amplitude;
+	float Amplitude;
 	/** Material for the terrain mesh */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		UMaterial* TerrainMaterial;
+	UMaterial* TerrainMaterialInstanceParent;
 	/** LOD 0->1 transition range **/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-	float LOD0Range;
-	/** LOD 1->2 transition range **/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	float LOD1Range;
-	/** LOD 2->3 transition range **/
+	/** LOD 1->2 transition range **/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	float LOD2Range;
 	/** Do no render range **/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-	float LOD3Range;
+	float LODCullRange;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	TArray<FBiomeConfig> BiomeConfig;
 };

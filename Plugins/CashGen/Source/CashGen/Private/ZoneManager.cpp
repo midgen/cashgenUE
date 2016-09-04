@@ -15,26 +15,21 @@ AZoneManager::AZoneManager()
 	MyRuntimeMeshComponents.Add(0, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("GeneratedMesh0")));
 	MyRuntimeMeshComponents.Add(1, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("GeneratedMesh1")));
 	MyRuntimeMeshComponents.Add(2, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("GeneratedMesh2")));
-	MyRuntimeMeshComponents.Add(3, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("GeneratedMesh3")));
 
 	this->SetActorEnableCollision(true);
 	MyRuntimeMeshComponents[0]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	MyRuntimeMeshComponents[1]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	MyRuntimeMeshComponents[2]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	MyRuntimeMeshComponents[3]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	MyRuntimeMeshComponents[0]->BodyInstance.SetResponseToAllChannels(ECR_Block);
 	MyRuntimeMeshComponents[1]->BodyInstance.SetResponseToAllChannels(ECR_Block);
 	MyRuntimeMeshComponents[2]->BodyInstance.SetResponseToAllChannels(ECR_Block);
-	MyRuntimeMeshComponents[3]->BodyInstance.SetResponseToAllChannels(ECR_Block);
 	MyRuntimeMeshComponents[0]->bShouldSerializeMeshData = false;
 	MyRuntimeMeshComponents[1]->bShouldSerializeMeshData = false;
 	MyRuntimeMeshComponents[2]->bShouldSerializeMeshData = false;
-	MyRuntimeMeshComponents[3]->bShouldSerializeMeshData = false;
-
-
 
 	// LOD 10 = do not render
 	currentlyDisplayedLOD = 10;
+	previousDisplayedLOD = 10;
 }
 
 // Initial setup of the zone
@@ -184,11 +179,12 @@ void AZoneManager::CalculateTriangles(const uint8 aLOD)
 // Inplace update means the zone isn't moving it's just a LOD change (from 1 to 0)
 void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdate)
 {
-	if (MyRuntimeMeshComponents.Contains(currentlyDisplayedLOD))
+	// If this tile has been moved, hide the mesh
+	if (!isInPlaceLODUpdate && previousDisplayedLOD != 10)
 	{
-		MyRuntimeMeshComponents[currentlyDisplayedLOD]->SetMeshSectionVisible(0, false);
+		MyRuntimeMeshComponents[previousDisplayedLOD]->SetMeshSectionVisible(0, false);
 	}
-	
+	LODTransitionOpacity = 1.0f;
 
 	currentlyDisplayedLOD = aLOD;
 
@@ -201,7 +197,8 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 		{
 			MyLODMeshStatus.Add(aLOD, eLODStatus::BUILDING_REQUIRES_CREATE);
 			PopulateMeshData(aLOD);
-			MyRuntimeMeshComponents[aLOD]->SetMaterial(0, MyConfig.TerrainMaterial);
+			MyMaterialInstances.Add(aLOD, UMaterialInstanceDynamic::Create(MyConfig.TerrainMaterialInstanceParent, this));
+			MyRuntimeMeshComponents[aLOD]->SetMaterial(0, MyMaterialInstances[aLOD]);
 		}
 		else
 		{
@@ -225,7 +222,7 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 			0, TPri_BelowNormal);
 	}
 
-	SetActorLocation(FVector((MyConfig.XUnits * MyConfig.UnitSize * MyOffset.x) - worldOffset->X, (MyConfig.YUnits * MyConfig.UnitSize * MyOffset.y) - worldOffset->Y, -SEGUE_DROP));
+	SetActorLocation(FVector((MyConfig.XUnits * MyConfig.UnitSize * MyOffset.x) - worldOffset->X, (MyConfig.YUnits * MyConfig.UnitSize * MyOffset.y) - worldOffset->Y, 0.0f));
 }
 
 
@@ -256,10 +253,6 @@ void AZoneManager::UpdateMesh(const uint8 aLOD)
 			
 		}
 	}
-
-	
-	
-
 }
 
 // Called when the game starts or when spawned
@@ -301,16 +294,27 @@ void AZoneManager::Tick(float DeltaTime)
 		}
 		else if (lod.Value == eLODStatus::SEGUE)
 		{
-			float segueThisTick = 100000.0f * DeltaTime;
-			if (GetActorLocation().Z + segueThisTick >= -0.1f)
+			if (LODTransitionOpacity >= -1.0f)
 			{
-				SetActorLocation(FVector(GetActorLocation().X, GetActorLocation().Y, 0.0f));
-				if (lod.Key == 0) { MyBlocksToSpawnFoliageOn = MyConfig.XUnits * MyConfig.YUnits; }
-				lod.Value = eLODStatus::IDLE;
+				LODTransitionOpacity -= 0.01f;
+				if (LODTransitionOpacity > 0.0f)
+				{
+					MyMaterialInstances[lod.Key]->SetScalarParameterValue(FName("TerrainOpacity"), 1.0f - LODTransitionOpacity);
+				}
+				else if (previousDisplayedLOD != 10 && previousDisplayedLOD != currentlyDisplayedLOD) 
+				{
+					MyMaterialInstances[previousDisplayedLOD]->SetScalarParameterValue(FName("TerrainOpacity"), LODTransitionOpacity + 1.0f);
+				}
 			}
 			else
 			{
-				SetActorLocation(FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + segueThisTick));
+				if (lod.Key == 0) { MyBlocksToSpawnFoliageOn = MyConfig.XUnits * MyConfig.YUnits; }
+				if (previousDisplayedLOD != 10 && previousDisplayedLOD != currentlyDisplayedLOD) {
+					MyRuntimeMeshComponents[previousDisplayedLOD]->SetMeshSectionVisible(0, false);
+				}
+				previousDisplayedLOD = currentlyDisplayedLOD;
+				LODTransitionOpacity = 1.0f;
+				lod.Value = eLODStatus::IDLE;	
 			}
 		}
 		else if (currentlyDisplayedLOD == 0 && lod.Value == eLODStatus::IDLE)
@@ -354,45 +358,32 @@ bool AZoneManager::SpawnTreesAtIndex(int32* aIndex)
 	{
 		for (int32 MeshIndex = 0; MeshIndex < MyConfig.BiomeConfig[BiomeIndex].MeshConfigs.Num(); ++MeshIndex)
 		{
-		//	if(BiomeIndex == 0 && MyLODMeshData[currentlyDisplayedLOD].BiomeWeightMap[blockX + (blockY * MyConfig.YUnits)].BiomeWeights[EBiome::Trees].
-
-				for (int32 densityMultiplier = 0; densityMultiplier < MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].DensityMultiplier; ++densityMultiplier)
+			for (int32 densityMultiplier = 0; densityMultiplier < MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].DensityMultiplier; ++densityMultiplier)
+			{
+				if (MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].DensityMultiplier * MyLODMeshData[currentlyDisplayedLOD].BiomeWeightMap[blockX + (blockY * MyConfig.YUnits)].BiomeWeights[BiomeIndex].Weight < FMath::FRandRange(0.0, 1.0))
 				{
-					if (//MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].DensityMultiplier > 0.0f
-						//&& MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].DensityMultiplier < 1.0f
-						MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].DensityMultiplier * MyLODMeshData[currentlyDisplayedLOD].BiomeWeightMap[blockX + (blockY * MyConfig.YUnits)].BiomeWeights[BiomeIndex].Weight < FMath::FRandRange(0.0, 1.0))
-					{
-						hasSpawnedOnThisBlock = true;
-						break;
-					}
+					hasSpawnedOnThisBlock = true;
+					break;
+				}
 
-					FVector startPos = FVector(((MyOffset.x) * MyConfig.XUnits * MyConfig.UnitSize) - worldOffset->X + ((blockX)* MyConfig.UnitSize) + FMath::FRandRange(0.0f, MyConfig.UnitSize),
+				FVector startPos = FVector(((MyOffset.x) * MyConfig.XUnits * MyConfig.UnitSize) - worldOffset->X + ((blockX)* MyConfig.UnitSize) + FMath::FRandRange(0.0f, MyConfig.UnitSize),
 					(MyOffset.y * MyConfig.YUnits * MyConfig.UnitSize) - worldOffset->Y + ((blockY)* MyConfig.UnitSize) + FMath::FRandRange(0.0f, MyConfig.UnitSize), 50000.0f);
 
-					//FVector startPos = FVector(GetActorLocation().X + blockX * MyConfig.UnitSize, GetActorLocation().Y + blockY * MyConfig.UnitSize, 50000.0f);
+				FVector spawnPoint = FVector(0.0f, 0.0f, 0.0f);
+				FVector normalVector = FVector(0.0f);
+				if (GetGodCastHitPos(startPos, &spawnPoint, &normalVector))
+				{
+					FRotator rotation = FRotator(0.0f, FMath::FRandRange(-90.f, 90.0f), 0.0f);
 
-					FVector spawnPoint = FVector(0.0f, 0.0f, 0.0f);
-					FVector normalVector = FVector(0.0f);
-					if (GetGodCastHitPos(startPos, &spawnPoint, &normalVector))
+					if (MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].AlignWithPlane)
 					{
-						FRotator rotation = FRotator(0.0f, FMath::FRandRange(-90.f, 90.0f), 0.0f);
-
-						if (MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].AlignWithPlane)
-						{
-							rotation += normalVector.Rotation() + FRotator(-90.0f, 0.0f, 0.0f);
-						}
-
-
-
-						MyInstancedMeshComponents[compIndex]->AddInstance(FTransform(rotation, spawnPoint, FVector(1.0f) * FMath::RandRange(MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].ScaleMin, MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].ScaleMax)));
-						hasSpawnedOnThisBlock = true;
+						rotation += normalVector.Rotation() + FRotator(-90.0f, 0.0f, 0.0f);
 					}
-				
-
-
-				
+					MyInstancedMeshComponents[compIndex]->AddInstance(FTransform(rotation, spawnPoint, FVector(1.0f) * FMath::RandRange(MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].ScaleMin, MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].ScaleMax)));
+					hasSpawnedOnThisBlock = true;
+				}
 			}
-				++compIndex;
+			++compIndex;
 		}
 	}
 
@@ -407,8 +398,6 @@ bool AZoneManager::GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitP
 	MyTraceParams.bTraceComplex = false;
 	MyTraceParams.bTraceAsyncScene = true;
 	MyTraceParams.bReturnPhysicalMaterial = false;
-	//MyTraceParams.TraceTag = TraceTag;
-	//GetWorld()->DebugDrawTraceTag = TraceTag;
 
 	FCollisionResponseParams MyResponseParams = FCollisionResponseParams();
 
@@ -428,8 +417,4 @@ bool AZoneManager::GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitP
 	}
 
 	return false;
-
-
-
-
 }
