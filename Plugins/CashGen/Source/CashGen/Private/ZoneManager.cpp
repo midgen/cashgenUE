@@ -198,6 +198,19 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 			MyLODMeshStatus.Add(aLOD, eLODStatus::BUILDING_REQUIRES_CREATE);
 			PopulateMeshData(aLOD);
 			MyMaterialInstances.Add(aLOD, UMaterialInstanceDynamic::Create(MyConfig.TerrainMaterialInstanceParent, this));
+			if (MyConfig.IsLODDebugEnabled)
+			{
+				switch(aLOD)
+				{
+					case 1:
+						MyMaterialInstances[aLOD]->SetVectorParameterValue(FName("GrassColor"), FLinearColor::Red);
+						break;
+					case 2:
+						MyMaterialInstances[aLOD]->SetVectorParameterValue(FName("GrassColor"), FLinearColor::Blue);
+						break;
+				}
+			}
+			
 			MyRuntimeMeshComponents[aLOD]->SetMaterial(0, MyMaterialInstances[aLOD]);
 		}
 		else

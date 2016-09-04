@@ -41,5 +41,7 @@ struct FZoneConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	float LODCullRange;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	bool IsLODDebugEnabled;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	TArray<FBiomeConfig> BiomeConfig;
 };
