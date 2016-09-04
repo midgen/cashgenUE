@@ -17,7 +17,12 @@
 		},
 		{
 			"Name": "UnrealFastNoisePlugin",
-			"Enabled": true	
+			"Enabled": true
+		},
+		{
+			"Name": "RuntimeMeshComponent",
+			"Enabled": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/offers/ad0b45a6a31e462aba7cf7c790a9c125"
 		}
 	]
 }
