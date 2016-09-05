@@ -107,8 +107,7 @@ void AWorldManager::HandleZoneChange(const FVector2D delta)
 	int32 minY = 0;
 	int32 maxY = 0;
 
-	// TODO: Replace all this with a distance based lifecycle state machine for LOD implementation
-
+	// TODO: wow this is ugly..need to fix
 	for (int i = 0; i < ZonesMaster.Num(); ++i)
 	{
 		if (i == 0) {
@@ -140,19 +139,19 @@ void AWorldManager::HandleZoneChange(const FVector2D delta)
 			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 		}
 		// Moving right on X, flip right column to left
-		if (delta.X > 0.1 && ZonesMaster[i]->MyOffset.x == minX)
+		else if (delta.X > 0.1 && ZonesMaster[i]->MyOffset.x == minX)
 		{
 			ZonesMaster[i]->MyOffset.x = maxX + 1;
 			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 		}
 		// Movin down on Y, flip top row to bottom
-		if (delta.Y < -0.1 && ZonesMaster[i]->MyOffset.y == maxY)
+		else if (delta.Y < -0.1 && ZonesMaster[i]->MyOffset.y == maxY)
 		{
 			ZonesMaster[i]->MyOffset.y = minY - 1;
 			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 		}
 		// Moving up on Y, flip bottom wor to top
-		if (delta.Y > 0.1 && ZonesMaster[i]->MyOffset.y == minY)
+		else if (delta.Y > 0.1 && ZonesMaster[i]->MyOffset.y == minY)
 		{
 			ZonesMaster[i]->MyOffset.y = maxY + 1;
 			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);

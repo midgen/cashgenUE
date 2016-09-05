@@ -17,20 +17,19 @@ UCLASS(BlueprintType, Blueprintable)
 class AWorldManager : public AActor
 {
 	GENERATED_BODY()
-	// All our child zones
-
+	// Master list of child zones
 	TArray<AZoneManager*> ZonesMaster;
 	int32 MyNumXZones;
 	int32 MyNumYZones;
-
+	// Max Threads
 	int32 MyMaxThreads;
-
+	// Pawn to track
 	APawn* currentPlayerPawn;
 	UWorld* world;
 
-	
-
 	uint8 RenderTokens;
+
+	// for controlling LOD sweeps
 	float TimeSinceLastSweep;
 	const float SweepInterval = 1.0f;
 
@@ -52,7 +51,7 @@ public:
 	TQueue<uint8, EQueueMode::Mpsc> MyAvailableThreads;
 	// Queue for managing mesh updates
 	TQueue<FZoneJob, EQueueMode::Mpsc> MyRenderQueue;
-
+	// Master zone Configuration
 	FZoneConfig MyZoneConfigMaster;
 
 	FVector worldOffset;
@@ -61,7 +60,7 @@ public:
 	UMiniMapGenerator* miniMapGenerator;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen Manager")
-		FVector2D currentPlayerZone;
+	FVector2D currentPlayerZone;
 
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;

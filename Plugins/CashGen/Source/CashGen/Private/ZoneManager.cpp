@@ -83,25 +83,34 @@ void AZoneManager::PopulateMeshData(const uint8 aLOD)
 	int32 numYVerts = aLOD == 0 ? MyConfig.YUnits + 1 : (MyConfig.YUnits / (FMath::Pow(2, aLOD))) + 1;
 
 	MyLODMeshData.Add(aLOD, FMeshData());
+
+	MyLODMeshData[aLOD].MyVertices.Reserve(numXVerts * numYVerts);
+	MyLODMeshData[aLOD].MyNormals.Reserve(numXVerts * numYVerts);
+	MyLODMeshData[aLOD].MyUV0.Reserve(numXVerts * numYVerts);
+	MyLODMeshData[aLOD].MyVertexColors.Reserve(numXVerts * numYVerts);
+	MyLODMeshData[aLOD].MyTangents.Reserve(numXVerts * numYVerts);
+
 	// Generate the per vertex data sets
 	for (int32 i = 0; i < (numXVerts * numYVerts); ++i)
 	{
-		MyLODMeshData[aLOD].MyVertices.Add(FVector(i * 1.0f, i * 1.0f, 0.0f));
-		MyLODMeshData[aLOD].MyNormals.Add(FVector(0.0f, 0.0f, 1.0f));
-		MyLODMeshData[aLOD].MyUV0.Add(FVector2D(0.0f, 0.0f));
-		MyLODMeshData[aLOD].MyVertexColors.Add(FColor::Black);
-		MyLODMeshData[aLOD].MyTangents.Add(FRuntimeMeshTangent(0.0f, 0.0f, 0.0f));
+		MyLODMeshData[aLOD].MyVertices.Emplace(0.0f);
+		MyLODMeshData[aLOD].MyNormals.Emplace(0.0f, 0.0f, 1.0f);
+		MyLODMeshData[aLOD].MyUV0.Emplace(0.0f, 0.0f);
+		MyLODMeshData[aLOD].MyVertexColors.Emplace(FColor::Black);
+		MyLODMeshData[aLOD].MyTangents.Emplace(0.0f, 0.0f, 0.0f);
 	}
 
 	// Heightmap needs to be larger than the mesh
 	// Using vectors here is a bit wasteful, but it does make normal/tangent or any other
 	// Geometric calculations based on the heightmap a bit easier. Easy enough to change to floats
+	MyLODMeshData[aLOD].MyHeightMap.Reserve((numXVerts + 2) * (numYVerts + 2));
 	for (int32 i = 0; i < (numXVerts + 2) * (numYVerts + 2); ++i)
 	{
-		MyLODMeshData[aLOD].MyHeightMap.Add(FVector(0.0f));
+		MyLODMeshData[aLOD].MyHeightMap.Emplace(0.0f);
 	}
 
 	// Triangle indexes
+	MyLODMeshData[aLOD].MyTriangles.Reserve((numXVerts - 1) * (numYVerts - 1) * 6);
 	for (int32 i = 0; i < (numXVerts - 1) * (numYVerts - 1) * 6; ++i)
 	{
 		MyLODMeshData[aLOD].MyTriangles.Add(i);
@@ -110,11 +119,12 @@ void AZoneManager::PopulateMeshData(const uint8 aLOD)
 	CalculateTriangles(aLOD);
 
 	// Fill the Biome Map, if it's LOD0
+	MyLODMeshData[aLOD].BiomeWeightMap.Reserve(MyConfig.XUnits * MyConfig.YUnits);
 	if (aLOD == 0)
 	{
 		for (int32 i = 0; i < MyConfig.XUnits * MyConfig.YUnits; ++i)
 		{
-			MyLODMeshData[aLOD].BiomeWeightMap.Add(FBiomeWeights());
+			MyLODMeshData[aLOD].BiomeWeightMap.Emplace();
 		}
 	}
 		
@@ -184,6 +194,7 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 	{
 		MyRuntimeMeshComponents[previousDisplayedLOD]->SetMeshSectionVisible(0, false);
 	}
+
 	LODTransitionOpacity = 1.0f;
 
 	currentlyDisplayedLOD = aLOD;
@@ -198,8 +209,8 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 			MyLODMeshStatus.Add(aLOD, eLODStatus::BUILDING_REQUIRES_CREATE);
 			PopulateMeshData(aLOD);
 			MyMaterialInstances.Add(aLOD, UMaterialInstanceDynamic::Create(MyConfig.TerrainMaterialInstanceParent, this));
-			if (MyConfig.IsLODDebugEnabled)
-			{
+			// Apply the debug LOD colors if enabled
+			if (MyConfig.IsLODDebugEnabled) {
 				switch(aLOD)
 				{
 					case 1:
@@ -210,10 +221,11 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 						break;
 				}
 			}
+			// Otherwise use the specified grass color
 			else {
 				MyMaterialInstances[aLOD]->SetVectorParameterValue(FName("GrassColor"), MyConfig.GrassColor);
 			}
-
+			// Pass the other material parameters
 			MyMaterialInstances[aLOD]->SetScalarParameterValue(FName("SlopeStart"), MyConfig.SlopeStart);
 			MyMaterialInstances[aLOD]->SetScalarParameterValue(FName("SlopeEnd"), MyConfig.SlopeEnd);
 			MyMaterialInstances[aLOD]->SetScalarParameterValue(FName("ShoreHeight"), MyConfig.ShoreHeight);
@@ -254,7 +266,7 @@ void AZoneManager::UpdateMesh(const uint8 aLOD)
 	if (MyLODMeshStatus[aLOD] == eLODStatus::DRAWING_REQUIRES_CREATE)
 	{
 		// Only generate collision if this is LOD0
-		MyRuntimeMeshComponents[aLOD]->CreateMeshSection(0, MyLODMeshData[aLOD].MyVertices, MyLODMeshData[aLOD].MyTriangles, MyLODMeshData[aLOD].MyNormals, MyLODMeshData[aLOD].MyUV0, MyLODMeshData[aLOD].MyVertexColors, MyLODMeshData[aLOD].MyTangents, aLOD == 0, EUpdateFrequency::Frequent);
+		MyRuntimeMeshComponents[aLOD]->CreateMeshSection(0, MyLODMeshData[aLOD].MyVertices, MyLODMeshData[aLOD].MyTriangles, MyLODMeshData[aLOD].MyNormals, MyLODMeshData[aLOD].MyUV0, MyLODMeshData[aLOD].MyVertexColors, MyLODMeshData[aLOD].MyTangents, aLOD == 0, EUpdateFrequency::Infrequent);
 		MyRuntimeMeshComponents[currentlyDisplayedLOD]->SetMeshSectionVisible(0, true);
 		MyLODMeshStatus[aLOD] = SEGUE;
 	}

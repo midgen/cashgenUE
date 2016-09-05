@@ -33,6 +33,8 @@ class FZoneGeneratorWorker : public FRunnable
 	FVector GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY);
 	FRuntimeMeshTangent GetTangentFromNormal(const FVector aNormal);
 	void UpdateOneBlockGeometry(const int aX, const int aY, int32& aVertCounter, int32& triCounter);
+
+	int32 GetNumberOfNoiseSamplePoints();
 	
 public:
 	FZoneGeneratorWorker(AZoneManager*		apZoneManager,
