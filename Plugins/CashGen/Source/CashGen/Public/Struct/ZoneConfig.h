@@ -41,6 +41,18 @@ struct FZoneConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	float LODCullRange;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	FLinearColor GrassColor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	FLinearColor ShoreColor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	FLinearColor SlopeColor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	float ShoreHeight;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	float SlopeStart;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	float SlopeEnd;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	bool IsLODDebugEnabled;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	TArray<FBiomeConfig> BiomeConfig;

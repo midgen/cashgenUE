@@ -210,7 +210,15 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 						break;
 				}
 			}
-			
+			else {
+				MyMaterialInstances[aLOD]->SetVectorParameterValue(FName("GrassColor"), MyConfig.GrassColor);
+			}
+
+			MyMaterialInstances[aLOD]->SetScalarParameterValue(FName("SlopeStart"), MyConfig.SlopeStart);
+			MyMaterialInstances[aLOD]->SetScalarParameterValue(FName("SlopeEnd"), MyConfig.SlopeEnd);
+			MyMaterialInstances[aLOD]->SetScalarParameterValue(FName("ShoreHeight"), MyConfig.ShoreHeight);
+			MyMaterialInstances[aLOD]->SetVectorParameterValue(FName("SlopeColor"), MyConfig.SlopeColor);
+			MyMaterialInstances[aLOD]->SetVectorParameterValue(FName("ShoreColor"), MyConfig.ShoreColor);
 			MyRuntimeMeshComponents[aLOD]->SetMaterial(0, MyMaterialInstances[aLOD]);
 		}
 		else
@@ -309,7 +317,7 @@ void AZoneManager::Tick(float DeltaTime)
 		{
 			if (LODTransitionOpacity >= -1.0f)
 			{
-				LODTransitionOpacity -= 0.01f;
+				LODTransitionOpacity -= 0.02f;
 				if (LODTransitionOpacity > 0.0f)
 				{
 					MyMaterialInstances[lod.Key]->SetScalarParameterValue(FName("TerrainOpacity"), 1.0f - LODTransitionOpacity);
@@ -332,7 +340,7 @@ void AZoneManager::Tick(float DeltaTime)
 		}
 		else if (currentlyDisplayedLOD == 0 && lod.Value == eLODStatus::IDLE)
 		{
-			for (int i = 0; i < 10; ++i)
+			for (int i = 0; i < 1; ++i)
 			{
 				while (MyBlocksToSpawnFoliageOn > 0 && !SpawnTreesAtIndex(&MyBlocksToSpawnFoliageOn));
 			}
