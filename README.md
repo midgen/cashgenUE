@@ -9,6 +9,8 @@ https://github.com/Auburns/FastNoise for the noise generation code
 
 Aaron from the UE forums for his awesome grass blueprint
 
+The OceanPlugin contributors
+
 #Instructions
 
 * Have UE 4.12 or higher installed. (Tested on 4.12.5)
