@@ -11,12 +11,12 @@ Aaron from the UE forums for his awesome grass blueprint
 
 #Instructions
 
-*Have UE 4.12 or higher installed. (Tested on 4.12.5)
-*Have the RuntimeMeshComponent plugin installed from the UE marketplace.
-*Clone the repo.
-*Right click the UPROJECT file, selected 'Generate Visual Studio Files'
-*Open the .SLN
-*Build, launch!
+* Have UE 4.12 or higher installed. (Tested on 4.12.5)
+* Have the RuntimeMeshComponent plugin installed from the UE marketplace.
+* Clone the repo.
+* Right click the UPROJECT file, selected 'Generate Visual Studio Files'
+* Open the .SLN
+* Build, launch!
 
 There is a development thread on the UnrealEngine forums which contains some example blueprints you can use.
 
