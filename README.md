@@ -11,7 +11,12 @@ Aaron from the UE forums for his awesome grass blueprint
 
 #Instructions
 
-Copy the Cashgen plugin to your project's Plugins folder. The main class you are interested in is WorldManager, place an instance in your level and call the SpawnZones function, passing in a reference to the player pawn and the noise generation parameters (see below for examples).
+Have UE 4.12 or higher installed. (Tested on 4.12.5)
+Have the RuntimeMeshComponent plugin installed from the UE marketplace.
+Clone the repo.
+Right click the UPROJECT file, selected 'Generate Visual Studio Files'
+Open the .SLN
+Build, launch!
 
 There is a development thread on the UnrealEngine forums which contains some example blueprints you can use.
 
