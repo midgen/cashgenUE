@@ -363,7 +363,7 @@ void AZoneManager::Tick(float DeltaTime)
 // Return the location of the center of the zone
 FVector AZoneManager::GetCentrePos()
 {
-	return  FVector((MyOffset.x * MyConfig.XUnits * MyConfig.UnitSize) - worldOffset->X, (MyOffset.y * MyConfig.YUnits * MyConfig.UnitSize) - worldOffset->Y, 0.0f);
+	return  FVector(((MyOffset.x + 0.5f) * MyConfig.XUnits * MyConfig.UnitSize) - worldOffset->X, ((MyOffset.y + 0.5f) * MyConfig.YUnits * MyConfig.UnitSize) - worldOffset->Y, 0.0f);
 }
 
 AZoneManager::~AZoneManager()
