@@ -229,8 +229,11 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 			MyMaterialInstances[aLOD]->SetScalarParameterValue(FName("SlopeStart"), MyConfig.SlopeStart);
 			MyMaterialInstances[aLOD]->SetScalarParameterValue(FName("SlopeEnd"), MyConfig.SlopeEnd);
 			MyMaterialInstances[aLOD]->SetScalarParameterValue(FName("ShoreHeight"), MyConfig.ShoreHeight);
+			MyMaterialInstances[aLOD]->SetScalarParameterValue(FName("TreeLineHeight"), MyConfig.TreeLine);
 			MyMaterialInstances[aLOD]->SetVectorParameterValue(FName("SlopeColor"), MyConfig.SlopeColor);
 			MyMaterialInstances[aLOD]->SetVectorParameterValue(FName("ShoreColor"), MyConfig.ShoreColor);
+			MyMaterialInstances[aLOD]->SetVectorParameterValue(FName("TreeLineColor"), MyConfig.TreeLineColor);
+
 			MyRuntimeMeshComponents[aLOD]->SetMaterial(0, MyMaterialInstances[aLOD]);
 		}
 		else
@@ -391,13 +394,16 @@ bool AZoneManager::SpawnTreesAtIndex(int32* aIndex)
 	{
 		for (int32 MeshIndex = 0; MeshIndex < MyConfig.BiomeConfig[BiomeIndex].MeshConfigs.Num(); ++MeshIndex)
 		{
-			for (int32 densityMultiplier = 0; densityMultiplier < MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].DensityMultiplier; ++densityMultiplier)
+			float densMultiplier = MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].DensityMultiplier;
+			float biomeWeight = MyLODMeshData[currentlyDisplayedLOD].BiomeWeightMap[blockX + (blockY * MyConfig.YUnits)].BiomeWeights[BiomeIndex].Weight;
+
+			for (int32 densityIndex = 0; densityIndex < densMultiplier * biomeWeight; ++densityIndex)
 			{
-				if (MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].DensityMultiplier * MyLODMeshData[currentlyDisplayedLOD].BiomeWeightMap[blockX + (blockY * MyConfig.YUnits)].BiomeWeights[BiomeIndex].Weight < FMath::FRandRange(0.0, 1.0))
+				/*if (MyConfig.BiomeConfig[BiomeIndex].MeshConfigs[MeshIndex].DensityMultiplier * MyLODMeshData[currentlyDisplayedLOD].BiomeWeightMap[blockX + (blockY * MyConfig.YUnits)].BiomeWeights[BiomeIndex].Weight < FMath::FRandRange(0.0, 1.0))
 				{
 					hasSpawnedOnThisBlock = true;
 					break;
-				}
+				}*/
 
 				FVector startPos = FVector(((MyOffset.x) * MyConfig.XUnits * MyConfig.UnitSize) - worldOffset->X + ((blockX)* MyConfig.UnitSize) + FMath::FRandRange(0.0f, MyConfig.UnitSize),
 					(MyOffset.y * MyConfig.YUnits * MyConfig.UnitSize) - worldOffset->Y + ((blockY)* MyConfig.UnitSize) + FMath::FRandRange(0.0f, MyConfig.UnitSize), 50000.0f);

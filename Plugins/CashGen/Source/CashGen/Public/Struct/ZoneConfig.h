@@ -47,11 +47,15 @@ struct FZoneConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	FLinearColor SlopeColor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	FLinearColor TreeLineColor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	float ShoreHeight;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	float SlopeStart;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	float SlopeEnd;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	float TreeLine;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	bool IsLODDebugEnabled;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")

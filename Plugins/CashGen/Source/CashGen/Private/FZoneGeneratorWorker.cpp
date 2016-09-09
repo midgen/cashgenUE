@@ -130,16 +130,16 @@ void FZoneGeneratorWorker::ProcessBiomeWeightMap()
 	{
 		for (int32 x = 0; x < xUnits; ++x)
 		{
-			if ((*pHeightMap)[(x+1) + ((y+1)* (pZoneConfig->YUnits + 3))].Z > 500.0f && (*pHeightMap)[(x + 1) + ((y + 1)* (pZoneConfig->YUnits + 3))].Z <= 15000.0f)
+			if ((*pHeightMap)[(x+1) + ((y+1)* (pZoneConfig->YUnits + 3))].Z > pZoneConfig->ShoreHeight && (*pHeightMap)[(x + 1) + ((y + 1)* (pZoneConfig->YUnits + 3))].Z <= pZoneConfig->TreeLine)
 			{
-				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Trees, 0.0f));
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Trees, 0.5f));
 				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Grass, 1.0f));
-				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Rocks, 0.0f));
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Rocks, 0.1f));
 			}
-			else if ((*pHeightMap)[(x + 1) + ((y + 1)* (pZoneConfig->YUnits + 3))].Z > 15000.0f)
+			else if ((*pHeightMap)[(x + 1) + ((y + 1)* (pZoneConfig->YUnits + 3))].Z > pZoneConfig->TreeLine)
 			{
-				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Trees, 0.2f));
-				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Grass, 0.0f));
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Trees, 0.1f));
+				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Grass, 0.3f));
 				(*pBiomeWeightMap)[x + (y * xUnits)].BiomeWeights.Add(FBiomeWeight(EBiome::Rocks, 1.0f));
 			}
 			else
