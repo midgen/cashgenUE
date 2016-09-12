@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 #include "UFNNoiseGenerator.h"
 #include "UFNConstantModule.generated.h"

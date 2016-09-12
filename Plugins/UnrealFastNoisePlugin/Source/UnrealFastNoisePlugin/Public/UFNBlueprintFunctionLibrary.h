@@ -15,10 +15,13 @@ class UUFNBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	static UUFNNoiseGenerator* CreateSelectModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* selectModule, ESelectInterpType interpolationType = ESelectInterpType::None, float falloff = 0.0f, float threshold = 0.0f, int32 steps = 4);
 	// Creates Blend modules. Returns a blended value from input1 and input 2, based on the value returned from the select module. Blend range is from -1.0 to 1.0;
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
-	static UUFNNoiseGenerator* CreateBlendModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* selectModule);
+	static UUFNNoiseGenerator* CreateBlendModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* selectModule, UCurveFloat* blendCurve = nullptr);
 	// Creates a Scale/Bias modules. Applies a multiplier, and or additive value to the value returned from the input
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
 	static UUFNNoiseGenerator* CreateScaleBiasModule(UObject* outer, UUFNNoiseGenerator* inputModule, float scale = 1.0f, float bias = 0.0f);
+	// Creates an Add module. Adds two modules together, clamping the result and optionally accepting a third module as a mask with threshold
+	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
+	static UUFNNoiseGenerator* CreateAddModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* maskModule = nullptr, float threshold = 1.0f);
 	// Creates a Constant modules. Returns a constant value
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
 	static UUFNNoiseGenerator* CreateConstantModule(UObject* outer, float constantValue);
@@ -31,7 +34,11 @@ class UUFNBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 	// Creates a Cellular (Voronoi) noise module
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
 	static UUFNNoiseGenerator* CreateCellularNoiseGenerator(UObject* outer, int32 seed = 12345, float frequency = 0.1f, ECellularDistanceFunction cellularDistanceFunction = ECellularDistanceFunction::Euclidean, ECellularReturnType cellularReturnType = ECellularReturnType::CellValue, EPositionWarpType positionWarpType = EPositionWarpType::None, float positionWarpAmplitude = 30.0f);
+	// Creates a spline module.
+	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
+	static UUFNNoiseGenerator* CreateSplineGenerator(UObject* outer, float MaxDistance, float MinDistance, TArray<class USplineComponent*> Splines, UCurveFloat* falloffCurve = nullptr);
 	// Creates a Select module. Returns a value either from input1 or input 2 or input 3, depending on the value returned from the select module.
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
 	static UUFNNoiseGenerator* Create3SelectModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* inputModule3, UUFNNoiseGenerator* selectModule, float lowerThreshold = 0.0f, float upperThreshold = 0.0f, ESelectInterpType interpolationType = ESelectInterpType::None, float falloff = 0.0f, int32 steps = 4);
+
 };

@@ -1,10 +1,10 @@
 #pragma once
 
 #include "UFNNoiseGenerator.h"
-#include "UFNBlendModule.generated.h"
+#include "UFNAddModule.generated.h"
 
 UCLASS()
-class UUFNBlendModule : public UUFNNoiseGenerator
+class UUFNAddModule : public UUFNNoiseGenerator
 {
 	GENERATED_UCLASS_BODY()
 public:
@@ -16,10 +16,7 @@ public:
 	UPROPERTY()
 	UUFNNoiseGenerator* inputModule2;
 	UPROPERTY()
-	UUFNNoiseGenerator* selectModule;
+	UUFNNoiseGenerator* maskModule;
 
-	float falloff;
-	UPROPERTY()
-	UCurveFloat* blendCurve;
-
+	float threshold;
 };
