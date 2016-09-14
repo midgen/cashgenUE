@@ -5,7 +5,7 @@
 #include "UFNConstantModule.generated.h"
 
 UCLASS()
-class UUFNConstantModule : public UUFNNoiseGenerator
+class UNREALFASTNOISEPLUGIN_API UUFNConstantModule : public UUFNNoiseGenerator
 {
 	GENERATED_UCLASS_BODY()
 public:

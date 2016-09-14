@@ -4,7 +4,7 @@
 #include "UFNBlueprintFunctionLibrary.generated.h"
 
 UCLASS()
-class UUFNBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
+class UNREALFASTNOISEPLUGIN_API UUFNBlueprintFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_UCLASS_BODY()
 	// Creates a new noise generator module. Note that not all parameters may be relevant e.g. Fractal noise types will ignore Cellular parameters

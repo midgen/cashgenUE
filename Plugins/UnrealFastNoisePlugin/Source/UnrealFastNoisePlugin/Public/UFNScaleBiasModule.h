@@ -4,7 +4,7 @@
 #include "UFNScaleBiasModule.generated.h"
 
 UCLASS()
-class UUFNScaleBiasModule : public UUFNNoiseGenerator
+class UNREALFASTNOISEPLUGIN_API UUFNScaleBiasModule : public UUFNNoiseGenerator
 {
 	GENERATED_UCLASS_BODY()
 public:

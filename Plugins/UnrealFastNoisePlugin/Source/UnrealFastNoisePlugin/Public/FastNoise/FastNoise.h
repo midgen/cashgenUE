@@ -94,7 +94,7 @@ enum class ESelectInterpType : uint8
 
 
 UCLASS()
-class UFastNoise : public UUFNNoiseGenerator
+class UNREALFASTNOISEPLUGIN_API UFastNoise : public UUFNNoiseGenerator
 {
 	GENERATED_UCLASS_BODY()
 public:

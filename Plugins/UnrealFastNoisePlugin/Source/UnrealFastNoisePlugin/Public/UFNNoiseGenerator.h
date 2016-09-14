@@ -4,7 +4,7 @@
 #include "UFNNoiseGenerator.generated.h"
 
 UCLASS(BlueprintType)
-class UUFNNoiseGenerator : public UObject
+class UNREALFASTNOISEPLUGIN_API UUFNNoiseGenerator : public UObject
 {
 	GENERATED_UCLASS_BODY()
 
