@@ -175,27 +175,25 @@ void UBuoyancyComponent::ApplyUprightConstraint()
 		//Settings
 		FConstraintInstance ConstraintInstance;
 
-		ConstraintInstance.LinearXMotion = ELinearConstraintMotion::LCM_Free;
-		ConstraintInstance.LinearYMotion = ELinearConstraintMotion::LCM_Free;
-		ConstraintInstance.LinearZMotion = ELinearConstraintMotion::LCM_Free;
+		ConstraintInstance.SetLinearXMotion(ELinearConstraintMotion::LCM_Free);
+		ConstraintInstance.SetLinearYMotion(ELinearConstraintMotion::LCM_Free);
+		ConstraintInstance.SetLinearZMotion(ELinearConstraintMotion::LCM_Free);
 
 		//ConstraintInstance.LinearLimitSize = 0;
 
 		//ConstraintInstance.AngularSwing1Motion = EAngularConstraintMotion::ACM_Limited;
-		ConstraintInstance.AngularSwing2Motion = EAngularConstraintMotion::ACM_Limited;
-		ConstraintInstance.AngularTwistMotion = EAngularConstraintMotion::ACM_Limited;
 
-		ConstraintInstance.bSwingLimitSoft = true;
-		ConstraintInstance.bTwistLimitSoft = true;
+		ConstraintInstance.SetAngularSwing2Motion(EAngularConstraintMotion::ACM_Limited);
+		ConstraintInstance.SetAngularTwistMotion(EAngularConstraintMotion::ACM_Limited);
 
-		//ConstraintInstance.Swing1LimitAngle = 0;
-		ConstraintInstance.Swing2LimitAngle = 0;
-		ConstraintInstance.TwistLimitAngle = 0;
 
-		ConstraintInstance.SwingLimitStiffness = StayUprightStiffness;
-		ConstraintInstance.SwingLimitDamping = StayUprightDamping;
-		ConstraintInstance.TwistLimitStiffness = StayUprightStiffness;
-		ConstraintInstance.TwistLimitDamping = StayUprightDamping;
+		ConstraintInstance.SetAngularPositionDrive(true, true);
+
+
+		ConstraintInstance.SetAngularSwing2Limit(EAngularConstraintMotion::ACM_Locked, 0);
+		ConstraintInstance.SetAngularTwistLimit(EAngularConstraintMotion::ACM_Locked, 0);
+
+		ConstraintInstance.SetAngularDriveParams(StayUprightStiffness, StayUprightDamping, 0);
 
 		ConstraintInstance.AngularRotationOffset = UpdatedPrimitive->GetComponentRotation().GetInverse() + StayUprightDesiredRotation;
 

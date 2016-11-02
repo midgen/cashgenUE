@@ -22,6 +22,8 @@
 
 #include "OceanPluginPrivatePCH.h"
 #include "OceanManager.h"
+#include "PhysicsEngine/ConstraintInstance.h"
+#include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "BuoyancyComponent.generated.h"
 
 /**
