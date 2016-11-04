@@ -4,12 +4,15 @@
 #include "UFN3SelectModule.h"
 #include "UFNBlendModule.h"
 #include "UFNScaleBiasModule.h"
+#include "UFNAddModule.h"
 #include "UFNConstantModule.h"
+#include "UFNSplineGenerator.h"
+#include "Classes/Components/SplineComponent.h"
 #include "UFNBlueprintFunctionLibrary.h"
 
 UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateNoiseGenerator(UObject* outer, ENoiseType noiseType, ECellularDistanceFunction cellularDistanceFunction, ECellularReturnType cellularReturnType , EFractalType fractalType, EInterp interpolation, int32 seed, int32 octaves, float frequency, float lacunarity, float fractalGain, EPositionWarpType positionWarpType, float positionWarpAmplitude)
 {
-	UFastNoise* noiseGen = NewObject<UFastNoise>(outer, FName("NoiseGen"));
+	UFastNoise* noiseGen = NewObject<UFastNoise>(outer);
 
 	noiseGen->SetNoiseType(noiseType);
 	noiseGen->SetSeed(seed);
@@ -35,7 +38,7 @@ UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateSelectModule(UObject* ou
 		return nullptr;
 	}
 
-	UUFNSelectModule* newSelectModule = NewObject<UUFNSelectModule>(outer, FName("Select"));
+	UUFNSelectModule* newSelectModule = NewObject<UUFNSelectModule>(outer);
 
 	newSelectModule->inputModule1 = inputModule1;
 	newSelectModule->inputModule2 = inputModule2;
@@ -48,17 +51,18 @@ UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateSelectModule(UObject* ou
 	return newSelectModule;
 }
 
-UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateBlendModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* selectModule)
+UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateBlendModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* selectModule, UCurveFloat* blendCurve)
 {
 	if (!(inputModule1 && inputModule2 && selectModule && outer)) {
 		return nullptr;
 	}
 
-	UUFNBlendModule* blendModule = NewObject<UUFNBlendModule>(outer, FName("Blend"));
+	UUFNBlendModule* blendModule = NewObject<UUFNBlendModule>(outer);
 
 	blendModule->inputModule1 = inputModule1;
 	blendModule->inputModule2 = inputModule2;
 	blendModule->selectModule = selectModule;
+	blendModule->blendCurve = blendCurve;
 
 	return blendModule;
 }
@@ -76,6 +80,23 @@ UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateScaleBiasModule(UObject*
 	scaleBiasModule->bias = bias;
 
 	return scaleBiasModule;
+}
+
+UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateAddModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* maskModule, float threshold)
+{
+	if (!(outer && inputModule1 && inputModule2))
+	{
+		return nullptr;
+	}
+
+	UUFNAddModule* noiseGen = NewObject<UUFNAddModule>(outer);
+
+	noiseGen->inputModule1 = inputModule1;
+	noiseGen->inputModule2 = inputModule2;
+	noiseGen->maskModule = maskModule;
+	noiseGen->threshold = threshold;
+
+	return noiseGen;
 }
 
 UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateConstantModule(UObject* outer, float constantValue)
@@ -167,7 +188,7 @@ UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::Create3SelectModule(UObject* o
 		return nullptr;
 	}
 
-	UUFN3SelectModule* newSelectModule = NewObject<UUFN3SelectModule>(outer, FName("Select"));
+	UUFN3SelectModule* newSelectModule = NewObject<UUFN3SelectModule>(outer);
 
 	newSelectModule->inputModule1 = inputModule1;
 	newSelectModule->inputModule2 = inputModule2;
@@ -180,6 +201,17 @@ UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::Create3SelectModule(UObject* o
 	newSelectModule->numSteps = steps;
 
 	return newSelectModule;
+}
+
+UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateSplineGenerator(UObject* outer, float MaxDistance, float MinDistance, TArray<USplineComponent*> Splines, UCurveFloat* falloffCurve)
+{
+	UUFNSplineGenerator* newSplineGenerator = NewObject<UUFNSplineGenerator>(outer);
+	newSplineGenerator->MaximumDistance = MaxDistance;
+	newSplineGenerator->MinimumDistance = MinDistance;
+	newSplineGenerator->Splines = Splines;
+	newSplineGenerator->FalloffCurve = falloffCurve;
+
+	return newSplineGenerator;
 }
 
 UUFNBlueprintFunctionLibrary::UUFNBlueprintFunctionLibrary(const class FObjectInitializer& obj)
