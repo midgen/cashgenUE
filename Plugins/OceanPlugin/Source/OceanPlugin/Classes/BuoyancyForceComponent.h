@@ -22,6 +22,7 @@
 
 #include "OceanManager.h"
 #include "OceanPluginPrivatePCH.h"
+#include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "BuoyancyForceComponent.generated.h"
 
 //Custom bone density/radius override struct.
