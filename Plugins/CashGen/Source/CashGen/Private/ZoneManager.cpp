@@ -271,14 +271,14 @@ void AZoneManager::UpdateMesh(const uint8 aLOD)
 		// Only generate collision if this is LOD0
 		MyRuntimeMeshComponents[aLOD]->CreateMeshSection(0, MyLODMeshData[aLOD].MyVertices, MyLODMeshData[aLOD].MyTriangles, MyLODMeshData[aLOD].MyNormals, MyLODMeshData[aLOD].MyUV0, MyLODMeshData[aLOD].MyVertexColors, MyLODMeshData[aLOD].MyTangents, aLOD == 0, EUpdateFrequency::Infrequent);
 		MyRuntimeMeshComponents[currentlyDisplayedLOD]->SetMeshSectionVisible(0, true);
-		MyLODMeshStatus[aLOD] = SEGUE;
+		MyLODMeshStatus[aLOD] = eLODStatus::SEGUE;
 	}
 	// Or just update them
 	else if (MyLODMeshStatus[aLOD] == eLODStatus::DRAWING)
 	{
 		MyRuntimeMeshComponents[currentlyDisplayedLOD]->SetMeshSectionVisible(0, true);
 		MyRuntimeMeshComponents[aLOD]->UpdateMeshSection(0, MyLODMeshData[aLOD].MyVertices, MyLODMeshData[aLOD].MyNormals, MyLODMeshData[aLOD].MyUV0, MyLODMeshData[aLOD].MyVertexColors, MyLODMeshData[aLOD].MyTangents);		
-		MyLODMeshStatus[aLOD] = SEGUE;
+		MyLODMeshStatus[aLOD] = eLODStatus::SEGUE;
 
 		if (aLOD == 0)
 		{
