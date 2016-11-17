@@ -9,7 +9,7 @@
 
 class ACGTerrainManager;
 
-//enum ETileStatus { IDLE, SEGUE };
+enum ELODStatus { NOT_CREATED, CREATED };
 
 UCLASS()
 class ACGTile : public AActor
@@ -18,6 +18,7 @@ class ACGTile : public AActor
 
 	TMap<uint8, URuntimeMeshComponent*> MeshComponents;
 	TMap<uint8, UMaterialInstanceDynamic*> MaterialInstances;
+	TMap<uint8, ELODStatus> LODStatus;
 
 	float LODTransitionOpacity = 0.0f;
 
@@ -26,6 +27,7 @@ public:
 	~ACGTile();
 
 	CGPoint Offset;
+	FVector WorldOffset;
 	FCGTerrainConfig* TerrainConfigMaster;
 
 	uint8 CurrentLOD;
@@ -34,7 +36,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	void SetupZone(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
+	void SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
 	void UpdateMesh(uint8 aLOD, FCGMeshData* aMeshData);
 
 	FVector GetCentrePos();

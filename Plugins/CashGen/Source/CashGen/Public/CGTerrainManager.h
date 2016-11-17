@@ -4,6 +4,7 @@
 #include "Struct/CGJob.h"
 #include "Struct/CGTerrainConfig.h"
 #include "Struct/CGMeshData.h"
+#include "Struct/CGPoint.h"
 #include "CGTerrainManager.generated.h"
 
 
@@ -11,6 +12,22 @@ UCLASS(BlueprintType, Blueprintable)
 class ACGTerrainManager : public AActor
 {
 	GENERATED_BODY()
+
+	bool isSetup = false;
+	CGPoint currentPlayerZone;
+
+	void HandleTileFlip(CGPoint deltaTile);
+
+	TArray<TArray<FCGMeshData>> MeshData;
+	TArray<TSet<FCGMeshData*>> FreeMeshData;
+	TArray<TSet<FCGMeshData*>> InUseMeshData;
+	FCGMeshData* GetFreeMeshData(uint8 aLOD);
+	void ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease);
+
+	void SweepLODs();
+	uint8 GetLODForTile(ACGTile* aTile);
+
+	CGPoint GetXYfromIdx(const int32 idx) { return CGPoint(idx % XTiles, idx / YTiles); }
 
 public:
 	ACGTerrainManager();
@@ -33,7 +50,7 @@ public:
 
 	FCGTerrainConfig TerrainConfig;
 
-	TMap<uint8, FCGMeshData> MeshData;
+
 
 	FVector WorldOffset;
 

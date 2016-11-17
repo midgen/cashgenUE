@@ -2,20 +2,30 @@
 #include "cashgen.h"
 struct CGPoint
 {
-	int32 x, y;
+	int32 X, Y;
 	CGPoint(int32 aX, int32 aY)
 	{
-		x = aX;
-		y = aY;
+		X = aX;
+		Y = aY;
 	}
 	CGPoint()
 	{
-		x = 0; y = 0;
+		X = 0; Y = 0;
 	}
 
 	bool operator==(const CGPoint& Src) const
 	{
-		return (x == Src.x) && (y == Src.y);
+		return (X == Src.X) && (Y == Src.Y);
+	}
+
+	CGPoint operator-(const CGPoint& Src) const
+	{
+		return CGPoint(X - Src.X, Y - Src.Y);
+	}
+
+	bool operator!=(const CGPoint& Src) const
+	{
+		return (X != Src.X) || (Y != Src.Y);
 	}
 
 	friend FORCEINLINE uint32 GetTypeHash(const CGPoint& point)

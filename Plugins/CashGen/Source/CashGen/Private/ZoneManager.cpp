@@ -36,8 +36,8 @@ AZoneManager::AZoneManager()
 void AZoneManager::SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, const CGPoint aOffset, const FZoneConfig aZoneConfig, FVector* aWorldOffset)
 {
 	// The world grid offset of this zone
-	MyOffset.x	= aOffset.x;
-	MyOffset.y	= aOffset.y;
+	MyOffset.X	= aOffset.X;
+	MyOffset.Y	= aOffset.Y;
 
 	// The full world offset (always apply this)
 	worldOffset = aWorldOffset;
@@ -51,7 +51,7 @@ void AZoneManager::SetupZone(const int32 aZoneID, AWorldManager* aWorldManager, 
 	{
 		for (int32 MeshIndex = 0; MeshIndex < MyConfig.BiomeConfig[BiomeIndex].MeshConfigs.Num(); ++MeshIndex)
 		{
-			FString compString = FString::FromInt(MyOffset.x) + FString::FromInt(MyOffset.y) + FString::FromInt(MeshIndex) + FString::FromInt(BiomeIndex);
+			FString compString = FString::FromInt(MyOffset.X) + FString::FromInt(MyOffset.Y) + FString::FromInt(MeshIndex) + FString::FromInt(BiomeIndex);
 			FName compName = FName(*compString);
 			MyInstancedMeshComponents.Add(NewObject<UHierarchicalInstancedStaticMeshComponent>(this, compName));
 			MyInstancedMeshComponents[compIndex]->RegisterComponent();
@@ -201,7 +201,7 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 
 	if (aLOD != 10)
 	{
-		FString threadName = "ZoneWorker" + FString::FromInt(MyOffset.x) + FString::FromInt(MyOffset.y) + FString::FromInt(aLOD);
+		FString threadName = "ZoneWorker" + FString::FromInt(MyOffset.X) + FString::FromInt(MyOffset.Y) + FString::FromInt(aLOD);
 
 		// If we haven't used this LOD before, populate the data structures and apply the material
 		if (!MyLODMeshData.Contains(aLOD))
@@ -258,7 +258,7 @@ void AZoneManager::RegenerateZone(const uint8 aLOD, const bool isInPlaceLODUpdat
 			0, TPri_BelowNormal);
 	}
 
-	SetActorLocation(FVector((MyConfig.XUnits * MyConfig.UnitSize * MyOffset.x) - worldOffset->X, (MyConfig.YUnits * MyConfig.UnitSize * MyOffset.y) - worldOffset->Y, 0.0f));
+	SetActorLocation(FVector((MyConfig.XUnits * MyConfig.UnitSize * MyOffset.X) - worldOffset->X, (MyConfig.YUnits * MyConfig.UnitSize * MyOffset.Y) - worldOffset->Y, 0.0f));
 }
 
 
@@ -366,7 +366,7 @@ void AZoneManager::Tick(float DeltaTime)
 // Return the location of the center of the zone
 FVector AZoneManager::GetCentrePos()
 {
-	return  FVector(((MyOffset.x + 0.5f) * MyConfig.XUnits * MyConfig.UnitSize) - worldOffset->X, ((MyOffset.y + 0.5f) * MyConfig.YUnits * MyConfig.UnitSize) - worldOffset->Y, 0.0f);
+	return  FVector(((MyOffset.X + 0.5f) * MyConfig.XUnits * MyConfig.UnitSize) - worldOffset->X, ((MyOffset.Y + 0.5f) * MyConfig.YUnits * MyConfig.UnitSize) - worldOffset->Y, 0.0f);
 }
 
 AZoneManager::~AZoneManager()
@@ -405,8 +405,8 @@ bool AZoneManager::SpawnTreesAtIndex(int32* aIndex)
 					break;
 				}*/
 
-				FVector startPos = FVector(((MyOffset.x) * MyConfig.XUnits * MyConfig.UnitSize) - worldOffset->X + ((blockX)* MyConfig.UnitSize) + FMath::FRandRange(0.0f, MyConfig.UnitSize),
-					(MyOffset.y * MyConfig.YUnits * MyConfig.UnitSize) - worldOffset->Y + ((blockY)* MyConfig.UnitSize) + FMath::FRandRange(0.0f, MyConfig.UnitSize), 50000.0f);
+				FVector startPos = FVector(((MyOffset.X) * MyConfig.XUnits * MyConfig.UnitSize) - worldOffset->X + ((blockX)* MyConfig.UnitSize) + FMath::FRandRange(0.0f, MyConfig.UnitSize),
+					(MyOffset.Y * MyConfig.YUnits * MyConfig.UnitSize) - worldOffset->Y + ((blockY)* MyConfig.UnitSize) + FMath::FRandRange(0.0f, MyConfig.UnitSize), 50000.0f);
 
 				FVector spawnPoint = FVector(0.0f, 0.0f, 0.0f);
 				FVector normalVector = FVector(0.0f);

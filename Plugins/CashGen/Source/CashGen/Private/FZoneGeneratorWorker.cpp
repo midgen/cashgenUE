@@ -95,8 +95,8 @@ void FZoneGeneratorWorker::ProcessTerrainMap()
 	{
 		for (int y = 0; y < exY; ++y)
 		{
-			int32 worldX = (((pOffset->x * (exX - 3) + x)) * exUnitSize) - exUnitSize;
-			int32 worldY = (((pOffset->y * (exY - 3) + y)) * exUnitSize) - exUnitSize;
+			int32 worldX = (((pOffset->X * (exX - 3) + x)) * exUnitSize) - exUnitSize;
+			int32 worldY = (((pOffset->Y * (exY - 3) + y)) * exUnitSize) - exUnitSize;
 			
 			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pZoneConfig->noiseGen->GetNoise2D(worldX, worldY) * pZoneConfig->Amplitude);
 		}

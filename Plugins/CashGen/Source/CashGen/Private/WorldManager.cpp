@@ -111,49 +111,49 @@ void AWorldManager::HandleZoneChange(const FVector2D delta)
 	for (int i = 0; i < ZonesMaster.Num(); ++i)
 	{
 		if (i == 0) {
-			minX = ZonesMaster[i]->MyOffset.x;
-			maxX = ZonesMaster[i]->MyOffset.x;
-			minY = ZonesMaster[i]->MyOffset.y;
-			maxY = ZonesMaster[i]->MyOffset.y;
+			minX = ZonesMaster[i]->MyOffset.X;
+			maxX = ZonesMaster[i]->MyOffset.X;
+			minY = ZonesMaster[i]->MyOffset.Y;
+			maxY = ZonesMaster[i]->MyOffset.Y;
 		}
-		if (ZonesMaster[i]->MyOffset.x < minX) {
-			minX = ZonesMaster[i]->MyOffset.x;
+		if (ZonesMaster[i]->MyOffset.X < minX) {
+			minX = ZonesMaster[i]->MyOffset.X;
 		}
-		if (ZonesMaster[i]->MyOffset.x > maxX) {
-			maxX = ZonesMaster[i]->MyOffset.x;
+		if (ZonesMaster[i]->MyOffset.X > maxX) {
+			maxX = ZonesMaster[i]->MyOffset.X;
 		}
-		if (ZonesMaster[i]->MyOffset.y < minY) {
-			minY = ZonesMaster[i]->MyOffset.y;
+		if (ZonesMaster[i]->MyOffset.Y < minY) {
+			minY = ZonesMaster[i]->MyOffset.Y;
 		}
-		if (ZonesMaster[i]->MyOffset.y > maxY) {
-			maxY = ZonesMaster[i]->MyOffset.y;
+		if (ZonesMaster[i]->MyOffset.Y > maxY) {
+			maxY = ZonesMaster[i]->MyOffset.Y;
 		}
 	}
 
 	for (int i = 0; i < ZonesMaster.Num(); ++i)
 	{
 		// Moving left on X axis, flip left column to the right
-		if (delta.X < -0.1 && ZonesMaster[i]->MyOffset.x == maxX)
+		if (delta.X < -0.1 && ZonesMaster[i]->MyOffset.X == maxX)
 		{
-			ZonesMaster[i]->MyOffset.x = minX - 1;
+			ZonesMaster[i]->MyOffset.X = minX - 1;
 			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 		}
 		// Moving right on X, flip right column to left
-		else if (delta.X > 0.1 && ZonesMaster[i]->MyOffset.x == minX)
+		else if (delta.X > 0.1 && ZonesMaster[i]->MyOffset.X == minX)
 		{
-			ZonesMaster[i]->MyOffset.x = maxX + 1;
+			ZonesMaster[i]->MyOffset.X = maxX + 1;
 			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 		}
 		// Movin down on Y, flip top row to bottom
-		else if (delta.Y < -0.1 && ZonesMaster[i]->MyOffset.y == maxY)
+		else if (delta.Y < -0.1 && ZonesMaster[i]->MyOffset.Y == maxY)
 		{
-			ZonesMaster[i]->MyOffset.y = minY - 1;
+			ZonesMaster[i]->MyOffset.Y = minY - 1;
 			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 		}
 		// Moving up on Y, flip bottom wor to top
-		else if (delta.Y > 0.1 && ZonesMaster[i]->MyOffset.y == minY)
+		else if (delta.Y > 0.1 && ZonesMaster[i]->MyOffset.Y == minY)
 		{
-			ZonesMaster[i]->MyOffset.y = maxY + 1;
+			ZonesMaster[i]->MyOffset.Y = maxY + 1;
 			CreateZoneRefreshJob(i, GetLODForZoneManagerIndex(i), false);
 		}
 	}
@@ -243,7 +243,7 @@ void AWorldManager::SpawnZones(APawn* aPlayerPawn, const FZoneConfig aZoneConfig
 
 	for (int32 i = 0; i < MyNumXZones * MyNumYZones; ++i )
 	{
-		ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), FVector((MyZoneConfigMaster.XUnits * MyZoneConfigMaster.UnitSize * GetXYfromIdx(i).x) - worldOffset.X, (MyZoneConfigMaster.YUnits * MyZoneConfigMaster.UnitSize * GetXYfromIdx(i).y) - worldOffset.Y, 0.0f) - worldOffset, FRotator(0.0f)));
+		ZonesMaster.Add(world->SpawnActor<AZoneManager>(AZoneManager::StaticClass(), FVector((MyZoneConfigMaster.XUnits * MyZoneConfigMaster.UnitSize * GetXYfromIdx(i).X) - worldOffset.X, (MyZoneConfigMaster.YUnits * MyZoneConfigMaster.UnitSize * GetXYfromIdx(i).Y) - worldOffset.Y, 0.0f) - worldOffset, FRotator(0.0f)));
 	}
 
 	for (int i = 0; i < ZonesMaster.Num(); ++i)

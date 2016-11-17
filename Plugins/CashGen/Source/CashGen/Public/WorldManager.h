@@ -37,7 +37,7 @@ class AWorldManager : public AActor
 	TArray<FZoneJob> MyRegenQueue;
 
 	// Couple of helper functions for accessing the zone array using coords
-	int32 GetIdxfromXY(const CGPoint point) { return point.x * MyNumYZones + point.y; };
+	int32 GetIdxfromXY(const CGPoint point) { return point.X * MyNumYZones + point.Y; };
 	CGPoint GetXYfromIdx(const int32 idx) { return CGPoint(idx % MyNumYZones, idx / MyNumYZones); }
 
 	// Called when the player pawn crosses a zone boundary
