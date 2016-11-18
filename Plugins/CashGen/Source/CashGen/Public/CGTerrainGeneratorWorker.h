@@ -13,8 +13,8 @@ class FCGTerrainGeneratorWorker : public FRunnable
 	CGPoint* pOffset;
 
 	FCGMeshData* pMeshData;
+	uint8 workLOD;
 
-	float MaxHeight;
 	bool IsThreadFinished;
 
 	void ProcessTerrainMap();
