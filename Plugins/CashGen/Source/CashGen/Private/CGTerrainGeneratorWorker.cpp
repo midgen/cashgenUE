@@ -5,7 +5,7 @@
 
 
 
-FCGTerrainGeneratorWorker::FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager, FCGTerrainConfig* aTerrainConfig, CGPoint* aOffset, FCGMeshData* aMeshData)
+FCGTerrainGeneratorWorker::FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager, FCGTerrainConfig* aTerrainConfig)
 {
 
 }

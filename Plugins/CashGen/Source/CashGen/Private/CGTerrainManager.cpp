@@ -6,15 +6,33 @@ ACGTerrainManager::ACGTerrainManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	MeshData.Add(TArray<FCGMeshData>());
-	MeshData.Add(TArray<FCGMeshData>());
-	MeshData.Add(TArray<FCGMeshData>());
+
 
 }
 
 void ACGTerrainManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Add array entries for each LOD
+	MeshData.Add(TArray<FCGMeshData>());
+	MeshData.Add(TArray<FCGMeshData>());
+	MeshData.Add(TArray<FCGMeshData>());
+
+	FreeMeshData.Add(TSet<FCGMeshData*>());
+	FreeMeshData.Add(TSet<FCGMeshData*>());
+	FreeMeshData.Add(TSet<FCGMeshData*>());
+
+	InUseMeshData.Add(TSet<FCGMeshData*>());
+	InUseMeshData.Add(TSet<FCGMeshData*>());
+	InUseMeshData.Add(TSet<FCGMeshData*>());
+
+	FString threadName = "TerrainWorkerThread";
+
+	WorkerThread = FRunnableThread::Create
+		(new FCGTerrainGeneratorWorker(this, &TerrainConfig),
+			*threadName,
+			0, EThreadPriority::TPri_BelowNormal, FPlatformAffinity::GetNoAffinityMask());
 }
 
 void ACGTerrainManager::Tick(float DeltaSeconds)
@@ -100,9 +118,13 @@ uint8 ACGTerrainManager::GetLODForTile(ACGTile* aTile)
 
 void ACGTerrainManager::CreateTileRefreshJob(FCGJob aJob)
 {
-	// Fetch a free data set
-	aJob.Data = GetFreeMeshData(aJob.LOD);
-	GeometryJobs.Enqueue(aJob);
+	if (aJob.LOD != 10)
+	{
+		// Fetch a free data set
+		aJob.Data = GetFreeMeshData(aJob.LOD);
+		GeometryJobs.Enqueue(aJob);
+	}
+
 }
 
 
@@ -162,6 +184,7 @@ FCGMeshData* ACGTerrainManager::GetFreeMeshData(uint8 aLOD)
 	{
 		int32 newDataIndex = MeshData[aLOD].Emplace();
 		InUseMeshData[aLOD].Add(&MeshData[aLOD][newDataIndex]);
+		((FCGMeshData)MeshData[aLOD][newDataIndex]).AllocateDataStructuresForLOD(&TerrainConfig, aLOD);
 		return &MeshData[aLOD][newDataIndex];
 	}
 	else

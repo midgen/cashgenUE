@@ -30,9 +30,7 @@ class FCGTerrainGeneratorWorker : public FRunnable
 public:
 
 	FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager,
-		FCGTerrainConfig* aTerrainConfig,
-		CGPoint* aOffset,
-		FCGMeshData* aMeshData);
+		FCGTerrainConfig* aTerrainConfig);
 
 	virtual ~FCGTerrainGeneratorWorker();
 

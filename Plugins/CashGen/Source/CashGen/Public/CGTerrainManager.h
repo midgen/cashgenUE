@@ -46,7 +46,7 @@ public:
 
 	FRunnableThread* WorkerThread;
 
-	TQueue<FCGJob, EQueueMode::Mpsc> UpdateJobs;
+	TQueue<FCGJob, EQueueMode::Spsc> UpdateJobs;
 
 	FCGTerrainConfig TerrainConfig;
 
