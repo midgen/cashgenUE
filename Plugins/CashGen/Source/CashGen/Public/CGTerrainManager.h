@@ -31,6 +31,7 @@ class ACGTerrainManager : public AActor
 
 public:
 	ACGTerrainManager();
+	~ACGTerrainManager();
 
 	TArray<ACGTile*> Tiles;
 

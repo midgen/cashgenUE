@@ -7,7 +7,8 @@
 
 FCGTerrainGeneratorWorker::FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager, FCGTerrainConfig* aTerrainConfig)
 {
-
+	pTerrainManager = aTerrainManager;
+	pTerrainConfig = aTerrainConfig;
 }
 
 FCGTerrainGeneratorWorker::~FCGTerrainGeneratorWorker()
@@ -36,6 +37,8 @@ uint32 FCGTerrainGeneratorWorker::Run()
 			ProcessTerrainMap();
 			ProcessPerBlockGeometry();
 			ProcessPerVertexTasks();
+
+			pTerrainManager->UpdateJobs.Enqueue(job);
 		}
 		// Otherwise, take a nap
 		else
@@ -44,13 +47,12 @@ uint32 FCGTerrainGeneratorWorker::Run()
 		}
 	}
 
-
 	return 1;
 }
 
 void FCGTerrainGeneratorWorker::Stop()
 {
-
+	IsThreadFinished = true;
 }
 
 void FCGTerrainGeneratorWorker::Exit()

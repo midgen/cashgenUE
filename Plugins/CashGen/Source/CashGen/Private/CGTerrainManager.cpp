@@ -6,14 +6,6 @@ ACGTerrainManager::ACGTerrainManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-
-
-}
-
-void ACGTerrainManager::BeginPlay()
-{
-	Super::BeginPlay();
-
 	// Add array entries for each LOD
 	MeshData.Add(TArray<FCGMeshData>());
 	MeshData.Add(TArray<FCGMeshData>());
@@ -26,6 +18,20 @@ void ACGTerrainManager::BeginPlay()
 	InUseMeshData.Add(TSet<FCGMeshData*>());
 	InUseMeshData.Add(TSet<FCGMeshData*>());
 	InUseMeshData.Add(TSet<FCGMeshData*>());
+
+}
+
+ACGTerrainManager::~ACGTerrainManager()
+{
+	if(WorkerThread != nullptr)
+	{
+		WorkerThread->Kill(false);
+	}
+}
+
+void ACGTerrainManager::BeginPlay()
+{
+	Super::BeginPlay();
 
 	FString threadName = "TerrainWorkerThread";
 
