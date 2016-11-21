@@ -22,7 +22,7 @@ class ACGTerrainManager : public AActor
 	TArray<FCGLODMeshData> MeshData;
 	TArray<TSet<FCGMeshData*>> FreeMeshData;
 	TArray<TSet<FCGMeshData*>> InUseMeshData;
-	FCGMeshData* GetFreeMeshData(uint8 aLOD);
+	bool GetFreeMeshData(FCGJob& aJob);
 	void ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease);
 
 	void SweepLODs();

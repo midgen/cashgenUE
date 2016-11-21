@@ -55,17 +55,22 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 
 }
 
-void ACGTile::UpdateMesh(uint8 aLOD, FCGMeshData* aMeshData)
+void ACGTile::UpdateMesh(uint8 aLOD, TArray<FVector>	aVertices,
+	TArray<int32>		aTriangles,
+	TArray<FVector>	aNormals,
+	TArray<FVector2D>	aUV0,
+	TArray<FColor>		aVertexColors,
+	TArray<FRuntimeMeshTangent> aTangents)
 {
 	for (int32 i = 0; i < 3; ++i)
 	{
 		if (i == aLOD) {
 			if (LODStatus[i] == ELODStatus::NOT_CREATED) {
-				MeshComponents[i]->CreateMeshSection(0, aMeshData->Vertices, aMeshData->Triangles, aMeshData->Normals, aMeshData->UV0, aMeshData->VertexColors, aMeshData->Tangents, aLOD == 0, EUpdateFrequency::Infrequent );
+				MeshComponents[i]->CreateMeshSection(0, aVertices, aTriangles, aNormals, aUV0, aVertexColors, aTangents, aLOD == 0, EUpdateFrequency::Infrequent );
 				LODStatus.Add(i, ELODStatus::CREATED);
 			}
 			else {
-				MeshComponents[i]->UpdateMeshSection(0, aMeshData->Vertices, aMeshData->Triangles, aMeshData->Normals, aMeshData->UV0, aMeshData->VertexColors, aMeshData->Tangents);
+				MeshComponents[i]->UpdateMeshSection(0, aVertices, aTriangles, aNormals, aUV0, aVertexColors, aTangents);
 			}
 
 			MeshComponents[i]->SetMeshSectionVisible(0,true);

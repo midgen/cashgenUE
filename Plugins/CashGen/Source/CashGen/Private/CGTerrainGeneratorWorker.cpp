@@ -30,7 +30,16 @@ uint32 FCGTerrainGeneratorWorker::Run()
 		// If there's a job, process it!
 		if (pTerrainManager->GeometryJobs.Dequeue(workJob))
 		{
-			pMeshData = workJob.Data;
+			//pMeshData = workJob.Data;
+
+			pVertices = workJob.Vertices;
+			pTriangles = workJob.Triangles;
+			pNormals = workJob.Normals;
+			pUV0 = workJob.UV0;
+			pVertexColors = workJob.VertexColors;
+			pTangents = workJob.Tangents;
+			pHeightMap = workJob.HeightMap;
+
 			workLOD = workJob.LOD;
 
 			ProcessTerrainMap();
@@ -75,7 +84,7 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 			int32 worldX = (((workJob.Tile->Offset.X * (exX - 3) + x)) * exUnitSize) - exUnitSize;
 			int32 worldY = (((workJob.Tile->Offset.Y * (exY - 3) + y)) * exUnitSize) - exUnitSize;
 
-			pMeshData->HeightMap[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
+			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
 		}
 	}
 }
@@ -108,7 +117,7 @@ void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 	{
 		for (int32 x = 0; x < xUnits + 1; ++x)
 		{
-			pMeshData->Normals[x + (y * rowLength)] = GetNormalFromHeightMapForVertex(x, y);
+			(*pNormals)[x + (y * rowLength)] = GetNormalFromHeightMapForVertex(x, y);
 			// TODO: Pretty sure this is wrong, so out it goes for now
 			//(*pTangents)[x + (y * rowLength)] = GetTangentFromNormal((*pNormals)[x + (y * rowLength)]);
 		}
@@ -133,10 +142,10 @@ FVector FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 v
 	// Get the 4 neighbouring points
 	FVector up, down, left, right, upleft, upright, downleft, downright;
 
-	up = pMeshData->HeightMap[heightMapIndex + heightMapRowLength] - pMeshData->HeightMap[heightMapIndex];
-	down = pMeshData->HeightMap[heightMapIndex - heightMapRowLength] - pMeshData->HeightMap[heightMapIndex];
-	left = pMeshData->HeightMap[heightMapIndex + 1] - pMeshData->HeightMap[heightMapIndex];
-	right = pMeshData->HeightMap[heightMapIndex - 1] - pMeshData->HeightMap[heightMapIndex];
+	up = (*pHeightMap)[heightMapIndex + heightMapRowLength] - (*pHeightMap)[heightMapIndex];
+	down = (*pHeightMap)[heightMapIndex - heightMapRowLength] - (*pHeightMap)[heightMapIndex];
+	left = (*pHeightMap)[heightMapIndex + 1] - (*pHeightMap)[heightMapIndex];
+	right = (*pHeightMap)[heightMapIndex - 1] - (*pHeightMap)[heightMapIndex];
 
 	FVector n1, n2, n3, n4;
 
@@ -188,13 +197,13 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int a
 	FVector heightMapToWorldOffset = FVector(exUnitSize, exUnitSize, 0.0f);
 
 	// BR
-	pMeshData->Vertices[thisX + (thisY * rowLength)] = pMeshData->HeightMap[heightMapX + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
+	(*pVertices)[thisX + (thisY * rowLength)] = (*pHeightMap)[heightMapX + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
 	// TR
-	pMeshData->Vertices[thisX + ((thisY + 1) * rowLength)] = pMeshData->HeightMap[heightMapX + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
+	(*pVertices)[thisX + ((thisY + 1) * rowLength)] = (*pHeightMap)[heightMapX + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
 	// BL
-	pMeshData->Vertices[(thisX + 1) + (thisY * rowLength)] = pMeshData->HeightMap[(heightMapX + 1) + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
+	(*pVertices)[(thisX + 1) + (thisY * rowLength)] = (*pHeightMap)[(heightMapX + 1) + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
 	// BR
-	pMeshData->Vertices[(thisX + 1) + ((thisY + 1) * rowLength)] = pMeshData->HeightMap[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
+	(*pVertices)[(thisX + 1) + ((thisY + 1) * rowLength)] = (*pHeightMap)[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
 
 	//TODO: This isn't doing anything at the moment 
 	//(*pVertexColors)[thisX + (thisY * rowLength)].R = (255 / 50000.0f);

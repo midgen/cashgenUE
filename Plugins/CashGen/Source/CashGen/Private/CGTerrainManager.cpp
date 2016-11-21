@@ -69,7 +69,8 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		FCGJob updateJob;
 		if (UpdateJobs.Dequeue(updateJob))
 		{
-			updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.Data);
+			updateJob.Tile->UpdateMesh(updateJob.LOD, (*updateJob.Vertices), (*updateJob.Triangles), (*updateJob.Normals), (*updateJob.UV0), (*updateJob.VertexColors), (*updateJob.Tangents));
+			ReleaseMeshData(updateJob.LOD, updateJob.Data);
 		}
 
 		// Now check for LOD sweeps;
@@ -129,7 +130,7 @@ void ACGTerrainManager::CreateTileRefreshJob(FCGJob aJob)
 	if (aJob.LOD != 10)
 	{
 		// Fetch a free data set
-		aJob.Data = GetFreeMeshData(aJob.LOD);
+		GetFreeMeshData(aJob);
 		GeometryJobs.Enqueue(aJob);
 	}
 
@@ -185,30 +186,47 @@ void ACGTerrainManager::HandleTileFlip(CGPoint deltaTile)
 	}
 }
 
-FCGMeshData* ACGTerrainManager::GetFreeMeshData(uint8 aLOD)
+bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 {
 	// No free mesh data
-	if (FreeMeshData[aLOD].Num() < 1)
+	if (FreeMeshData[aJob.LOD].Num() < 1)
 	{
-		int32 newDataIndex = MeshData[aLOD].Data.Emplace();
-		InUseMeshData[aLOD].Add(&MeshData[aLOD].Data[newDataIndex]);
-		MeshData[aLOD].Data[newDataIndex].AllocateDataStructuresForLOD(&TerrainConfig, aLOD);
-		return &MeshData[aLOD].Data[newDataIndex];
+		int32 newDataIndex = MeshData[aJob.LOD].Data.Emplace();
+		InUseMeshData[aJob.LOD].Add(&MeshData[aJob.LOD].Data[newDataIndex]);
+		MeshData[aJob.LOD].Data[newDataIndex].AllocateDataStructuresForLOD(&TerrainConfig, aJob.LOD);
+		FCGMeshData* meshData = &MeshData[aJob.LOD].Data[newDataIndex];
+		aJob.Vertices = &meshData->Vertices;
+		aJob.Triangles = &meshData->Triangles;
+		aJob.Normals = &meshData->Normals;
+		aJob.UV0 = &meshData->UV0;
+		aJob.VertexColors = &meshData->VertexColors;
+		aJob.Tangents = &meshData->Tangents;
+		aJob.HeightMap = &meshData->HeightMap;
+		aJob.Data = meshData;
+		return true;
 	}
 	else
 	{
 		FCGMeshData* dataToUse;
 		// Use the first free data set, there'll always be one, we checked!
-		for (FCGMeshData* data : FreeMeshData[aLOD])
+		for (FCGMeshData* data : FreeMeshData[aJob.LOD])
 		{
 			dataToUse = data;
 			break;
 		}
 		// Add to the in use set
-		InUseMeshData[aLOD].Add(dataToUse);
+		InUseMeshData[aJob.LOD].Add(dataToUse);
 		// Remove from the Free set
-		FreeMeshData[aLOD].Remove(dataToUse);
-		return dataToUse;
+		FreeMeshData[aJob.LOD].Remove(dataToUse);
+
+		aJob.Vertices = &dataToUse->Vertices;
+		aJob.Triangles = &dataToUse->Triangles;
+		aJob.Normals = &dataToUse->Normals;
+		aJob.UV0 = &dataToUse->UV0;
+		aJob.VertexColors = &dataToUse->VertexColors;
+		aJob.Tangents = &dataToUse->Tangents;
+		aJob.Data = dataToUse;
+		return true;
 	}
 
 	return nullptr;

@@ -10,9 +10,17 @@ class FCGTerrainGeneratorWorker : public FRunnable
 
 	ACGTerrainManager* pTerrainManager;
 	FCGTerrainConfig* pTerrainConfig;
-	FCGMeshData* pMeshData;
+	//TSharedPtr<FCGMeshData> pMeshData;
 	FCGJob workJob;
 	uint8 workLOD;
+
+	TArray<FVector>*	pVertices;
+	TArray<int32>*		pTriangles;
+	TArray<FVector>*	pNormals;
+	TArray<FVector2D>*	pUV0;
+	TArray<FColor>*		pVertexColors;
+	TArray<FRuntimeMeshTangent>* pTangents;
+	TArray<FVector>* pHeightMap;
 
 	bool IsThreadFinished;
 
