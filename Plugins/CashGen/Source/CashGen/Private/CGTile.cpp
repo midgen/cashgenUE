@@ -78,7 +78,5 @@ void ACGTile::UpdateMesh(uint8 aLOD, FCGMeshData* aMeshData)
 
 FVector ACGTile::GetCentrePos()
 {
-	FVector result = FVector();
-
-	return result;
+	return  FVector(((Offset.X + 0.5f) * TerrainConfigMaster->XUnits * TerrainConfigMaster->UnitSize) - WorldOffset.X, ((Offset.Y + 0.5f) * TerrainConfigMaster->YUnits * TerrainConfigMaster->UnitSize) - WorldOffset.Y, 0.0f);
 }

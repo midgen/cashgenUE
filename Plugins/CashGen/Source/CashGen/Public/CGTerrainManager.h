@@ -5,6 +5,7 @@
 #include "Struct/CGTerrainConfig.h"
 #include "Struct/CGMeshData.h"
 #include "Struct/CGPoint.h"
+#include "Struct/CGLODMeshData.h"
 #include "CGTerrainManager.generated.h"
 
 
@@ -17,8 +18,8 @@ class ACGTerrainManager : public AActor
 	CGPoint currentPlayerZone;
 
 	void HandleTileFlip(CGPoint deltaTile);
-
-	TArray<TArray<FCGMeshData>> MeshData;
+	UPROPERTY()
+	TArray<FCGLODMeshData> MeshData;
 	TArray<TSet<FCGMeshData*>> FreeMeshData;
 	TArray<TSet<FCGMeshData*>> InUseMeshData;
 	FCGMeshData* GetFreeMeshData(uint8 aLOD);

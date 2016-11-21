@@ -24,21 +24,20 @@ bool FCGTerrainGeneratorWorker::Init()
 
 uint32 FCGTerrainGeneratorWorker::Run()
 {
-	FCGJob job;
 	// Here's the loop
 	while (!IsThreadFinished)
 	{
 		// If there's a job, process it!
-		if (pTerrainManager->GeometryJobs.Dequeue(job))
+		if (pTerrainManager->GeometryJobs.Dequeue(workJob))
 		{
-			pMeshData = job.Data;
-			workLOD = job.LOD;
+			pMeshData = workJob.Data;
+			workLOD = workJob.LOD;
 
 			ProcessTerrainMap();
 			ProcessPerBlockGeometry();
 			ProcessPerVertexTasks();
 
-			pTerrainManager->UpdateJobs.Enqueue(job);
+			pTerrainManager->UpdateJobs.Enqueue(workJob);
 		}
 		// Otherwise, take a nap
 		else
@@ -73,8 +72,8 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 	{
 		for (int y = 0; y < exY; ++y)
 		{
-			int32 worldX = (((pOffset->X * (exX - 3) + x)) * exUnitSize) - exUnitSize;
-			int32 worldY = (((pOffset->Y * (exY - 3) + y)) * exUnitSize) - exUnitSize;
+			int32 worldX = (((workJob.Tile->Offset.X * (exX - 3) + x)) * exUnitSize) - exUnitSize;
+			int32 worldY = (((workJob.Tile->Offset.Y * (exY - 3) + y)) * exUnitSize) - exUnitSize;
 
 			pMeshData->HeightMap[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
 		}

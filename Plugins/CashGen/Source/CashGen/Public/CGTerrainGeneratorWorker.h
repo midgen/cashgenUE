@@ -10,9 +10,8 @@ class FCGTerrainGeneratorWorker : public FRunnable
 
 	ACGTerrainManager* pTerrainManager;
 	FCGTerrainConfig* pTerrainConfig;
-	CGPoint* pOffset;
-
 	FCGMeshData* pMeshData;
+	FCGJob workJob;
 	uint8 workLOD;
 
 	bool IsThreadFinished;

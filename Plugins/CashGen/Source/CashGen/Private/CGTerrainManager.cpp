@@ -7,9 +7,9 @@ ACGTerrainManager::ACGTerrainManager()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Add array entries for each LOD
-	MeshData.Add(TArray<FCGMeshData>());
-	MeshData.Add(TArray<FCGMeshData>());
-	MeshData.Add(TArray<FCGMeshData>());
+	MeshData.Add(FCGLODMeshData());
+	MeshData.Add(FCGLODMeshData());
+	MeshData.Add(FCGLODMeshData());
 
 	FreeMeshData.Add(TSet<FCGMeshData*>());
 	FreeMeshData.Add(TSet<FCGMeshData*>());
@@ -104,6 +104,8 @@ uint8 ACGTerrainManager::GetLODForTile(ACGTile* aTile)
 
 	FVector centreOfTile = aTile->GetCentrePos();
 
+	diff = TrackingActor->GetActorLocation() - centreOfTile;
+
 	float distance = diff.Size();
 
 	if (distance <= TerrainConfig.LOD1Range)
@@ -188,10 +190,10 @@ FCGMeshData* ACGTerrainManager::GetFreeMeshData(uint8 aLOD)
 	// No free mesh data
 	if (FreeMeshData[aLOD].Num() < 1)
 	{
-		int32 newDataIndex = MeshData[aLOD].Emplace();
-		InUseMeshData[aLOD].Add(&MeshData[aLOD][newDataIndex]);
-		((FCGMeshData)MeshData[aLOD][newDataIndex]).AllocateDataStructuresForLOD(&TerrainConfig, aLOD);
-		return &MeshData[aLOD][newDataIndex];
+		int32 newDataIndex = MeshData[aLOD].Data.Emplace();
+		InUseMeshData[aLOD].Add(&MeshData[aLOD].Data[newDataIndex]);
+		MeshData[aLOD].Data[newDataIndex].AllocateDataStructuresForLOD(&TerrainConfig, aLOD);
+		return &MeshData[aLOD].Data[newDataIndex];
 	}
 	else
 	{
@@ -249,6 +251,7 @@ void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfi
 		CreateTileRefreshJob(job);
 		++tileIndex;
 	}
+	isSetup = true;
 
 }
 
