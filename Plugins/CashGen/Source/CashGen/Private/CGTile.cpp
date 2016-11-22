@@ -56,12 +56,12 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 
 }
 
-void ACGTile::UpdateMesh(uint8 aLOD, TArray<FVector>	aVertices,
-	TArray<int32>		aTriangles,
-	TArray<FVector>	aNormals,
-	TArray<FVector2D>	aUV0,
-	TArray<FColor>		aVertexColors,
-	TArray<FRuntimeMeshTangent> aTangents)
+void ACGTile::UpdateMesh(uint8 aLOD, TSharedPtr<TArray<FVector>, ESPMode::ThreadSafe>	aVertices,
+	TSharedPtr<TArray<int32>, ESPMode::ThreadSafe>		aTriangles,
+	TSharedPtr<TArray<FVector>, ESPMode::ThreadSafe>	aNormals,
+	TSharedPtr<TArray<FVector2D>, ESPMode::ThreadSafe>	aUV0,
+	TSharedPtr<TArray<FColor>, ESPMode::ThreadSafe>		aVertexColors,
+	TSharedPtr<TArray<FRuntimeMeshTangent>, ESPMode::ThreadSafe> aTangents)
 {
 	SetActorLocation(FVector((TerrainConfigMaster->XUnits * TerrainConfigMaster->UnitSize * Offset.X) - WorldOffset.X, (TerrainConfigMaster->YUnits * TerrainConfigMaster->UnitSize * Offset.Y) - WorldOffset.Y, 0.0f));
 
@@ -71,11 +71,11 @@ void ACGTile::UpdateMesh(uint8 aLOD, TArray<FVector>	aVertices,
 	{
 		if (i == aLOD) {
 			if (LODStatus[i] == ELODStatus::NOT_CREATED) {
-				MeshComponents[i]->CreateMeshSection(0, aVertices, aTriangles, aNormals, aUV0, aVertexColors, aTangents, aLOD == 0, EUpdateFrequency::Infrequent );
+				MeshComponents[i]->CreateMeshSection(0, *aVertices, *aTriangles, *aNormals, *aUV0, *aVertexColors, *aTangents, aLOD == 0, EUpdateFrequency::Infrequent );
 				LODStatus.Add(i, ELODStatus::CREATED);
 			}
 			else {
-				MeshComponents[i]->UpdateMeshSection(0, aVertices, aTriangles, aNormals, aUV0, aVertexColors, aTangents);
+				MeshComponents[i]->UpdateMeshSection(0, *aVertices, *aTriangles, *aNormals, *aUV0, *aVertexColors, *aTangents);
 			}
 
 			MeshComponents[i]->SetMeshSectionVisible(0,true);

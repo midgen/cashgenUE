@@ -11,6 +11,8 @@ ACGTerrainManager::ACGTerrainManager()
 	MeshData.Add(FCGLODMeshData());
 	MeshData.Add(FCGLODMeshData());
 
+	MeshData[0].Data.Reserve(50);
+
 	FreeMeshData.Add(TSet<FCGMeshData*>());
 	FreeMeshData.Add(TSet<FCGMeshData*>());
 	FreeMeshData.Add(TSet<FCGMeshData*>());
@@ -69,7 +71,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		FCGJob updateJob;
 		if (UpdateJobs.Dequeue(updateJob))
 		{
-			updateJob.Tile->UpdateMesh(updateJob.LOD, (*updateJob.Vertices), (*updateJob.Triangles), (*updateJob.Normals), (*updateJob.UV0), (*updateJob.VertexColors), (*updateJob.Tangents));
+			updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
 			ReleaseMeshData(updateJob.LOD, updateJob.Data);
 		}
 
@@ -151,13 +153,13 @@ void ACGTerrainManager::HandleTileFlip(CGPoint deltaTile)
 			minX = tile->Offset.X;
 		}
 		if (tile->Offset.X > maxX) {
-			tile->Offset.X;
+			maxX = tile->Offset.X;
 		}
 		if (tile->Offset.Y < minY) {
 			minY = tile->Offset.Y;
 		}
 		if (tile->Offset.Y > maxY) {
-			tile->Offset.Y;
+			maxY = tile->Offset.Y;
 		}
 	}
 
@@ -193,15 +195,15 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 	{
 		int32 newDataIndex = MeshData[aJob.LOD].Data.Emplace();
 		InUseMeshData[aJob.LOD].Add(&MeshData[aJob.LOD].Data[newDataIndex]);
-		MeshData[aJob.LOD].Data[newDataIndex].AllocateDataStructuresForLOD(&TerrainConfig, aJob.LOD);
+		AllocateDataStructuresForLOD(&MeshData[aJob.LOD].Data[newDataIndex] , &TerrainConfig, aJob.LOD);
 		FCGMeshData* meshData = &MeshData[aJob.LOD].Data[newDataIndex];
-		aJob.Vertices = &meshData->Vertices;
-		aJob.Triangles = &meshData->Triangles;
-		aJob.Normals = &meshData->Normals;
-		aJob.UV0 = &meshData->UV0;
-		aJob.VertexColors = &meshData->VertexColors;
-		aJob.Tangents = &meshData->Tangents;
-		aJob.HeightMap = &meshData->HeightMap;
+		aJob.Vertices = MakeShareable<TArray<FVector>>(&meshData->Vertices);
+		aJob.Triangles = MakeShareable<TArray<int32>>(&meshData->Triangles);
+		aJob.Normals = MakeShareable<TArray<FVector>>(&meshData->Normals);
+		aJob.UV0 = MakeShareable<TArray<FVector2D>>(&meshData->UV0);
+		aJob.VertexColors = MakeShareable<TArray<FColor>>(&meshData->VertexColors);
+		aJob.Tangents = MakeShareable<TArray<FRuntimeMeshTangent>>(&meshData->Tangents);
+		aJob.HeightMap = MakeShareable<TArray<FVector>>(&meshData->HeightMap);
 		aJob.Data = meshData;
 		return true;
 	}
@@ -219,13 +221,13 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 		// Remove from the Free set
 		FreeMeshData[aJob.LOD].Remove(dataToUse);
 
-		aJob.Vertices = &dataToUse->Vertices;
-		aJob.Triangles = &dataToUse->Triangles;
-		aJob.Normals = &dataToUse->Normals;
-		aJob.UV0 = &dataToUse->UV0;
-		aJob.VertexColors = &dataToUse->VertexColors;
-		aJob.Tangents = &dataToUse->Tangents;
-		aJob.Data = dataToUse;
+		aJob.Vertices = MakeShareable<TArray<FVector>>(&dataToUse->Vertices);
+		aJob.Triangles = MakeShareable<TArray<int32>>(&dataToUse->Triangles);
+		aJob.Normals = MakeShareable<TArray<FVector>>(&dataToUse->Normals);
+		aJob.UV0 = MakeShareable<TArray<FVector2D>>(&dataToUse->UV0);
+		aJob.VertexColors = MakeShareable<TArray<FColor>>(&dataToUse->VertexColors);
+		aJob.Tangents = MakeShareable<TArray<FRuntimeMeshTangent>>(&dataToUse->Tangents);
+		aJob.HeightMap = MakeShareable<TArray<FVector>>(&dataToUse->HeightMap);
 		return true;
 	}
 
@@ -245,14 +247,15 @@ void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfi
 	TrackingActor = aTrackingActor;
 	XTiles = aXTiles;
 	YTiles = aYTiles;
+	currentPlayerZone.X = 0; currentPlayerZone.Y = 0;
 
 	WorldOffset = FVector((XTiles / 2.0f) * TerrainConfig.XUnits * TerrainConfig.UnitSize, (YTiles / 2.0f) * TerrainConfig.YUnits * TerrainConfig.UnitSize, 0.0f);
 	
-	if (aTrackingActor)
-	{
-		currentPlayerZone.X = floor(aTrackingActor->GetActorLocation().X / ((TerrainConfig.UnitSize * TerrainConfig.XUnits) - WorldOffset.X));
-		currentPlayerZone.Y = floor(aTrackingActor->GetActorLocation().Y / ((TerrainConfig.UnitSize * TerrainConfig.YUnits) - WorldOffset.Y));
-	}
+	//if (aTrackingActor)
+	//{
+	//	currentPlayerZone.X = floor(aTrackingActor->GetActorLocation().X / ((TerrainConfig.UnitSize * TerrainConfig.XUnits) - WorldOffset.X));
+	//	currentPlayerZone.Y = floor(aTrackingActor->GetActorLocation().Y / ((TerrainConfig.UnitSize * TerrainConfig.YUnits) - WorldOffset.Y));
+	//}
 
 	for (int32 i = 0; i < XTiles * YTiles; ++i)
 	{
@@ -273,3 +276,94 @@ void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfi
 
 }
 
+
+bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD)
+{
+	int32 numXVerts = aLOD == 0 ? aConfig->XUnits + 1 : (aConfig->XUnits / (FMath::Pow(2, aLOD))) + 1;
+	int32 numYVerts = aLOD == 0 ? aConfig->YUnits + 1 : (aConfig->YUnits / (FMath::Pow(2, aLOD))) + 1;
+
+	aData->Vertices.Reserve(numXVerts * numYVerts);
+	aData->Normals.Reserve(numXVerts * numYVerts);
+	aData->UV0.Reserve(numXVerts * numYVerts);
+	aData->VertexColors.Reserve(numXVerts * numYVerts);
+	aData->Tangents.Reserve(numXVerts * numYVerts);
+
+	// Generate the per vertex data sets
+	for (int32 i = 0; i < (numXVerts * numYVerts); ++i)
+	{
+		aData->Vertices.Emplace(0.0f);
+		aData->Normals.Emplace(0.0f, 0.0f, 1.0f);
+		aData->UV0.Emplace(0.0f, 0.0f);
+		aData->VertexColors.Emplace(FColor::Black);
+		aData->Tangents.Emplace(0.0f, 0.0f, 0.0f);
+	}
+
+	// Heightmap needs to be larger than the mesh
+	// Using vectors here is a bit wasteful, but it does make normal/tangent or any other
+	// Geometric calculations based on the heightmap a bit easier. Easy enough to change to floats
+	aData->HeightMap.Reserve((numXVerts + 2) * (numYVerts + 2));
+	for (int32 i = 0; i < (numXVerts + 2) * (numYVerts + 2); ++i)
+	{
+		aData->HeightMap.Emplace(0.0f);
+	}
+
+	// Triangle indexes
+	aData->Triangles.Reserve((numXVerts - 1) * (numYVerts - 1) * 6);
+	for (int32 i = 0; i < (numXVerts - 1) * (numYVerts - 1) * 6; ++i)
+	{
+		aData->Triangles.Add(i);
+	}
+
+	// Now calculate triangles and UVs
+	int32 triCounter = 0;
+	int32 thisX, thisY;
+	int32 rowLength;
+
+	rowLength = aLOD == 0 ? aConfig->XUnits + 1 : (aConfig->XUnits / (FMath::Pow(2, aLOD)) + 1);
+	float maxUV = aLOD == 0 ? 1.0f : 1.0f / aLOD;
+
+	int32 exX = aLOD == 0 ? aConfig->XUnits : (aConfig->XUnits / (FMath::Pow(2, aLOD)));
+	int32 exY = aLOD == 0 ? aConfig->YUnits : (aConfig->YUnits / (FMath::Pow(2, aLOD)));
+
+	for (int32 y = 0; y < exY; ++y)
+	{
+		for (int32 x = 0; x < exX; ++x)
+		{
+
+			thisX = x;
+			thisY = y;
+			//TR
+			aData->Triangles[triCounter] = thisX + ((thisY + 1) * (rowLength));
+			triCounter++;
+			//BL
+			aData->Triangles[triCounter] = (thisX + 1) + (thisY * (rowLength));
+			triCounter++;
+			//BR
+			aData->Triangles[triCounter] = thisX + (thisY * (rowLength));
+			triCounter++;
+
+			//BL
+			aData->Triangles[triCounter] = (thisX + 1) + (thisY * (rowLength));
+			triCounter++;
+			//TR
+			aData->Triangles[triCounter] = thisX + ((thisY + 1) * (rowLength));
+			triCounter++;
+			// TL
+			aData->Triangles[triCounter] = (thisX + 1) + ((thisY + 1) * (rowLength));
+			triCounter++;
+
+			//TR
+			aData->UV0[thisX + ((thisY + 1) * (rowLength))] = FVector2D(thisX * maxUV, (thisY + 1.0f) * maxUV);
+			//BR
+			aData->UV0[thisX + (thisY * (rowLength))] = FVector2D(thisX * maxUV, thisY * maxUV);
+			//BL
+			aData->UV0[(thisX + 1) + (thisY * (rowLength))] = FVector2D((thisX + 1.0f) * maxUV, thisY * maxUV);
+			//TL
+			aData->UV0[(thisX + 1) + ((thisY + 1) * (rowLength))] = FVector2D((thisX + 1.0f)* maxUV, (thisY + 1.0f) * maxUV);
+
+		}
+	}
+
+	return true;
+
+}

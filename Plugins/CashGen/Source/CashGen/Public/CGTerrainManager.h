@@ -15,7 +15,7 @@ class ACGTerrainManager : public AActor
 	GENERATED_BODY()
 
 	bool isSetup = false;
-	CGPoint currentPlayerZone;
+	CGPoint currentPlayerZone = CGPoint(0,0);
 
 	void HandleTileFlip(CGPoint deltaTile);
 	UPROPERTY()
@@ -24,6 +24,7 @@ class ACGTerrainManager : public AActor
 	TArray<TSet<FCGMeshData*>> InUseMeshData;
 	bool GetFreeMeshData(FCGJob& aJob);
 	void ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease);
+	bool AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD);
 
 	void SweepLODs();
 	uint8 GetLODForTile(ACGTile* aTile);

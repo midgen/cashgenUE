@@ -14,13 +14,13 @@ class FCGTerrainGeneratorWorker : public FRunnable
 	FCGJob workJob;
 	uint8 workLOD;
 
-	TArray<FVector>*	pVertices;
-	TArray<int32>*		pTriangles;
-	TArray<FVector>*	pNormals;
-	TArray<FVector2D>*	pUV0;
-	TArray<FColor>*		pVertexColors;
-	TArray<FRuntimeMeshTangent>* pTangents;
-	TArray<FVector>* pHeightMap;
+	TSharedPtr<TArray<FVector>, ESPMode::ThreadSafe>	pVertices;
+	TSharedPtr<TArray<int32>, ESPMode::ThreadSafe>		pTriangles;
+	TSharedPtr<TArray<FVector>, ESPMode::ThreadSafe>	pNormals;
+	TSharedPtr<TArray<FVector2D>, ESPMode::ThreadSafe>	pUV0;
+	TSharedPtr<TArray<FColor>, ESPMode::ThreadSafe>		pVertexColors;
+	TSharedPtr<TArray<FRuntimeMeshTangent>, ESPMode::ThreadSafe> pTangents;
+	TSharedPtr<TArray<FVector>, ESPMode::ThreadSafe> pHeightMap;
 
 	bool IsThreadFinished;
 
