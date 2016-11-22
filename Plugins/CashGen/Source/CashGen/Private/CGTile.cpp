@@ -7,6 +7,7 @@ ACGTile::ACGTile()
 	PrimaryActorTick.bCanEverTick = true;
 
 	USphereComponent* SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RootComponent"));
+	RootComponent = SphereComponent;
 	MeshComponents.Add(0, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("RMC0")));
 	MeshComponents.Add(1, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("RMC1")));
 	MeshComponents.Add(2, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("RMC2")));
@@ -49,8 +50,8 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 {
 	Offset.X = aOffset.X;
 	Offset.Y = aOffset.Y;
-	WorldOffset = aWorldOffset;
 
+	WorldOffset = aWorldOffset;
 	TerrainConfigMaster = aTerrainConfig;
 
 }
@@ -62,6 +63,10 @@ void ACGTile::UpdateMesh(uint8 aLOD, TArray<FVector>	aVertices,
 	TArray<FColor>		aVertexColors,
 	TArray<FRuntimeMeshTangent> aTangents)
 {
+	SetActorLocation(FVector((TerrainConfigMaster->XUnits * TerrainConfigMaster->UnitSize * Offset.X) - WorldOffset.X, (TerrainConfigMaster->YUnits * TerrainConfigMaster->UnitSize * Offset.Y) - WorldOffset.Y, 0.0f));
+
+	CurrentLOD = aLOD;
+
 	for (int32 i = 0; i < 3; ++i)
 	{
 		if (i == aLOD) {
