@@ -40,8 +40,6 @@ class AZoneManager : public AActor
 
 	FVector* worldOffset;
 
-	UMaterialInstance* materialInstance;
-
 	float LODTransitionOpacity = 0.0f;
 
 	void PopulateMeshData(const uint8 aLOD);

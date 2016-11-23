@@ -9,7 +9,7 @@
 
 class ACGTerrainManager;
 
-enum ELODStatus { NOT_CREATED, CREATED };
+enum ELODStatus { NOT_CREATED, CREATED, TRANSITION };
 
 UCLASS()
 class ACGTile : public AActor

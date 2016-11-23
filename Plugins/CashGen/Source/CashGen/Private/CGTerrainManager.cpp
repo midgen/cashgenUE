@@ -49,6 +49,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		if (oldPos != newPos)
 		{
 			HandleTileFlip(newPos - oldPos);
+			GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Flipping " + FString::FromInt((newPos - oldPos).X) + " : " + FString::FromInt((newPos - oldPos).Y)));
 		}
 
 		// Check for pending jobs
@@ -166,22 +167,22 @@ void ACGTerrainManager::HandleTileFlip(CGPoint deltaTile)
 
 	for (ACGTile* tile : Tiles)
 	{
-		if (deltaTile.X < 0.1 && tile->Offset.X == maxX) {
+		if (deltaTile.X < -0.1 && tile->Offset.X == maxX) {
 			tile->Offset.X = minX - 1;
 			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile);
 			CreateTileRefreshJob(job);
 		}
-		if (deltaTile.X > 0.1 && tile->Offset.X == minX) {
+		else if (deltaTile.X > 0.1 && tile->Offset.X == minX) {
 			tile->Offset.X = maxX + 1;
 			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile);
 			CreateTileRefreshJob(job);
 		}
-		if (deltaTile.Y < 0.1 && tile->Offset.Y == maxY) {
+		else if (deltaTile.Y < -0.1 && tile->Offset.Y == maxY) {
 			tile->Offset.Y = minY - 1;
 			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile);
 			CreateTileRefreshJob(job);
 		}
-		if (deltaTile.Y > 0.1 && tile->Offset.Y == minY) {
+		else if (deltaTile.Y > 0.1 && tile->Offset.Y == minY) {
 			tile->Offset.Y = maxY + 1;
 			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile);
 			CreateTileRefreshJob(job);
