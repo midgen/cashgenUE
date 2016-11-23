@@ -12,13 +12,13 @@ struct FCGJob
 
 	FCGMeshData* Data;
 
-	TSharedPtr<TArray<FVector>, ESPMode::ThreadSafe>	Vertices;
-	TSharedPtr<TArray<int32>, ESPMode::ThreadSafe>		Triangles;
-	TSharedPtr<TArray<FVector>, ESPMode::ThreadSafe>	Normals;
-	TSharedPtr<TArray<FVector2D>, ESPMode::ThreadSafe>	UV0;
-	TSharedPtr<TArray<FColor>, ESPMode::ThreadSafe>		VertexColors;
-	TSharedPtr<TArray<FRuntimeMeshTangent>, ESPMode::ThreadSafe> Tangents;
-	TSharedPtr<TArray<FVector>, ESPMode::ThreadSafe> HeightMap;
+	TArray<FVector>*	Vertices;
+	TArray<int32>*		Triangles;
+	TArray<FVector>*	Normals;
+	TArray<FVector2D>*	UV0;
+	TArray<FColor>*	VertexColors;
+	TArray<FRuntimeMeshTangent>* Tangents;
+	TArray<FVector>* HeightMap;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	uint8 LOD;

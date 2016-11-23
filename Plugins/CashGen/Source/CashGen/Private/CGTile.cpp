@@ -56,12 +56,12 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 
 }
 
-void ACGTile::UpdateMesh(uint8 aLOD, TSharedPtr<TArray<FVector>, ESPMode::ThreadSafe>	aVertices,
-	TSharedPtr<TArray<int32>, ESPMode::ThreadSafe>		aTriangles,
-	TSharedPtr<TArray<FVector>, ESPMode::ThreadSafe>	aNormals,
-	TSharedPtr<TArray<FVector2D>, ESPMode::ThreadSafe>	aUV0,
-	TSharedPtr<TArray<FColor>, ESPMode::ThreadSafe>		aVertexColors,
-	TSharedPtr<TArray<FRuntimeMeshTangent>, ESPMode::ThreadSafe> aTangents)
+void ACGTile::UpdateMesh(uint8 aLOD, TArray<FVector>*	aVertices,
+	TArray<int32>*	aTriangles,
+	TArray<FVector>*	aNormals,
+	TArray<FVector2D>*	aUV0,
+	TArray<FColor>*		aVertexColors,
+	TArray<FRuntimeMeshTangent>* aTangents)
 {
 	SetActorLocation(FVector((TerrainConfigMaster->XUnits * TerrainConfigMaster->UnitSize * Offset.X) - WorldOffset.X, (TerrainConfigMaster->YUnits * TerrainConfigMaster->UnitSize * Offset.Y) - WorldOffset.Y, 0.0f));
 

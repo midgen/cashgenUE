@@ -14,6 +14,7 @@ class ACGTerrainManager : public AActor
 {
 	GENERATED_BODY()
 
+	const uint8 MESH_DATA_POOL_SIZE = 10;
 	bool isSetup = false;
 	CGPoint currentPlayerZone = CGPoint(0,0);
 
@@ -24,6 +25,7 @@ class ACGTerrainManager : public AActor
 	TArray<TSet<FCGMeshData*>> InUseMeshData;
 	bool GetFreeMeshData(FCGJob& aJob);
 	void ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease);
+	void AllocateAllMeshDataStructures();
 	bool AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD);
 
 	void SweepLODs();

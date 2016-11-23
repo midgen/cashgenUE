@@ -5,22 +5,6 @@
 ACGTerrainManager::ACGTerrainManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	// Add array entries for each LOD
-	MeshData.Add(FCGLODMeshData());
-	MeshData.Add(FCGLODMeshData());
-	MeshData.Add(FCGLODMeshData());
-
-	MeshData[0].Data.Reserve(50);
-
-	FreeMeshData.Add(TSet<FCGMeshData*>());
-	FreeMeshData.Add(TSet<FCGMeshData*>());
-	FreeMeshData.Add(TSet<FCGMeshData*>());
-
-	InUseMeshData.Add(TSet<FCGMeshData*>());
-	InUseMeshData.Add(TSet<FCGMeshData*>());
-	InUseMeshData.Add(TSet<FCGMeshData*>());
-
 }
 
 ACGTerrainManager::~ACGTerrainManager()
@@ -195,15 +179,15 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 	{
 		int32 newDataIndex = MeshData[aJob.LOD].Data.Emplace();
 		InUseMeshData[aJob.LOD].Add(&MeshData[aJob.LOD].Data[newDataIndex]);
-		AllocateDataStructuresForLOD(&MeshData[aJob.LOD].Data[newDataIndex] , &TerrainConfig, aJob.LOD);
+		//AllocateDataStructuresForLOD(&MeshData[aJob.LOD].Data[newDataIndex] , &TerrainConfig, aJob.LOD);
 		FCGMeshData* meshData = &MeshData[aJob.LOD].Data[newDataIndex];
-		aJob.Vertices = MakeShareable<TArray<FVector>>(&meshData->Vertices);
-		aJob.Triangles = MakeShareable<TArray<int32>>(&meshData->Triangles);
-		aJob.Normals = MakeShareable<TArray<FVector>>(&meshData->Normals);
-		aJob.UV0 = MakeShareable<TArray<FVector2D>>(&meshData->UV0);
-		aJob.VertexColors = MakeShareable<TArray<FColor>>(&meshData->VertexColors);
-		aJob.Tangents = MakeShareable<TArray<FRuntimeMeshTangent>>(&meshData->Tangents);
-		aJob.HeightMap = MakeShareable<TArray<FVector>>(&meshData->HeightMap);
+		aJob.Vertices = &meshData->Vertices;
+		aJob.Triangles = &meshData->Triangles;
+		aJob.Normals = &meshData->Normals;
+		aJob.UV0 = &meshData->UV0;
+		aJob.VertexColors = &meshData->VertexColors;
+		aJob.Tangents = &meshData->Tangents;
+		aJob.HeightMap = &meshData->HeightMap;
 		aJob.Data = meshData;
 		return true;
 	}
@@ -221,13 +205,14 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 		// Remove from the Free set
 		FreeMeshData[aJob.LOD].Remove(dataToUse);
 
-		aJob.Vertices = MakeShareable<TArray<FVector>>(&dataToUse->Vertices);
-		aJob.Triangles = MakeShareable<TArray<int32>>(&dataToUse->Triangles);
-		aJob.Normals = MakeShareable<TArray<FVector>>(&dataToUse->Normals);
-		aJob.UV0 = MakeShareable<TArray<FVector2D>>(&dataToUse->UV0);
-		aJob.VertexColors = MakeShareable<TArray<FColor>>(&dataToUse->VertexColors);
-		aJob.Tangents = MakeShareable<TArray<FRuntimeMeshTangent>>(&dataToUse->Tangents);
-		aJob.HeightMap = MakeShareable<TArray<FVector>>(&dataToUse->HeightMap);
+		aJob.Vertices = &dataToUse->Vertices;
+		aJob.Triangles = &dataToUse->Triangles;
+		aJob.Normals = &dataToUse->Normals;
+		aJob.UV0 = &dataToUse->UV0;
+		aJob.VertexColors = &dataToUse->VertexColors;
+		aJob.Tangents = &dataToUse->Tangents;
+		aJob.HeightMap = &dataToUse->HeightMap;
+		aJob.Data = dataToUse;
 		return true;
 	}
 
@@ -241,6 +226,43 @@ void ACGTerrainManager::ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease)
 }
 
 
+void ACGTerrainManager::AllocateAllMeshDataStructures()
+{
+	// Add array entries for each LOD
+	MeshData.Add(FCGLODMeshData());
+	MeshData.Add(FCGLODMeshData());
+	MeshData.Add(FCGLODMeshData());
+
+	FreeMeshData.Add(TSet<FCGMeshData*>());
+	FreeMeshData.Add(TSet<FCGMeshData*>());
+	FreeMeshData.Add(TSet<FCGMeshData*>());
+
+	InUseMeshData.Add(TSet<FCGMeshData*>());
+	InUseMeshData.Add(TSet<FCGMeshData*>());
+	InUseMeshData.Add(TSet<FCGMeshData*>());
+
+	// Allocate data structures up front
+	for (int LOD = 0; LOD < 3; ++LOD)
+	{
+		MeshData[LOD].Data.Reserve(MESH_DATA_POOL_SIZE);
+
+		for (int j = 0; j < MESH_DATA_POOL_SIZE; ++j)
+		{
+			MeshData[LOD].Data.Add(FCGMeshData());
+			AllocateDataStructuresForLOD(&MeshData[LOD].Data[j], &TerrainConfig, LOD);
+		}
+	}
+
+	// Now all the allocations and potential resizes/moves are done, set pointers
+	for (int LOD = 0; LOD < 3; ++LOD)
+	{
+		for (int j = 0; j < MESH_DATA_POOL_SIZE; ++j)
+		{
+			FreeMeshData[LOD].Add(&MeshData[LOD].Data[j]);
+		}
+	}
+}
+
 void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfig aTerrainConfig, const int32 aXTiles, const int32 aYTiles)
 {
 	TerrainConfig = aTerrainConfig;
@@ -248,6 +270,8 @@ void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfi
 	XTiles = aXTiles;
 	YTiles = aYTiles;
 	currentPlayerZone.X = 0; currentPlayerZone.Y = 0;
+
+	AllocateAllMeshDataStructures();
 
 	WorldOffset = FVector((XTiles / 2.0f) * TerrainConfig.XUnits * TerrainConfig.UnitSize, (YTiles / 2.0f) * TerrainConfig.YUnits * TerrainConfig.UnitSize, 0.0f);
 	
