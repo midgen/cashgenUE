@@ -47,11 +47,13 @@ public:
 	float TimeSinceLastSweep;
 	const float SweepInterval = 1.0f;
 
+	TQueue<FCGJob, EQueueMode::Spsc> PendingJobs;
 	TQueue<FCGJob, EQueueMode::Spsc> GeometryJobs;
+	TQueue<FCGJob, EQueueMode::Spsc> UpdateJobs;
 
 	FRunnableThread* WorkerThread;
 
-	TQueue<FCGJob, EQueueMode::Spsc> UpdateJobs;
+
 
 	FCGTerrainConfig TerrainConfig;
 

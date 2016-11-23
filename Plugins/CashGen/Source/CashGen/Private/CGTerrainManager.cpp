@@ -51,6 +51,19 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			HandleTileFlip(newPos - oldPos);
 		}
 
+		// Check for pending jobs
+		FCGJob pendingJob;
+		if (PendingJobs.Peek(pendingJob))
+		{
+			// If there's free data to allocate, dequeue and send to worker thread
+			if (FreeMeshData[pendingJob.LOD].Num() > 0)
+			{
+				PendingJobs.Dequeue(pendingJob);
+				GetFreeMeshData(pendingJob);
+				GeometryJobs.Enqueue(pendingJob);
+			}
+		}
+
 		// Now check for Update jobs
 		FCGJob updateJob;
 		if (UpdateJobs.Dequeue(updateJob))
@@ -66,6 +79,10 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			TimeSinceLastSweep = 0.0f;
 		}
 	}
+
+	//GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Pending : " + FString::FromInt(PendingJobs.Count()));
+	//GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Red, TEXT("Geometry : " + FString::FromInt(GeometryJobs.Count()));
+	//GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, TEXT("Update : " + FString::FromInt(UpdateJobs.Count()));
 }
 
 void ACGTerrainManager::SweepLODs()
@@ -116,8 +133,8 @@ void ACGTerrainManager::CreateTileRefreshJob(FCGJob aJob)
 	if (aJob.LOD != 10)
 	{
 		// Fetch a free data set
-		GetFreeMeshData(aJob);
-		GeometryJobs.Enqueue(aJob);
+		//GetFreeMeshData(aJob);
+		PendingJobs.Enqueue(aJob);
 	}
 
 }
@@ -177,19 +194,7 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 	// No free mesh data
 	if (FreeMeshData[aJob.LOD].Num() < 1)
 	{
-		int32 newDataIndex = MeshData[aJob.LOD].Data.Emplace();
-		InUseMeshData[aJob.LOD].Add(&MeshData[aJob.LOD].Data[newDataIndex]);
-		//AllocateDataStructuresForLOD(&MeshData[aJob.LOD].Data[newDataIndex] , &TerrainConfig, aJob.LOD);
-		FCGMeshData* meshData = &MeshData[aJob.LOD].Data[newDataIndex];
-		aJob.Vertices = &meshData->Vertices;
-		aJob.Triangles = &meshData->Triangles;
-		aJob.Normals = &meshData->Normals;
-		aJob.UV0 = &meshData->UV0;
-		aJob.VertexColors = &meshData->VertexColors;
-		aJob.Tangents = &meshData->Tangents;
-		aJob.HeightMap = &meshData->HeightMap;
-		aJob.Data = meshData;
-		return true;
+		return false;
 	}
 	else
 	{
@@ -216,7 +221,7 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 		return true;
 	}
 
-	return nullptr;
+	return false;
 }
 
 void ACGTerrainManager::ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease)
