@@ -52,9 +52,9 @@ void ATestPawn::Tick( float DeltaTime )
 }
 
 // Called to bind functionality to input
-void ATestPawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
+void ATestPawn::SetupPlayerInputComponent(class UInputComponent* aInputComponent)
 {
-	Super::SetupPlayerInputComponent(InputComponent);
+	Super::SetupPlayerInputComponent(aInputComponent);
 
 	InputComponent->BindAxis("MoveForward", this, &ATestPawn::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &ATestPawn::MoveRight);
