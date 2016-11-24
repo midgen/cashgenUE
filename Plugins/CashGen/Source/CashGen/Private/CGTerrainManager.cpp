@@ -69,7 +69,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		FCGJob updateJob;
 		if (UpdateJobs.Dequeue(updateJob))
 		{
-			updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
+			updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
 			ReleaseMeshData(updateJob.LOD, updateJob.Data);
 		}
 
@@ -97,6 +97,7 @@ void ACGTerrainManager::SweepLODs()
 			FCGJob newJob;
 			newJob.Tile = tile;
 			newJob.LOD = newLOD;
+			newJob.IsInPlaceUpdate = true;
 			CreateTileRefreshJob(newJob);
 		}
 	}
@@ -169,22 +170,22 @@ void ACGTerrainManager::HandleTileFlip(CGPoint deltaTile)
 	{
 		if (deltaTile.X < -0.1 && tile->Offset.X == maxX) {
 			tile->Offset.X = minX - 1;
-			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile);
+			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 			CreateTileRefreshJob(job);
 		}
 		else if (deltaTile.X > 0.1 && tile->Offset.X == minX) {
 			tile->Offset.X = maxX + 1;
-			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile);
+			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 			CreateTileRefreshJob(job);
 		}
 		else if (deltaTile.Y < -0.1 && tile->Offset.Y == maxY) {
 			tile->Offset.Y = minY - 1;
-			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile);
+			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 			CreateTileRefreshJob(job);
 		}
 		else if (deltaTile.Y > 0.1 && tile->Offset.Y == minY) {
 			tile->Offset.Y = maxY + 1;
-			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile);
+			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 			CreateTileRefreshJob(job);
 		}
 	}

@@ -119,7 +119,7 @@ void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 		{
 			(*pNormals)[x + (y * rowLength)] = GetNormalFromHeightMapForVertex(x, y);
 			// TODO: Pretty sure this is wrong, so out it goes for now
-			//(*pTangents)[x + (y * rowLength)] = GetTangentFromNormal((*pNormals)[x + (y * rowLength)]);
+			(*pTangents)[x + (y * rowLength)] = GetTangentFromNormal((*pNormals)[x + (y * rowLength)]);
 		}
 	}
 }
@@ -205,7 +205,8 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int a
 	// BR
 	(*pVertices)[(thisX + 1) + ((thisY + 1) * rowLength)] = (*pHeightMap)[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
 
-	//TODO: This isn't doing anything at the moment 
+	//TODO: Not using Vertex Colour channels at the moment, could be handy though!
+
 	//(*pVertexColors)[thisX + (thisY * rowLength)].R = (255 / 50000.0f);
 	//(*pVertexColors)[thisX + ((thisY + 1) * rowLength)].R = (255 / 50000.0f);
 	//(*pVertexColors)[(thisX + 1) + (thisY * rowLength)].R = (255 / 50000.0f);

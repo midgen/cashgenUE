@@ -114,16 +114,21 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 	}
 }
 
-void ACGTile::UpdateMesh(uint8 aLOD, TArray<FVector>*	aVertices,
+void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVertices,
 	TArray<int32>*	aTriangles,
 	TArray<FVector>*	aNormals,
 	TArray<FVector2D>*	aUV0,
 	TArray<FColor>*		aVertexColors,
 	TArray<FRuntimeMeshTangent>* aTangents)
 {
-	SetActorLocation(FVector((TerrainConfigMaster->XUnits * TerrainConfigMaster->UnitSize * Offset.X) - WorldOffset.X, (TerrainConfigMaster->YUnits * TerrainConfigMaster->UnitSize * Offset.Y) - WorldOffset.Y, 0.0f));
+
+	if (!aIsInPlaceUpdate && PreviousLOD != 10)
+	{
+		MeshComponents[PreviousLOD]->SetMeshSectionVisible(0, false);
+	}
 
 	CurrentLOD = aLOD;
+	LODTransitionOpacity = 1.0f;
 
 	for (int32 i = 0; i < 3; ++i)
 	{
@@ -143,6 +148,9 @@ void ACGTile::UpdateMesh(uint8 aLOD, TArray<FVector>*	aVertices,
 			MeshComponents[i]->SetMeshSectionVisible(0, false);
 		}
 	}
+
+	SetActorLocation(FVector((TerrainConfigMaster->XUnits * TerrainConfigMaster->UnitSize * Offset.X) - WorldOffset.X, (TerrainConfigMaster->YUnits * TerrainConfigMaster->UnitSize * Offset.Y) - WorldOffset.Y, 0.0f));
+
 }
 
 FVector ACGTile::GetCentrePos()

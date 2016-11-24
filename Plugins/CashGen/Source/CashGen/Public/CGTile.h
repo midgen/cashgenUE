@@ -37,7 +37,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	void SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
-	void UpdateMesh(uint8 aLOD, TArray<FVector>*	aVertices,
+	void UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVertices,
 		TArray<int32>*		aTriangles,
 		TArray<FVector>*	aNormals,
 		TArray<FVector2D>*	aUV0,
