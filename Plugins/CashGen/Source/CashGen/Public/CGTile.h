@@ -22,6 +22,9 @@ class ACGTile : public AActor
 
 	float LODTransitionOpacity = 0.0f;
 
+	uint8 CurrentLOD;
+	uint8 PreviousLOD;
+
 public:
 	ACGTile();
 	~ACGTile();
@@ -30,8 +33,9 @@ public:
 	FVector WorldOffset;
 	FCGTerrainConfig* TerrainConfigMaster;
 
-	uint8 CurrentLOD;
-	uint8 PreviousLOD;
+	uint8 GetCurrentLOD();
+
+	void RepositionAndHide(uint8 aNewLOD);
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;

@@ -35,6 +35,23 @@ ACGTile::~ACGTile()
 
 }
 
+uint8 ACGTile::GetCurrentLOD()
+{
+	return CurrentLOD;
+}
+
+void ACGTile::RepositionAndHide(uint8 aNewLOD)
+{
+	SetActorLocation(FVector((TerrainConfigMaster->XUnits * TerrainConfigMaster->UnitSize * Offset.X) - WorldOffset.X, (TerrainConfigMaster->YUnits * TerrainConfigMaster->UnitSize * Offset.Y) - WorldOffset.Y, 0.0f));
+
+	CurrentLOD = aNewLOD;
+
+	for (auto& lod : LODStatus)
+	{
+		MeshComponents[lod.Key]->SetVisibility(false);
+	}
+}
+
 void ACGTile::BeginPlay()
 {
 	Super::BeginPlay();
@@ -48,7 +65,7 @@ void ACGTile::Tick(float DeltaSeconds)
 		{
 			if (LODTransitionOpacity >= -1.0f)
 			{
-				LODTransitionOpacity -= 0.02f;
+				LODTransitionOpacity -= DeltaSeconds;
 				if (LODTransitionOpacity > 0.0f)
 				{
 					MaterialInstances[lod.Key]->SetScalarParameterValue(FName("TerrainOpacity"), 1.0f - LODTransitionOpacity);
@@ -61,9 +78,9 @@ void ACGTile::Tick(float DeltaSeconds)
 			else
 			{
 				if (PreviousLOD != 10 && PreviousLOD != CurrentLOD) {
-					MeshComponents[PreviousLOD]->SetMeshSectionVisible(0, false);
+					MeshComponents[PreviousLOD]->SetVisibility(false);
 				}
-				PreviousLOD = CurrentLOD;
+				
 				LODTransitionOpacity = 1.0f;
 				lod.Value = ELODStatus::CREATED;
 			}
@@ -82,35 +99,35 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 	WorldOffset = aWorldOffset;
 	TerrainConfigMaster = aTerrainConfig;
 
-	for (auto& lod : LODStatus)
+	for (int32 i = 0; i < 3; ++i)
 	{
-		MaterialInstances.Add(lod.Key, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterialInstanceParent, this));
+		MaterialInstances.Add(i, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterialInstanceParent, this));
 		// Apply the debug LOD colors if enabled
 		if (TerrainConfigMaster->IsLODDebugEnabled) {
-			switch (lod.Key)
+			switch (i)
 			{
 			case 1:
-				MaterialInstances[lod.Key]->SetVectorParameterValue(FName("GrassColor"), FLinearColor::Red);
+				MaterialInstances[i]->SetVectorParameterValue(FName("GrassColor"), FLinearColor::Red);
 				break;
 			case 2:
-				MaterialInstances[lod.Key]->SetVectorParameterValue(FName("GrassColor"), FLinearColor::Blue);
+				MaterialInstances[i]->SetVectorParameterValue(FName("GrassColor"), FLinearColor::Blue);
 				break;
 			}
 		}
 		// Otherwise use the specified grass color
 		else {
-			MaterialInstances[lod.Key]->SetVectorParameterValue(FName("GrassColor"), TerrainConfigMaster->GrassColor);
+			MaterialInstances[i]->SetVectorParameterValue(FName("GrassColor"), TerrainConfigMaster->GrassColor);
 		}
 		// Pass the other material parameters
-		MaterialInstances[lod.Key]->SetScalarParameterValue(FName("SlopeStart"), TerrainConfigMaster->SlopeStart);
-		MaterialInstances[lod.Key]->SetScalarParameterValue(FName("SlopeEnd"), TerrainConfigMaster->SlopeEnd);
-		MaterialInstances[lod.Key]->SetScalarParameterValue(FName("ShoreHeight"), TerrainConfigMaster->ShoreHeight);
-		MaterialInstances[lod.Key]->SetScalarParameterValue(FName("TreeLineHeight"), TerrainConfigMaster->TreeLine);
-		MaterialInstances[lod.Key]->SetVectorParameterValue(FName("SlopeColor"), TerrainConfigMaster->SlopeColor);
-		MaterialInstances[lod.Key]->SetVectorParameterValue(FName("ShoreColor"), TerrainConfigMaster->ShoreColor);
-		MaterialInstances[lod.Key]->SetVectorParameterValue(FName("TreeLineColor"), TerrainConfigMaster->TreeLineColor);
+		MaterialInstances[i]->SetScalarParameterValue(FName("SlopeStart"), TerrainConfigMaster->SlopeStart);
+		MaterialInstances[i]->SetScalarParameterValue(FName("SlopeEnd"), TerrainConfigMaster->SlopeEnd);
+		MaterialInstances[i]->SetScalarParameterValue(FName("ShoreHeight"), TerrainConfigMaster->ShoreHeight);
+		MaterialInstances[i]->SetScalarParameterValue(FName("TreeLineHeight"), TerrainConfigMaster->TreeLine);
+		MaterialInstances[i]->SetVectorParameterValue(FName("SlopeColor"), TerrainConfigMaster->SlopeColor);
+		MaterialInstances[i]->SetVectorParameterValue(FName("ShoreColor"), TerrainConfigMaster->ShoreColor);
+		MaterialInstances[i]->SetVectorParameterValue(FName("TreeLineColor"), TerrainConfigMaster->TreeLineColor);
 
-		MeshComponents[lod.Key]->SetMaterial(0, MaterialInstances[lod.Key]);
+		MeshComponents[i]->SetMaterial(0, MaterialInstances[i]);
 	}
 }
 
@@ -121,12 +138,7 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVe
 	TArray<FColor>*		aVertexColors,
 	TArray<FRuntimeMeshTangent>* aTangents)
 {
-
-	if (!aIsInPlaceUpdate && PreviousLOD != 10)
-	{
-		MeshComponents[PreviousLOD]->SetMeshSectionVisible(0, false);
-	}
-
+	PreviousLOD = CurrentLOD;
 	CurrentLOD = aLOD;
 	LODTransitionOpacity = 1.0f;
 
@@ -142,14 +154,13 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVe
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}
 
-			MeshComponents[i]->SetMeshSectionVisible(0,true);
+			MeshComponents[i]->SetVisibility(true);
 		}
-		else {
-			MeshComponents[i]->SetMeshSectionVisible(0, false);
+		else if (!aIsInPlaceUpdate)
+		{
+			MeshComponents[i]->SetVisibility(false);
 		}
 	}
-
-	SetActorLocation(FVector((TerrainConfigMaster->XUnits * TerrainConfigMaster->UnitSize * Offset.X) - WorldOffset.X, (TerrainConfigMaster->YUnits * TerrainConfigMaster->UnitSize * Offset.Y) - WorldOffset.Y, 0.0f));
 
 }
 

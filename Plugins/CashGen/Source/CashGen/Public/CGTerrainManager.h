@@ -45,11 +45,13 @@ public:
 	AActor* TrackingActor;
 
 	float TimeSinceLastSweep;
-	const float SweepInterval = 1.0f;
+	const float SweepInterval = 0.1f;
 
 	TQueue<FCGJob, EQueueMode::Spsc> PendingJobs;
 	TQueue<FCGJob, EQueueMode::Spsc> GeometryJobs;
 	TQueue<FCGJob, EQueueMode::Spsc> UpdateJobs;
+
+	TSet<ACGTile*> QueuedTiles;
 
 	FRunnableThread* WorkerThread;
 

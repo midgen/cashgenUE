@@ -48,8 +48,13 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 
 		if (oldPos != newPos)
 		{
-			HandleTileFlip(newPos - oldPos);
-			GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Flipping " + FString::FromInt((newPos - oldPos).X) + " : " + FString::FromInt((newPos - oldPos).Y)));
+			CGPoint delta = newPos - oldPos;
+			HandleTileFlip(delta);
+			if (FMath::Abs(delta.X) > 0 && FMath::Abs(delta.Y))
+			{
+				GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Flipping " + FString::FromInt((newPos - oldPos).X) + " : " + FString::FromInt((newPos - oldPos).Y)));
+			}
+			
 		}
 
 		// Check for pending jobs
@@ -71,6 +76,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		{
 			updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
 			ReleaseMeshData(updateJob.LOD, updateJob.Data);
+			QueuedTiles.Remove(updateJob.Tile);
 		}
 
 		// Now check for LOD sweeps;
@@ -80,10 +86,6 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			TimeSinceLastSweep = 0.0f;
 		}
 	}
-
-	//GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Pending : " + FString::FromInt(PendingJobs.Count()));
-	//GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Red, TEXT("Geometry : " + FString::FromInt(GeometryJobs.Count()));
-	//GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Red, TEXT("Update : " + FString::FromInt(UpdateJobs.Count()));
 }
 
 void ACGTerrainManager::SweepLODs()
@@ -92,7 +94,7 @@ void ACGTerrainManager::SweepLODs()
 	{
 		uint8 newLOD = GetLODForTile(tile);
 		// LOD has decreased, we need to generate geometry
-		if (tile->CurrentLOD > newLOD)
+		if (tile->GetCurrentLOD() > newLOD && !QueuedTiles.Contains(tile))
 		{
 			FCGJob newJob;
 			newJob.Tile = tile;
@@ -134,9 +136,8 @@ void ACGTerrainManager::CreateTileRefreshJob(FCGJob aJob)
 {
 	if (aJob.LOD != 10)
 	{
-		// Fetch a free data set
-		//GetFreeMeshData(aJob);
 		PendingJobs.Enqueue(aJob);
+		QueuedTiles.Add(aJob.Tile);
 	}
 
 }
@@ -170,21 +171,25 @@ void ACGTerrainManager::HandleTileFlip(CGPoint deltaTile)
 	{
 		if (deltaTile.X < -0.1 && tile->Offset.X == maxX) {
 			tile->Offset.X = minX - 1;
+			tile->RepositionAndHide(GetLODForTile(tile));
 			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 			CreateTileRefreshJob(job);
 		}
 		else if (deltaTile.X > 0.1 && tile->Offset.X == minX) {
 			tile->Offset.X = maxX + 1;
+			tile->RepositionAndHide(GetLODForTile(tile));
 			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 			CreateTileRefreshJob(job);
 		}
-		else if (deltaTile.Y < -0.1 && tile->Offset.Y == maxY) {
+		if (deltaTile.Y < -0.1 && tile->Offset.Y == maxY) {
 			tile->Offset.Y = minY - 1;
+			tile->RepositionAndHide(GetLODForTile(tile));
 			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 			CreateTileRefreshJob(job);
 		}
 		else if (deltaTile.Y > 0.1 && tile->Offset.Y == minY) {
 			tile->Offset.Y = maxY + 1;
+			tile->RepositionAndHide(GetLODForTile(tile));
 			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 			CreateTileRefreshJob(job);
 		}
@@ -282,23 +287,27 @@ void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfi
 
 	WorldOffset = FVector((XTiles / 2.0f) * TerrainConfig.XUnits * TerrainConfig.UnitSize, (YTiles / 2.0f) * TerrainConfig.YUnits * TerrainConfig.UnitSize, 0.0f);
 	
-	//if (aTrackingActor)
-	//{
-	//	currentPlayerZone.X = floor(aTrackingActor->GetActorLocation().X / ((TerrainConfig.UnitSize * TerrainConfig.XUnits) - WorldOffset.X));
-	//	currentPlayerZone.Y = floor(aTrackingActor->GetActorLocation().Y / ((TerrainConfig.UnitSize * TerrainConfig.YUnits) - WorldOffset.Y));
-	//}
+	if (aTrackingActor)
+	{
+		currentPlayerZone.X = floor(aTrackingActor->GetActorLocation().X / ((TerrainConfig.UnitSize * TerrainConfig.XUnits) - WorldOffset.X));
+		currentPlayerZone.Y = floor(aTrackingActor->GetActorLocation().Y / ((TerrainConfig.UnitSize * TerrainConfig.YUnits) - WorldOffset.Y));
+	}
 
 	for (int32 i = 0; i < XTiles * YTiles; ++i)
 	{
 		Tiles.Add(GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(),
 													FVector((TerrainConfig.XUnits * TerrainConfig.UnitSize * GetXYfromIdx(i).X) - WorldOffset.X,
 																(TerrainConfig.YUnits * TerrainConfig.UnitSize * GetXYfromIdx(i).Y) - WorldOffset.Y, 0.0f) - WorldOffset, FRotator(0.0f)));
+
+		// Set the correct LOD to prevent a loop on the initial spawn and generate cycle
+		
 	}
 
 	int32 tileIndex = 0;
 	for (ACGTile* tile : Tiles)
 	{
 		tile->SetupTile(GetXYfromIdx(tileIndex), &TerrainConfig, WorldOffset);
+		tile->RepositionAndHide(GetLODForTile(tile));
 		FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 		CreateTileRefreshJob(job);
 		++tileIndex;
