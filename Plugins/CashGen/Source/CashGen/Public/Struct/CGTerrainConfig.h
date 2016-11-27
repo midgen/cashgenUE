@@ -40,13 +40,15 @@ struct FCGTerrainConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 		float LODCullRange;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		FLinearColor GrassColor;
+		FLinearColor GrassColorBase;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+		FLinearColor GrassColorSlope;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+		FLinearColor TreeLineColorBase;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+		FLinearColor TreeLineColorSlope;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 		FLinearColor ShoreColor;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		FLinearColor SlopeColor;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		FLinearColor TreeLineColor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 		float ShoreHeight;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")

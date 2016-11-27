@@ -116,16 +116,17 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 		}
 		// Otherwise use the specified grass color
 		else {
-			MaterialInstances[i]->SetVectorParameterValue(FName("GrassColor"), TerrainConfigMaster->GrassColor);
+			MaterialInstances[i]->SetVectorParameterValue(FName("GrassColorBase"), TerrainConfigMaster->GrassColorBase);
+			MaterialInstances[i]->SetVectorParameterValue(FName("GrassColorSlope"), TerrainConfigMaster->GrassColorSlope);
 		}
 		// Pass the other material parameters
 		MaterialInstances[i]->SetScalarParameterValue(FName("SlopeStart"), TerrainConfigMaster->SlopeStart);
 		MaterialInstances[i]->SetScalarParameterValue(FName("SlopeEnd"), TerrainConfigMaster->SlopeEnd);
 		MaterialInstances[i]->SetScalarParameterValue(FName("ShoreHeight"), TerrainConfigMaster->ShoreHeight);
 		MaterialInstances[i]->SetScalarParameterValue(FName("TreeLineHeight"), TerrainConfigMaster->TreeLine);
-		MaterialInstances[i]->SetVectorParameterValue(FName("SlopeColor"), TerrainConfigMaster->SlopeColor);
 		MaterialInstances[i]->SetVectorParameterValue(FName("ShoreColor"), TerrainConfigMaster->ShoreColor);
-		MaterialInstances[i]->SetVectorParameterValue(FName("TreeLineColor"), TerrainConfigMaster->TreeLineColor);
+		MaterialInstances[i]->SetVectorParameterValue(FName("TreeLineColorBase"), TerrainConfigMaster->TreeLineColorBase);
+		MaterialInstances[i]->SetVectorParameterValue(FName("TreeLineColorSlope"), TerrainConfigMaster->TreeLineColorSlope);
 
 		MeshComponents[i]->SetMaterial(0, MaterialInstances[i]);
 	}
