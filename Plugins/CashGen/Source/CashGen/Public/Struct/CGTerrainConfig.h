@@ -29,7 +29,9 @@ struct FCGTerrainConfig
 		float Amplitude;
 	/** Material for the terrain mesh */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		UMaterial* TerrainMaterialInstanceParent;
+	UMaterial* TerrainMaterialInstanceParent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	UMaterialInstance* TerrainMatInstance;
 	/** LOD 0->1 transition range **/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 		float LOD1Range;
