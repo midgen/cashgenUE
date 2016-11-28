@@ -17,17 +17,22 @@ class ACGTerrainManager : public AActor
 	const uint8 MESH_DATA_POOL_SIZE = 10;
 	bool isSetup = false;
 	CGPoint currentPlayerZone = CGPoint(0,0);
+	FRunnableThread* WorkerThread;
 
 	void HandleTileFlip(CGPoint deltaTile);
 	UPROPERTY()
 	TArray<FCGLODMeshData> MeshData;
 	TArray<TSet<FCGMeshData*>> FreeMeshData;
 	TArray<TSet<FCGMeshData*>> InUseMeshData;
+	FVector WorldOffset;
+	TArray<ACGTile*> Tiles;
+
+
 	bool GetFreeMeshData(FCGJob& aJob);
 	void ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease);
 	void AllocateAllMeshDataStructures();
 	bool AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD);
-
+	void CreateTileRefreshJob(FCGJob aJob);
 	void SweepLODs();
 	uint8 GetLODForTile(ACGTile* aTile);
 
@@ -37,12 +42,17 @@ public:
 	ACGTerrainManager();
 	~ACGTerrainManager();
 
-	TArray<ACGTile*> Tiles;
-
-	int32 XTiles;
-	int32 YTiles;
-
+	UPROPERTY(EditAnywhere, Category = "CashGen")
 	AActor* TrackingActor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	int32 XTiles;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	int32 YTiles;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	FCGTerrainConfig TerrainConfig;
+
+	UFUNCTION(BlueprintCallable, Category = "CashGen")
+	void SetUpTerrain(UUFNNoiseGenerator* aNoiseGen, AActor* aTrackingActor) { TerrainConfig.NoiseGenerator = aNoiseGen; TrackingActor = aTrackingActor; }
 
 	float TimeSinceLastSweep;
 	const float SweepInterval = 0.1f;
@@ -53,21 +63,11 @@ public:
 
 	TSet<ACGTile*> QueuedTiles;
 
-	FRunnableThread* WorkerThread;
-
-
-
-	FCGTerrainConfig TerrainConfig;
-
-
-
-	FVector WorldOffset;
-
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
 	void SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfig aTerrainConfig, const int32 aXTiles, const int32 aYTiles);
 
-	void CreateTileRefreshJob(FCGJob aJob);
+	
 };

@@ -25,6 +25,8 @@ void ACGTerrainManager::BeginPlay()
 		(new FCGTerrainGeneratorWorker(this, &TerrainConfig),
 			*threadName,
 			0, EThreadPriority::TPri_BelowNormal, FPlatformAffinity::GetNoAffinityMask());
+
+
 }
 
 void ACGTerrainManager::Tick(float DeltaSeconds)
@@ -84,6 +86,13 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		{
 			SweepLODs();
 			TimeSinceLastSweep = 0.0f;
+		}
+	}
+	else
+	{
+		if (TerrainConfig.NoiseGenerator != nullptr)
+		{
+			SpawnTiles(TrackingActor, TerrainConfig, XTiles, YTiles);
 		}
 	}
 }
