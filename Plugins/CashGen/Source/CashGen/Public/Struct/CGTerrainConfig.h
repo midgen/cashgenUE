@@ -1,6 +1,7 @@
 #pragma once
 #include "cashgen.h"
 #include "UFNNoiseGenerator.h"
+#include "Struct/CGLODConfig.h"
 #include "UFNBlendModule.h"
 #include "CGTerrainConfig.generated.h"
 
@@ -11,10 +12,8 @@ struct FCGTerrainConfig
 {
 	GENERATED_USTRUCT_BODY()
 		/** Noise Generator configuration struct */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	UPROPERTY(EditAnywhere, Category = "Zone Config Struct")
 		UUFNNoiseGenerator* NoiseGenerator;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		UUFNBlendModule* BiomeBlendModule;
 	/** Number of blocks along a zone's X axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 		int32 XUnits;
@@ -32,15 +31,8 @@ struct FCGTerrainConfig
 	UMaterial* TerrainMaterialInstanceParent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	UMaterialInstance* TerrainMatInstance;
-	/** LOD 0->1 transition range **/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		float LOD1Range;
-	/** LOD 1->2 transition range **/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		float LOD2Range;
-	/** Do no render range **/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		float LODCullRange;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FCGLODConfig> LODs;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 		FLinearColor GrassColorBase;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")

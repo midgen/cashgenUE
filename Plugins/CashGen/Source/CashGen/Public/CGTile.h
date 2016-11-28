@@ -29,6 +29,8 @@ public:
 	ACGTile();
 	~ACGTile();
 
+	USphereComponent* SphereComponent;
+
 	CGPoint Offset;
 	FVector WorldOffset;
 	FCGTerrainConfig* TerrainConfigMaster;

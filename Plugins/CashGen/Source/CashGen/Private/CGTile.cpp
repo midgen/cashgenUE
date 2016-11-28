@@ -6,25 +6,8 @@ ACGTile::ACGTile()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	USphereComponent* SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RootComponent"));
+	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RootComponent"));
 	RootComponent = SphereComponent;
-	MeshComponents.Add(0, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("RMC0")));
-	MeshComponents.Add(1, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("RMC1")));
-	MeshComponents.Add(2, CreateDefaultSubobject<URuntimeMeshComponent>(TEXT("RMC2")));
-
-	MeshComponents[0]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	MeshComponents[1]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	MeshComponents[2]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	MeshComponents[0]->BodyInstance.SetResponseToAllChannels(ECR_Block);
-	MeshComponents[1]->BodyInstance.SetResponseToAllChannels(ECR_Block);
-	MeshComponents[2]->BodyInstance.SetResponseToAllChannels(ECR_Block);
-	MeshComponents[0]->bShouldSerializeMeshData = false;
-	MeshComponents[1]->bShouldSerializeMeshData = false;
-	MeshComponents[2]->bShouldSerializeMeshData = false;
-
-	LODStatus.Add(0, ELODStatus::NOT_CREATED);
-	LODStatus.Add(1, ELODStatus::NOT_CREATED);
-	LODStatus.Add(2, ELODStatus::NOT_CREATED);
 
 	CurrentLOD = 10;
 	PreviousLOD = 10;
@@ -100,8 +83,25 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 	WorldOffset = aWorldOffset;
 	TerrainConfigMaster = aTerrainConfig;
 
-	for (int32 i = 0; i < 3; ++i)
+	for (int32 i = 0; i < aTerrainConfig->LODs.Num(); ++i)
 	{
+
+		FString compName = "RMC" + FString::FromInt(i);
+		MeshComponents.Add(i, NewObject<URuntimeMeshComponent>(this, URuntimeMeshComponent::StaticClass(),*compName));
+
+		MeshComponents[i]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
+		MeshComponents[i]->BodyInstance.SetResponseToAllChannels(ECR_Block);
+
+		MeshComponents[i]->bShouldSerializeMeshData = false;
+
+		MeshComponents[i]->RegisterComponent();
+
+		LODStatus.Add(i, ELODStatus::NOT_CREATED);
+
+
+
+
 		if (TerrainConfigMaster->TerrainMaterialInstanceParent != nullptr)
 		{
 			MaterialInstances.Add(i, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterialInstanceParent, this));
@@ -151,11 +151,11 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVe
 	CurrentLOD = aLOD;
 	LODTransitionOpacity = 1.0f;
 
-	for (int32 i = 0; i < 3; ++i)
+	for (int32 i = 0; i < TerrainConfigMaster->LODs.Num(); ++i)
 	{
 		if (i == aLOD) {
 			if (LODStatus[i] == ELODStatus::NOT_CREATED) {
-				MeshComponents[i]->CreateMeshSection(0, *aVertices, *aTriangles, *aNormals, *aUV0, *aVertexColors, *aTangents, aLOD == 0, EUpdateFrequency::Infrequent );
+				MeshComponents[i]->CreateMeshSection(0, *aVertices, *aTriangles, *aNormals, *aUV0, *aVertexColors, *aTangents, TerrainConfigMaster->LODs[aLOD].isCollisionEnabled, EUpdateFrequency::Infrequent );
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}
 			else {

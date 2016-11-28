@@ -74,7 +74,7 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 	int32 exX = GetNumberOfNoiseSamplePoints();
 	int32 exY = exX;
 
-	int32 exUnitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * (FMath::Pow(2, workLOD));
+	int32 exUnitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * pTerrainConfig->LODs[workLOD].ResolutionDivisor;
 
 	// Calculate the new noisemap
 	for (int x = 0; x < exX; ++x)
@@ -94,8 +94,8 @@ void FCGTerrainGeneratorWorker::ProcessPerBlockGeometry()
 	int32 vertCounter = 0;
 	int32 triCounter = 0;
 
-	int32 xUnits = workLOD == 0 ? pTerrainConfig->XUnits : (pTerrainConfig->XUnits / (FMath::Pow(2, workLOD)));
-	int32 yUnits = workLOD == 0 ? pTerrainConfig->YUnits : (pTerrainConfig->YUnits / (FMath::Pow(2, workLOD)));
+	int32 xUnits = workLOD == 0 ? pTerrainConfig->XUnits : (pTerrainConfig->XUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
+	int32 yUnits = workLOD == 0 ? pTerrainConfig->YUnits : (pTerrainConfig->YUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
 
 	// Generate the mesh data for each block
 	for (int32 y = 0; y < yUnits; ++y)
@@ -109,9 +109,10 @@ void FCGTerrainGeneratorWorker::ProcessPerBlockGeometry()
 
 void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 {
-	int32 xUnits = workLOD == 0 ? pTerrainConfig->XUnits : (pTerrainConfig->XUnits / (FMath::Pow(2, workLOD)));
-	int32 yUnits = workLOD == 0 ? pTerrainConfig->YUnits : (pTerrainConfig->YUnits / (FMath::Pow(2, workLOD)));
-	int32 rowLength = workLOD == 0 ? pTerrainConfig->XUnits + 1 : (pTerrainConfig->XUnits / (FMath::Pow(2, workLOD)) + 1);
+	int32 xUnits = workLOD == 0 ? pTerrainConfig->XUnits : (pTerrainConfig->XUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
+	int32 yUnits = workLOD == 0 ? pTerrainConfig->YUnits : (pTerrainConfig->YUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
+
+	int32 rowLength = workLOD == 0 ? pTerrainConfig->XUnits + 1 : (pTerrainConfig->XUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
 
 	for (int32 y = 0; y < yUnits + 1; ++y)
 	{
@@ -133,7 +134,7 @@ FVector FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 v
 {
 	FVector result;
 
-	int32 rowLength = workLOD == 0 ? pTerrainConfig->XUnits + 1 : (pTerrainConfig->XUnits / (FMath::Pow(2, workLOD)) + 1);
+	int32 rowLength = workLOD == 0 ? pTerrainConfig->XUnits + 1 : (pTerrainConfig->XUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
 	int32 heightMapRowLength = rowLength + 2;
 
 	// the heightmapIndex for this vertex index
@@ -189,10 +190,10 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int a
 	int32 heightMapX = thisX + 1;
 	int32 heightMapY = thisY + 1;
 	// LOD adjusted dimensions
-	int32 rowLength = workLOD == 0 ? pTerrainConfig->XUnits + 1 : (pTerrainConfig->XUnits / (FMath::Pow(2, workLOD)) + 1);
+	int32 rowLength = workLOD == 0 ? pTerrainConfig->XUnits + 1 : (pTerrainConfig->XUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
 	int32 heightMapRowLength = rowLength + 2;
 	// LOD adjusted unit size
-	int32 exUnitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * (FMath::Pow(2, workLOD));
+	int32 exUnitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * (pTerrainConfig->LODs[workLOD].ResolutionDivisor);
 
 	FVector heightMapToWorldOffset = FVector(exUnitSize, exUnitSize, 0.0f);
 
@@ -215,5 +216,6 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int a
 
 int32 FCGTerrainGeneratorWorker::GetNumberOfNoiseSamplePoints()
 {
-	return workLOD == 0 ? pTerrainConfig->XUnits + 3 : (pTerrainConfig->XUnits / (FMath::Pow(2, workLOD))) + 3;
+	//return workLOD == 0 ? pTerrainConfig->XUnits + 3 : (pTerrainConfig->XUnits / (FMath::Pow(2, workLOD))) + 3;
+	return workLOD == 0 ? pTerrainConfig->XUnits + 3 : (pTerrainConfig->XUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor)) + 3;
 }

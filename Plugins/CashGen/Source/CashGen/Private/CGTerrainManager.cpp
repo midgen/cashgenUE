@@ -124,20 +124,17 @@ uint8 ACGTerrainManager::GetLODForTile(ACGTile* aTile)
 	diff = TrackingActor->GetActorLocation() - centreOfTile;
 
 	float distance = diff.Size();
+	uint8 lodIndex = 0;
 
-	if (distance <= TerrainConfig.LOD1Range)
+	for (FCGLODConfig& lod : TerrainConfig.LODs)
 	{
-		return 0;
+		if (distance < lod.Range)
+		{
+			return lodIndex;
+		}
+		++lodIndex;
 	}
-	if(distance > TerrainConfig.LOD1Range && distance <= TerrainConfig.LOD2Range)
-	{
-		return 1;
-	}
-	if (distance > TerrainConfig.LOD2Range && distance <= TerrainConfig.LODCullRange)
-	{
-		return 2;
-	}
-	// Otherwise it's in LOD cull range (don't render)
+
 	return 10;
 }
 
@@ -246,42 +243,32 @@ void ACGTerrainManager::ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease)
 	FreeMeshData[aLOD].Add(aDataToRelease);
 }
 
-
+/** Allocates data structures and pointers for mesh data **/
 void ACGTerrainManager::AllocateAllMeshDataStructures()
 {
-	// Add array entries for each LOD
-	MeshData.Add(FCGLODMeshData());
-	MeshData.Add(FCGLODMeshData());
-	MeshData.Add(FCGLODMeshData());
-
-	FreeMeshData.Add(TSet<FCGMeshData*>());
-	FreeMeshData.Add(TSet<FCGMeshData*>());
-	FreeMeshData.Add(TSet<FCGMeshData*>());
-
-	InUseMeshData.Add(TSet<FCGMeshData*>());
-	InUseMeshData.Add(TSet<FCGMeshData*>());
-	InUseMeshData.Add(TSet<FCGMeshData*>());
-
-	// Allocate data structures up front
-	for (int LOD = 0; LOD < 3; ++LOD)
+	for (uint8 lod = 0; lod < TerrainConfig.LODs.Num(); ++lod)
 	{
-		MeshData[LOD].Data.Reserve(MESH_DATA_POOL_SIZE);
+		MeshData.Add(FCGLODMeshData());
+		FreeMeshData.Add(TSet<FCGMeshData*>());
+		InUseMeshData.Add(TSet<FCGMeshData*>());
+
+		MeshData[lod].Data.Reserve(MESH_DATA_POOL_SIZE);
 
 		for (int j = 0; j < MESH_DATA_POOL_SIZE; ++j)
 		{
-			MeshData[LOD].Data.Add(FCGMeshData());
-			AllocateDataStructuresForLOD(&MeshData[LOD].Data[j], &TerrainConfig, LOD);
+			MeshData[lod].Data.Add(FCGMeshData());
+			AllocateDataStructuresForLOD(&MeshData[lod].Data[j], &TerrainConfig, lod);
 		}
 	}
 
-	// Now all the allocations and potential resizes/moves are done, set pointers
-	for (int LOD = 0; LOD < 3; ++LOD)
+	for (uint8 lod = 0; lod < TerrainConfig.LODs.Num(); ++lod)
 	{
 		for (int j = 0; j < MESH_DATA_POOL_SIZE; ++j)
 		{
-			FreeMeshData[LOD].Add(&MeshData[LOD].Data[j]);
+			FreeMeshData[lod].Add(&MeshData[lod].Data[j]);
 		}
 	}
+
 }
 
 void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfig aTerrainConfig, const int32 aXTiles, const int32 aYTiles)
@@ -328,8 +315,8 @@ void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfi
 
 bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD)
 {
-	int32 numXVerts = aLOD == 0 ? aConfig->XUnits + 1 : (aConfig->XUnits / (FMath::Pow(2, aLOD))) + 1;
-	int32 numYVerts = aLOD == 0 ? aConfig->YUnits + 1 : (aConfig->YUnits / (FMath::Pow(2, aLOD))) + 1;
+	int32 numXVerts = aLOD == 0 ? aConfig->XUnits + 1 : (aConfig->XUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
+	int32 numYVerts = aLOD == 0 ? aConfig->YUnits + 1 : (aConfig->YUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
 
 	aData->Vertices.Reserve(numXVerts * numYVerts);
 	aData->Normals.Reserve(numXVerts * numYVerts);
@@ -368,11 +355,11 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	int32 thisX, thisY;
 	int32 rowLength;
 
-	rowLength = aLOD == 0 ? aConfig->XUnits + 1 : (aConfig->XUnits / (FMath::Pow(2, aLOD)) + 1);
+	rowLength = aLOD == 0 ? aConfig->XUnits + 1 : (aConfig->XUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor + 1);
 	float maxUV = aLOD == 0 ? 1.0f : 1.0f / aLOD;
 
-	int32 exX = aLOD == 0 ? aConfig->XUnits : (aConfig->XUnits / (FMath::Pow(2, aLOD)));
-	int32 exY = aLOD == 0 ? aConfig->YUnits : (aConfig->YUnits / (FMath::Pow(2, aLOD)));
+	int32 exX = aLOD == 0 ? aConfig->XUnits : (aConfig->XUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor);
+	int32 exY = aLOD == 0 ? aConfig->YUnits : (aConfig->YUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor);
 
 	for (int32 y = 0; y < exY; ++y)
 	{
