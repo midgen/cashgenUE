@@ -46,6 +46,7 @@ uint32 FCGTerrainGeneratorWorker::Run()
 			ProcessPerBlockGeometry();
 			ProcessPerVertexTasks();
 
+
 			pTerrainManager->UpdateJobs.Enqueue(workJob);
 		}
 		// Otherwise, take a nap
@@ -120,7 +121,7 @@ void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 		{
 			(*pNormals)[x + (y * rowLength)] = GetNormalFromHeightMapForVertex(x, y);
 			// TODO: Pretty sure this is wrong, so out it goes for now
-			(*pTangents)[x + (y * rowLength)] = GetTangentFromNormal((*pNormals)[x + (y * rowLength)]);
+			//(*pTangents)[x + (y * rowLength)] = GetTangentFromNormal((*pNormals)[x + (y * rowLength)]);
 		}
 	}
 }
