@@ -1,6 +1,6 @@
 "# cashgen" 
 
-Infinite Procedural World Generator for UE 4.12
+Infinite Procedural World Generator for UE 4.14
 
 Credits to :
 Chris Conway (koderz) for the RuntimeMeshComponent (pre-requisite, install from UE Marketplace)
@@ -13,7 +13,7 @@ The OceanPlugin contributors
 
 #Instructions
 
-* Have UE 4.12 or higher installed. (Tested on 4.12.5)
+* Have UE 4.14 or higher installed. (Tested on 4.14.0)
 * Have the RuntimeMeshComponent plugin installed from the UE marketplace.
 * Clone the repo.
 * Right click the UPROJECT file, selected 'Generate Visual Studio Files'
