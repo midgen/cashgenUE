@@ -52,11 +52,11 @@ void ACGTile::Tick(float DeltaSeconds)
 
 				if (LODTransitionOpacity > 0.0f)
 				{
-					//MaterialInstances[lod.Key]->SetScalarParameterValue(FName("TerrainOpacity"), 1.0f - LODTransitionOpacity);
+					MaterialInstances[lod.Key]->SetScalarParameterValue(FName("TerrainOpacity"), 1.0f - LODTransitionOpacity);
 				}
 				else if (PreviousLOD != 10 && PreviousLOD != CurrentLOD)
 				{
-					//MaterialInstances[PreviousLOD]->SetScalarParameterValue(FName("TerrainOpacity"), LODTransitionOpacity + 1.0f);
+					MaterialInstances[PreviousLOD]->SetScalarParameterValue(FName("TerrainOpacity"), LODTransitionOpacity + 1.0f);
 				}
 			}
 			else
@@ -98,9 +98,6 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 		MeshComponents[i]->RegisterComponent();
 
 		LODStatus.Add(i, ELODStatus::NOT_CREATED);
-
-
-
 
 		if (TerrainConfigMaster->TerrainMaterialInstanceParent != nullptr)
 		{
