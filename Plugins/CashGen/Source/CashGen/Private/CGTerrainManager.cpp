@@ -42,8 +42,8 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 
 		if (TrackingActor->IsValidLowLevel())
 		{
-			currentPlayerZone.X = floor(TrackingActor->GetActorLocation().X / (TerrainConfig.UnitSize * TerrainConfig.XUnits));
-			currentPlayerZone.Y = floor(TrackingActor->GetActorLocation().Y / (TerrainConfig.UnitSize * TerrainConfig.YUnits));
+			currentPlayerZone.X = floor(TrackingActor->GetActorLocation().X / (TerrainConfig.UnitSize * TerrainConfig.TileXUnits));
+			currentPlayerZone.Y = floor(TrackingActor->GetActorLocation().Y / (TerrainConfig.UnitSize * TerrainConfig.TileYUnits));
 		}
 
 		CGPoint newPos = currentPlayerZone;
@@ -281,19 +281,19 @@ void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfi
 
 	AllocateAllMeshDataStructures();
 
-	WorldOffset = FVector((XTiles / 2.0f) * TerrainConfig.XUnits * TerrainConfig.UnitSize, (YTiles / 2.0f) * TerrainConfig.YUnits * TerrainConfig.UnitSize, 0.0f);
+	WorldOffset = FVector((XTiles / 2.0f) * TerrainConfig.TileXUnits * TerrainConfig.UnitSize, (YTiles / 2.0f) * TerrainConfig.TileYUnits * TerrainConfig.UnitSize, 0.0f);
 	
 	if (aTrackingActor)
 	{
-		currentPlayerZone.X = floor(aTrackingActor->GetActorLocation().X / ((TerrainConfig.UnitSize * TerrainConfig.XUnits) - WorldOffset.X));
-		currentPlayerZone.Y = floor(aTrackingActor->GetActorLocation().Y / ((TerrainConfig.UnitSize * TerrainConfig.YUnits) - WorldOffset.Y));
+		currentPlayerZone.X = floor(aTrackingActor->GetActorLocation().X / ((TerrainConfig.UnitSize * TerrainConfig.TileXUnits) - WorldOffset.X));
+		currentPlayerZone.Y = floor(aTrackingActor->GetActorLocation().Y / ((TerrainConfig.UnitSize * TerrainConfig.TileYUnits) - WorldOffset.Y));
 	}
 
 	for (int32 i = 0; i < XTiles * YTiles; ++i)
 	{
 		Tiles.Add(GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(),
-													FVector((TerrainConfig.XUnits * TerrainConfig.UnitSize * GetXYfromIdx(i).X) - WorldOffset.X,
-																(TerrainConfig.YUnits * TerrainConfig.UnitSize * GetXYfromIdx(i).Y) - WorldOffset.Y, 0.0f) - WorldOffset, FRotator(0.0f)));
+													FVector((TerrainConfig.TileXUnits * TerrainConfig.UnitSize * GetXYfromIdx(i).X) - WorldOffset.X,
+																(TerrainConfig.TileYUnits * TerrainConfig.UnitSize * GetXYfromIdx(i).Y) - WorldOffset.Y, 0.0f) - WorldOffset, FRotator(0.0f)));
 
 		// Set the correct LOD to prevent a loop on the initial spawn and generate cycle
 		
@@ -315,8 +315,8 @@ void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfi
 
 bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD)
 {
-	int32 numXVerts = aLOD == 0 ? aConfig->XUnits + 1 : (aConfig->XUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
-	int32 numYVerts = aLOD == 0 ? aConfig->YUnits + 1 : (aConfig->YUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
+	int32 numXVerts = aLOD == 0 ? aConfig->TileXUnits + 1 : (aConfig->TileXUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
+	int32 numYVerts = aLOD == 0 ? aConfig->TileYUnits + 1 : (aConfig->TileYUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
 
 	aData->Vertices.Reserve(numXVerts * numYVerts);
 	aData->Normals.Reserve(numXVerts * numYVerts);
@@ -355,11 +355,11 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	int32 thisX, thisY;
 	int32 rowLength;
 
-	rowLength = aLOD == 0 ? aConfig->XUnits + 1 : (aConfig->XUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor + 1);
+	rowLength = aLOD == 0 ? aConfig->TileXUnits + 1 : (aConfig->TileXUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor + 1);
 	float maxUV = aLOD == 0 ? 1.0f : 1.0f / aLOD;
 
-	int32 exX = aLOD == 0 ? aConfig->XUnits : (aConfig->XUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor);
-	int32 exY = aLOD == 0 ? aConfig->YUnits : (aConfig->YUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor);
+	int32 exX = aLOD == 0 ? aConfig->TileXUnits : (aConfig->TileXUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor);
+	int32 exY = aLOD == 0 ? aConfig->TileYUnits : (aConfig->TileYUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor);
 
 	for (int32 y = 0; y < exY; ++y)
 	{

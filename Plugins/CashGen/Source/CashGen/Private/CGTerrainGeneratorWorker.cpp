@@ -95,8 +95,8 @@ void FCGTerrainGeneratorWorker::ProcessPerBlockGeometry()
 	int32 vertCounter = 0;
 	int32 triCounter = 0;
 
-	int32 xUnits = workLOD == 0 ? pTerrainConfig->XUnits : (pTerrainConfig->XUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
-	int32 yUnits = workLOD == 0 ? pTerrainConfig->YUnits : (pTerrainConfig->YUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
+	int32 xUnits = workLOD == 0 ? pTerrainConfig->TileXUnits : (pTerrainConfig->TileXUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
+	int32 yUnits = workLOD == 0 ? pTerrainConfig->TileYUnits : (pTerrainConfig->TileYUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
 
 	// Generate the mesh data for each block
 	for (int32 y = 0; y < yUnits; ++y)
@@ -110,10 +110,10 @@ void FCGTerrainGeneratorWorker::ProcessPerBlockGeometry()
 
 void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 {
-	int32 xUnits = workLOD == 0 ? pTerrainConfig->XUnits : (pTerrainConfig->XUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
-	int32 yUnits = workLOD == 0 ? pTerrainConfig->YUnits : (pTerrainConfig->YUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
+	int32 xUnits = workLOD == 0 ? pTerrainConfig->TileXUnits : (pTerrainConfig->TileXUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
+	int32 yUnits = workLOD == 0 ? pTerrainConfig->TileYUnits : (pTerrainConfig->TileYUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
 
-	int32 rowLength = workLOD == 0 ? pTerrainConfig->XUnits + 1 : (pTerrainConfig->XUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
+	int32 rowLength = workLOD == 0 ? pTerrainConfig->TileXUnits + 1 : (pTerrainConfig->TileXUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
 
 	for (int32 y = 0; y < yUnits + 1; ++y)
 	{
@@ -135,7 +135,7 @@ FVector FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 v
 {
 	FVector result;
 
-	int32 rowLength = workLOD == 0 ? pTerrainConfig->XUnits + 1 : (pTerrainConfig->XUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
+	int32 rowLength = workLOD == 0 ? pTerrainConfig->TileXUnits + 1 : (pTerrainConfig->TileXUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
 	int32 heightMapRowLength = rowLength + 2;
 
 	// the heightmapIndex for this vertex index
@@ -191,7 +191,7 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int a
 	int32 heightMapX = thisX + 1;
 	int32 heightMapY = thisY + 1;
 	// LOD adjusted dimensions
-	int32 rowLength = workLOD == 0 ? pTerrainConfig->XUnits + 1 : (pTerrainConfig->XUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
+	int32 rowLength = workLOD == 0 ? pTerrainConfig->TileXUnits + 1 : (pTerrainConfig->TileXUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
 	int32 heightMapRowLength = rowLength + 2;
 	// LOD adjusted unit size
 	int32 exUnitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * (pTerrainConfig->LODs[workLOD].ResolutionDivisor);
@@ -208,7 +208,6 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int a
 	(*pVertices)[(thisX + 1) + ((thisY + 1) * rowLength)] = (*pHeightMap)[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
 
 	//TODO: Not using Vertex Colour channels at the moment, could be handy though!
-
 	//(*pVertexColors)[thisX + (thisY * rowLength)].R = (255 / 50000.0f);
 	//(*pVertexColors)[thisX + ((thisY + 1) * rowLength)].R = (255 / 50000.0f);
 	//(*pVertexColors)[(thisX + 1) + (thisY * rowLength)].R = (255 / 50000.0f);
@@ -217,6 +216,5 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int a
 
 int32 FCGTerrainGeneratorWorker::GetNumberOfNoiseSamplePoints()
 {
-	//return workLOD == 0 ? pTerrainConfig->XUnits + 3 : (pTerrainConfig->XUnits / (FMath::Pow(2, workLOD))) + 3;
-	return workLOD == 0 ? pTerrainConfig->XUnits + 3 : (pTerrainConfig->XUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor)) + 3;
+	return workLOD == 0 ? pTerrainConfig->TileXUnits + 3 : (pTerrainConfig->TileXUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor)) + 3;
 }

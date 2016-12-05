@@ -12,14 +12,14 @@ struct FCGTerrainConfig
 {
 	GENERATED_USTRUCT_BODY()
 		/** Noise Generator configuration struct */
-	UPROPERTY(EditAnywhere, Category = "Zone Config Struct")
+	UPROPERTY()
 		UUFNNoiseGenerator* NoiseGenerator;
 	/** Number of blocks along a zone's X axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		int32 XUnits;
+		int32 TileXUnits;
 	/** Number of blocks along a zone's Y axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		int32 YUnits;
+		int32 TileYUnits;
 	/** Size of a single block in world units */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 		float UnitSize;

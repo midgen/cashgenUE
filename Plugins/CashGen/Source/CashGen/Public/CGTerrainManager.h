@@ -42,7 +42,7 @@ public:
 	ACGTerrainManager();
 	~ACGTerrainManager();
 
-	UPROPERTY(EditAnywhere, Category = "CashGen")
+	UPROPERTY()
 	AActor* TrackingActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	int32 XTiles;
