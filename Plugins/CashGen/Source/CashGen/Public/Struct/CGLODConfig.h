@@ -13,5 +13,7 @@ struct FCGLODConfig
 	uint8 ResolutionDivisor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool isCollisionEnabled;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool isTesselationEnabled;
 
 };

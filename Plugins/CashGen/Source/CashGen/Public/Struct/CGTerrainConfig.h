@@ -29,28 +29,6 @@ struct FCGTerrainConfig
 	/** Material for the terrain mesh */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
 	UMaterial* TerrainMaterialInstanceParent;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-	UMaterialInstance* TerrainMatInstance;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FCGLODConfig> LODs;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		FLinearColor GrassColorBase;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		FLinearColor GrassColorSlope;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		FLinearColor TreeLineColorBase;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		FLinearColor TreeLineColorSlope;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		FLinearColor ShoreColor;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		float ShoreHeight;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		float SlopeStart;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		float SlopeEnd;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		float TreeLine;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
-		bool IsLODDebugEnabled;
 };

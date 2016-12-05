@@ -102,37 +102,7 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 		if (TerrainConfigMaster->TerrainMaterialInstanceParent != nullptr)
 		{
 			MaterialInstances.Add(i, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterialInstanceParent, this));
-			// Apply the debug LOD colors if enabled
-			if (TerrainConfigMaster->IsLODDebugEnabled) {
-				switch (i)
-				{
-				case 1:
-					MaterialInstances[i]->SetVectorParameterValue(FName("GrassColor"), FLinearColor::Red);
-					break;
-				case 2:
-					MaterialInstances[i]->SetVectorParameterValue(FName("GrassColor"), FLinearColor::Blue);
-					break;
-				}
-			}
-			// Otherwise use the specified grass color
-			else {
-				MaterialInstances[i]->SetVectorParameterValue(FName("GrassColorBase"), TerrainConfigMaster->GrassColorBase);
-				MaterialInstances[i]->SetVectorParameterValue(FName("GrassColorSlope"), TerrainConfigMaster->GrassColorSlope);
-			}
-			// Pass the other material parameters
-			MaterialInstances[i]->SetScalarParameterValue(FName("SlopeStart"), TerrainConfigMaster->SlopeStart);
-			MaterialInstances[i]->SetScalarParameterValue(FName("SlopeEnd"), TerrainConfigMaster->SlopeEnd);
-			MaterialInstances[i]->SetScalarParameterValue(FName("ShoreHeight"), TerrainConfigMaster->ShoreHeight);
-			MaterialInstances[i]->SetScalarParameterValue(FName("TreeLineHeight"), TerrainConfigMaster->TreeLine);
-			MaterialInstances[i]->SetVectorParameterValue(FName("ShoreColor"), TerrainConfigMaster->ShoreColor);
-			MaterialInstances[i]->SetVectorParameterValue(FName("TreeLineColorBase"), TerrainConfigMaster->TreeLineColorBase);
-			MaterialInstances[i]->SetVectorParameterValue(FName("TreeLineColorSlope"), TerrainConfigMaster->TreeLineColorSlope);
-
 			MeshComponents[i]->SetMaterial(0, MaterialInstances[i]);
-		}
-		else if (TerrainConfigMaster->TerrainMatInstance != nullptr)
-		{
-			MeshComponents[i]->SetMaterial(0, TerrainConfigMaster->TerrainMatInstance);
 		}
 	}
 }
@@ -152,12 +122,12 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVe
 	{
 		if (i == aLOD) {
 			if (LODStatus[i] == ELODStatus::NOT_CREATED) {
-				MeshComponents[i]->CreateMeshSection(0, *aVertices, *aTriangles, *aNormals, *aUV0, *aVertexColors, *aTangents, TerrainConfigMaster->LODs[aLOD].isCollisionEnabled , EUpdateFrequency::Infrequent, ESectionUpdateFlags::CalculateTessellationIndices);
+				MeshComponents[i]->CreateMeshSection(0, *aVertices, *aTriangles, *aNormals, *aUV0, *aVertexColors, *aTangents, TerrainConfigMaster->LODs[aLOD].isCollisionEnabled , EUpdateFrequency::Infrequent, TerrainConfigMaster->LODs[aLOD].isTesselationEnabled ? ESectionUpdateFlags::CalculateTessellationIndices : ESectionUpdateFlags::None);
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}
 			else {
 				TArray<FVector> dummyUV1;
-				MeshComponents[i]->UpdateMeshSection(0, *aVertices, *aTriangles, *aNormals, *aUV0, *aVertexColors, *aTangents, ESectionUpdateFlags::CalculateTessellationIndices);
+				MeshComponents[i]->UpdateMeshSection(0, *aVertices, *aTriangles, *aNormals, *aUV0, *aVertexColors, *aTangents, TerrainConfigMaster->LODs[aLOD].isTesselationEnabled ? ESectionUpdateFlags::CalculateTessellationIndices : ESectionUpdateFlags::None);
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}
 
