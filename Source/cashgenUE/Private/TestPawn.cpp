@@ -28,7 +28,7 @@ ATestPawn::ATestPawn()
 	UCameraComponent* Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("ActualCamera"));
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
-	
+
 
 	// Take control of the default player
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
@@ -41,6 +41,10 @@ ATestPawn::ATestPawn()
 void ATestPawn::BeginPlay()
 {
 	Super::BeginPlay();
+
+	FoliageComponent = NewObject<UCGFoliageComponent>(this, TEXT("Foliagecomp"));
+	FoliageComponent->OnComponentCreated();
+	FoliageComponent->RegisterComponent();
 	
 }
 
