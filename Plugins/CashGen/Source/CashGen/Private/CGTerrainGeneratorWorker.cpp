@@ -27,7 +27,6 @@ uint32 FCGTerrainGeneratorWorker::Run()
 	// Here's the loop
 	while (!IsThreadFinished)
 	{
-		// If there's a job, process it!
 		if (pTerrainManager->GeometryJobs.Dequeue(workJob))
 		{
 			//pMeshData = workJob.Data;
@@ -52,7 +51,7 @@ uint32 FCGTerrainGeneratorWorker::Run()
 		// Otherwise, take a nap
 		else
 		{
-			Sleep(30);
+			Sleep(10);
 		}
 	}
 

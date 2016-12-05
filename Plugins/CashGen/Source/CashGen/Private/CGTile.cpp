@@ -23,6 +23,9 @@ uint8 ACGTile::GetCurrentLOD()
 	return CurrentLOD;
 }
 
+/************************************************************************/
+/*  Move the tile and make it hidden pending a redraw
+/************************************************************************/
 void ACGTile::RepositionAndHide(uint8 aNewLOD)
 {
 	SetActorLocation(FVector((TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize * Offset.X) - WorldOffset.X, (TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize * Offset.Y) - WorldOffset.Y, 0.0f));
@@ -40,6 +43,9 @@ void ACGTile::BeginPlay()
 	Super::BeginPlay();
 }
 
+/************************************************************************/
+/*  Tick just handles LOD transitions
+/************************************************************************/
 void ACGTile::Tick(float DeltaSeconds)
 {
 	for (auto& lod : LODStatus)
@@ -75,6 +81,9 @@ void ACGTile::Tick(float DeltaSeconds)
 
 }
 
+/************************************************************************/
+/*  Initial setup of the tile, creates components and material instance
+/************************************************************************/
 void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset)
 {
 	Offset.X = aOffset.X;
@@ -106,7 +115,9 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 		}
 	}
 }
-
+ /************************************************************************/
+ /*  Updates the mesh for a given LOD and starts the transition effects  
+ /************************************************************************/
 void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVertices,
 	TArray<int32>*	aTriangles,
 	TArray<FVector>*	aNormals,
@@ -141,6 +152,9 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVe
 
 }
 
+/************************************************************************/
+/*  Gets te position of the center of the tile, used for LODs
+/************************************************************************/
 FVector ACGTile::GetCentrePos()
 {
 	return  FVector(((Offset.X + 0.5f) * TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize) - WorldOffset.X, ((Offset.Y + 0.5f) * TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize) - WorldOffset.Y, 0.0f);
