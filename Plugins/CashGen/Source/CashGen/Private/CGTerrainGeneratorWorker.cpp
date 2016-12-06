@@ -38,10 +38,21 @@ uint32 FCGTerrainGeneratorWorker::Run()
 			pVertexColors = workJob.VertexColors;
 			pTangents = workJob.Tangents;
 			pHeightMap = workJob.HeightMap;
+			pDepositionMap = workJob.DespositionMap;
 
 			workLOD = workJob.LOD;
 
 			ProcessTerrainMap();
+			if (workLOD == 0)
+			{
+				for (int32 i = 0; i < pTerrainConfig->ThermalErosionIterations; ++i)
+				{
+					ProcessThermalErosion();
+					AddDepositionToHeightMap();
+				}
+				
+			}
+
 			ProcessPerBlockGeometry();
 			ProcessPerVertexTasks();
 
@@ -86,6 +97,104 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 
 			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
 		}
+	}
+}
+
+void FCGTerrainGeneratorWorker::ProcessThermalErosion()
+{
+	int32 XUnits = GetNumberOfNoiseSamplePoints();
+	int32 YUnits = XUnits;
+
+	const float talus = pTerrainConfig->ThermalErosionThreshold;
+
+	for (auto& depo : (*pDepositionMap))
+	{
+		depo = 0.0f;
+	}
+
+	for (int32 x = 1; x < XUnits - 1; ++x)
+	{
+		for (int32 y = 1; y < YUnits - 1; ++y)
+		{
+			float* h = &(*pHeightMap)[x + (XUnits * y)].Z;
+			float* hu = &(*pHeightMap)[x + (XUnits * (y + 1))].Z;
+			float* hd = &(*pHeightMap)[x + (XUnits * (y - 1))].Z;
+			float* hl = &(*pHeightMap)[x + 1 + (XUnits * y)].Z;
+			float* hr = &(*pHeightMap)[x - 1 + (XUnits * y)].Z;
+			float* hul = &(*pHeightMap)[x + 1 +(XUnits * (y + 1))].Z;
+			float* hdl = &(*pHeightMap)[x + 1 +(XUnits * (y - 1))].Z;
+			float* hur = &(*pHeightMap)[x - 1 + (XUnits * (y+1))].Z;
+			float* hdr = &(*pHeightMap)[x - 1 + (XUnits * (y-1))].Z;
+
+			float nhu  = 0.0f;
+			float nhd  = 0.0f;
+			float nhr  = 0.0f;
+			float nhl  = 0.0f;
+			float nhul = 0.0f;
+			float nhdl = 0.0f;
+			float nhur = 0.0f;
+			float nhdr = 0.0f;
+
+			float dl = *h - *hl; 
+			if (dl > talus) {
+				nhl += (pTerrainConfig->ThermalErosionDepositionAmount * (dl - talus));
+			}
+
+			float dr = *h - *hr;
+			if (dr > talus) {
+				nhr += (pTerrainConfig->ThermalErosionDepositionAmount * (dr - talus));
+			}
+
+			float du = *h - *hu;
+			if (du > talus) {
+				nhu += (pTerrainConfig->ThermalErosionDepositionAmount * (du - talus));
+			}
+
+			float dd = *h - *hd;
+			if (dd > talus) {
+				nhd += (pTerrainConfig->ThermalErosionDepositionAmount * (dd - talus));
+			}
+
+			float dul = *h - *hul;
+			if (dul > talus) {
+				nhul += (pTerrainConfig->ThermalErosionDepositionAmount * (dul - talus));
+			}
+
+			float dur = *h - *hur;
+			if (dur > talus) {
+				nhur += (pTerrainConfig->ThermalErosionDepositionAmount * (dur - talus));
+			}
+
+			float ddl = *h - *hdl;
+			if (ddl > talus) {
+				nhdl += (pTerrainConfig->ThermalErosionDepositionAmount * (ddl - talus));
+			}
+
+			float ddr = *h - *hdr;
+			if (ddr > talus) {
+				nhdr += (pTerrainConfig->ThermalErosionDepositionAmount * (ddr - talus));
+			}
+
+			(*pDepositionMap)[x + (XUnits * (y + 1))]    += nhu;
+			(*pDepositionMap)[x + (XUnits * (y - 1))]   += nhd;
+			(*pDepositionMap)[x + 1 + (XUnits * y)]     += nhl;
+			(*pDepositionMap)[x - 1 + (XUnits * y)]     += nhr;
+			(*pDepositionMap)[x + 1 + (XUnits * (y + 1))] += nhul;
+			(*pDepositionMap)[x + 1 + (XUnits * (y - 1))] += nhdl;
+			(*pDepositionMap)[x - 1 + (XUnits * (y + 1))] += nhur;
+			(*pDepositionMap)[x - 1 + (XUnits * (y - 1))] += nhdr;
+
+		}
+	}
+}
+
+void FCGTerrainGeneratorWorker::AddDepositionToHeightMap()
+{
+	int32 index = 0;
+	for (FVector& heightPoint : (*pHeightMap))
+	{
+		heightPoint.Z += (*pDepositionMap)[index];
+		++index;
 	}
 }
 

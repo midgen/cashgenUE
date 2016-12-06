@@ -19,6 +19,7 @@ struct FCGJob
 	TArray<FColor>*	VertexColors;
 	TArray<FRuntimeMeshTangent>* Tangents;
 	TArray<FVector>* HeightMap;
+	TArray<float>* DespositionMap;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	uint8 LOD;

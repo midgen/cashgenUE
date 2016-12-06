@@ -15,19 +15,28 @@ struct FCGTerrainConfig
 	UPROPERTY()
 		UUFNNoiseGenerator* NoiseGenerator;
 	/** Number of blocks along a zone's X axis */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 		int32 TileXUnits;
 	/** Number of blocks along a zone's Y axis */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 		int32 TileYUnits;
 	/** Size of a single block in world units */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 		float UnitSize;
 	/** Multiplier for heightmap*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "cashGen")
 		float Amplitude;
+	/** Thermal erosion iterations *EXPERIMENTAL* **/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+		int32 ThermalErosionIterations;
+	/** Thermal erosion threshold *EXPERIMENTAL* **/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+		int32 ThermalErosionThreshold;
+	/** Thermal erosion deposition amount *EXPERIMENTAL* **/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+		float ThermalErosionDepositionAmount;
 	/** Material for the terrain mesh */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Zone Config Struct")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	UMaterial* TerrainMaterialInstanceParent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FCGLODConfig> LODs;

@@ -21,10 +21,13 @@ class FCGTerrainGeneratorWorker : public FRunnable
 	TArray<FColor>*		pVertexColors;
 	TArray<FRuntimeMeshTangent>* pTangents;
 	TArray<FVector>* pHeightMap;
+	TArray<float>* pDepositionMap;
 
 	bool IsThreadFinished;
 
 	void ProcessTerrainMap();
+	void ProcessThermalErosion();
+	void AddDepositionToHeightMap();
 	void ProcessPerBlockGeometry();
 	void ProcessPerVertexTasks();
 	void ProcessBiomeWeightMap();

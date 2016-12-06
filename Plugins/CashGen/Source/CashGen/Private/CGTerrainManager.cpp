@@ -230,6 +230,7 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 		aJob.VertexColors = &dataToUse->VertexColors;
 		aJob.Tangents = &dataToUse->Tangents;
 		aJob.HeightMap = &dataToUse->HeightMap;
+		aJob.DespositionMap = &dataToUse->DepositionMap;
 		aJob.Data = dataToUse;
 		return true;
 	}
@@ -338,9 +339,15 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	// Using vectors here is a bit wasteful, but it does make normal/tangent or any other
 	// Geometric calculations based on the heightmap a bit easier. Easy enough to change to floats
 	aData->HeightMap.Reserve((numXVerts + 2) * (numYVerts + 2));
+	if (TerrainConfig.ThermalErosionIterations > 0) {
+		aData->DepositionMap.Reserve((numXVerts + 2) * (numYVerts + 2));
+	}
 	for (int32 i = 0; i < (numXVerts + 2) * (numYVerts + 2); ++i)
 	{
 		aData->HeightMap.Emplace(0.0f);
+		if (TerrainConfig.ThermalErosionIterations > 0) {
+			aData->DepositionMap.Emplace(0.0f);
+		}
 	}
 
 	// Triangle indexes
