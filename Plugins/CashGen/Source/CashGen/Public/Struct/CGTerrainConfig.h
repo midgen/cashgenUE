@@ -35,6 +35,18 @@ struct FCGTerrainConfig
 	/** Thermal erosion deposition amount *EXPERIMENTAL* **/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 		float ThermalErosionDepositionAmount;
+	/** Droplet erosion droplet amount *EXPERIMENTAL* **/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+		int32 DropletAmount;
+	/** Droplet erosion deposition rate *EXPERIMENTAL* **/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+		float DropletDespositionRate;
+	/** Droplet erosion deposition Theta *EXPERIMENTAL* **/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+		float DropletDespositionTheta;
+	/** Droplet erosion evaporation rate *EXPERIMENTAL* **/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+		float DropletEvaporationRate;
 	/** Material for the terrain mesh */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	UMaterial* TerrainMaterialInstanceParent;

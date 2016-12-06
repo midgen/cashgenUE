@@ -50,7 +50,10 @@ uint32 FCGTerrainGeneratorWorker::Run()
 					ProcessThermalErosion();
 					AddDepositionToHeightMap();
 				}
-				
+				for (int32 i = 0; i < pTerrainConfig->DropletAmount; ++i)
+				{
+					ProcessSingleDropletErosion();
+				}
 			}
 
 			ProcessPerBlockGeometry();
@@ -196,6 +199,111 @@ void FCGTerrainGeneratorWorker::AddDepositionToHeightMap()
 		heightPoint.Z += (*pDepositionMap)[index];
 		++index;
 	}
+}
+
+void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
+{
+	int32 XUnits = GetNumberOfNoiseSamplePoints();
+	int32 YUnits = XUnits;
+
+	// Pick a random start point that isn't on an edge
+	int32 cX = FMath::RandRange(1, XUnits -1);
+	int32 cY = FMath::RandRange(1, YUnits -1);
+
+	float waterAmount = 1.0f;
+	float sedimentAmount = 1.0f;
+
+	while (waterAmount > 0.0f && cX > 0 && cX < XUnits - 1 && cY > 0 && cY < YUnits -1)
+	{
+		float origin	= (*pHeightMap)[cX + (XUnits * cY)].Z;
+		float up		= (*pHeightMap)[cX + (XUnits * (cY+1))].Z;
+		float down		= (*pHeightMap)[cX + (XUnits * (cY - 1))].Z;
+		float left		= (*pHeightMap)[cX + 1 + (XUnits * (cY))].Z;
+		float right		= (*pHeightMap)[cX - 1 + (XUnits * (cY))].Z;
+		//float upLeft	= (*pHeightMap)[cX + 1 + (XUnits * (cY + 1))].Z;
+		//float downLeft	= (*pHeightMap)[cX + 1 + (XUnits * (cY - 1))].Z;
+		//float upRight	= (*pHeightMap)[cX - 1 + (XUnits * (cY + 1))].Z;
+		//float downRight = (*pHeightMap)[cX - 1 + (XUnits * (cY - 1))].Z;
+
+		float dU = up - origin;
+		float dD = down - origin;
+		float dL = left - origin;
+		float dR = right - origin;
+		//float dUL = upLeft - origin;
+		//float dUR = upRight - origin;
+		//float dDR = downRight - origin;
+		//float dDL = downLeft - origin;
+
+		float dMax = 0.0;
+
+		if (dU > dMax) { dMax = dU; }
+		if (dD > dMax) { dMax = dD; }
+		if (dL > dMax) { dMax = dL; }
+		if (dR > dMax) { dMax = dR; }
+
+		//if (dUL > dMax) { dMax = dUL; }
+		//if (dUR > dMax) { dMax = dUR; }
+		//if (dDL > dMax) { dMax = dDL; }
+		//if (dDR > dMax) { dMax = dDR; }
+
+
+
+		(*pHeightMap)[cX + (XUnits * (cY))].Z -= sedimentAmount * pTerrainConfig->DropletDespositionRate;
+
+		if (dU >= dMax - 0.00001f) // Flow UP
+		{
+			if (cY + 1 < YUnits - 1) {
+				//(*pHeightMap)[cX + (XUnits * (cY + 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
+			}
+
+			cY++;
+		} 
+		else if (dD >= dMax - 0.00001f) // Flow DOWN
+		{
+			if (cY - 1 > 0) {
+				//(*pHeightMap)[cX + (XUnits * (cY - 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
+			}
+			cY--;
+		}
+		else if (dL >= dMax - 0.00001f) // Flow LEFT
+		{
+			if (cX + 1 < XUnits - 1) {
+				//(*pHeightMap)[cX + 1 + (XUnits * (cY))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
+			}
+			cX++;
+		}
+		else if (dR >= dMax - 0.00001f) // Flow RIGHT
+		{
+			if (cX - 1 > 0) {
+				//(*pHeightMap)[cX - 1 + (XUnits * (cY))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
+			}
+			cX--;
+		}
+		//else if (dUL >= dMax - 0.00001f) // Flow UPLEFT
+		//{
+		//	(*pHeightMap)[cX + 1 + (XUnits * (cY + 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
+		//	cY++; cX++;
+		//}
+		//else if (dUR >= dMax - 0.00001f) // Flow UPRIGHT
+		//{
+		//	(*pHeightMap)[cX - 1 + (XUnits * (cY + 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
+		//	cY++; cX--;
+		//}
+		//else if (dDL >= dMax - 0.00001f) // Flow DOWNLEFT
+		//{
+		//	(*pHeightMap)[cX + 1 + (XUnits * (cY - 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
+		//	cX++; cY--;
+		//}
+		//else if (dR >= dMax - 0.00001f) // Flow DOWNRIGHT
+		//{
+		//	(*pHeightMap)[cX - 1 + (XUnits * (cY - 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
+		//	cX--; cY--;
+		//}
+		waterAmount -= pTerrainConfig->DropletEvaporationRate;
+		sedimentAmount -= sedimentAmount * 0.001f;
+	}
+
+
 }
 
 void FCGTerrainGeneratorWorker::ProcessPerBlockGeometry()

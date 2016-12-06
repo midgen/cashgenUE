@@ -338,6 +338,7 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	// Heightmap needs to be larger than the mesh
 	// Using vectors here is a bit wasteful, but it does make normal/tangent or any other
 	// Geometric calculations based on the heightmap a bit easier. Easy enough to change to floats
+
 	aData->HeightMap.Reserve((numXVerts + 2) * (numYVerts + 2));
 	if (TerrainConfig.ThermalErosionIterations > 0) {
 		aData->DepositionMap.Reserve((numXVerts + 2) * (numYVerts + 2));
