@@ -211,7 +211,8 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 	int32 cY = FMath::RandRange(1, YUnits -1);
 
 	float waterAmount = 1.0f;
-	float sedimentAmount = 1.0f;
+	float sedimentAmount = pTerrainConfig->DropletDespositionTheta;
+	float prevDMax = 0.0f;
 
 	while (waterAmount > 0.0f && cX > 0 && cX < XUnits - 1 && cY > 0 && cY < YUnits -1)
 	{
@@ -246,14 +247,20 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 		//if (dDL > dMax) { dMax = dDL; }
 		//if (dDR > dMax) { dMax = dDR; }
 
-
-
-		(*pHeightMap)[cX + (XUnits * (cY))].Z -= sedimentAmount * pTerrainConfig->DropletDespositionRate;
+		float depofactor = FMath::Clamp(pTerrainConfig->UnitSize / dMax, -1.0f, 1.0f);
+		//float depofactor = FMath::Clamp(prevDMax / dMax, -1.0f, 1.0f);
+		if (sedimentAmount > 0.0f)
+		{
+			(*pHeightMap)[cX + (XUnits * (cY))].Z -= sedimentAmount * pTerrainConfig->DropletDespositionRate * depofactor;
+		}
+		
+		
+		
 
 		if (dU >= dMax - 0.00001f) // Flow UP
 		{
 			if (cY + 1 < YUnits - 1) {
-				//(*pHeightMap)[cX + (XUnits * (cY + 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
+				//(*pHeightMap)[cX + (XUnits * (cY + 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate * 0.5f;
 			}
 
 			cY++;
@@ -261,21 +268,21 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 		else if (dD >= dMax - 0.00001f) // Flow DOWN
 		{
 			if (cY - 1 > 0) {
-				//(*pHeightMap)[cX + (XUnits * (cY - 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
+				//(*pHeightMap)[cX + (XUnits * (cY - 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate * 0.5f;
 			}
 			cY--;
 		}
 		else if (dL >= dMax - 0.00001f) // Flow LEFT
 		{
 			if (cX + 1 < XUnits - 1) {
-				//(*pHeightMap)[cX + 1 + (XUnits * (cY))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
+				//(*pHeightMap)[cX + 1 + (XUnits * (cY))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate * 0.5f;
 			}
 			cX++;
 		}
 		else if (dR >= dMax - 0.00001f) // Flow RIGHT
 		{
 			if (cX - 1 > 0) {
-				//(*pHeightMap)[cX - 1 + (XUnits * (cY))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
+				//(*pHeightMap)[cX - 1 + (XUnits * (cY))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate * 0.5f;
 			}
 			cX--;
 		}
@@ -300,7 +307,10 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 		//	cX--; cY--;
 		//}
 		waterAmount -= pTerrainConfig->DropletEvaporationRate;
-		sedimentAmount -= sedimentAmount * 0.001f;
+		sedimentAmount -= sedimentAmount * pTerrainConfig->DropletDespositionRate * depofactor;
+		prevDMax = dMax;
+
+		
 	}
 
 
