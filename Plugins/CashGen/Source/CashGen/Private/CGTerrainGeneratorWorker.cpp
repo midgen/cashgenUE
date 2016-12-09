@@ -219,6 +219,11 @@ void FCGTerrainGeneratorWorker::erodeHeightMapAtIndex(int32 aX, int32 aY, float 
 	(*pHeightMap)[aX - 1 + (XUnits * (aY + 1))].Z	-= aAmount * mod1;
 	(*pHeightMap)[aX - 1 + (XUnits * (aY - 1))].Z	-= aAmount * mod1;
 
+	// Add to the Red channel vertex colours
+	if (aAmount > 0.0f)
+	{
+		(*pVertexColors)[aX - 1 + ((XUnits - 2) * (aY - 1))].R = FMath::Clamp((*pVertexColors)[aX - 1 + ((XUnits - 2) * (aY - 1))].R + FMath::RoundToInt(aAmount), 0, 255);
+	}
 
 }
 
