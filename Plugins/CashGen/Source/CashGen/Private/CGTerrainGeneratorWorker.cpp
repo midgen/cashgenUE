@@ -214,10 +214,10 @@ void FCGTerrainGeneratorWorker::erodeHeightMapAtIndex(int32 aX, int32 aY, float 
 	(*pHeightMap)[aX + 1 + (XUnits * (aY))].Z		-= aAmount * mod1;
 	(*pHeightMap)[aX - 1 + (XUnits * (aY))].Z		-= aAmount * mod1;
 
-	(*pHeightMap)[aX + 1 + (XUnits * (aY + 1))].Z	-= aAmount * mod2;
-	(*pHeightMap)[aX + 1 + (XUnits * (aY - 1))].Z	-= aAmount * mod2;
-	(*pHeightMap)[aX - 1 + (XUnits * (aY + 1))].Z	-= aAmount * mod2;
-	(*pHeightMap)[aX - 1 + (XUnits * (aY - 1))].Z	-= aAmount * mod2;
+	(*pHeightMap)[aX + 1 + (XUnits * (aY + 1))].Z	-= aAmount * mod1;
+	(*pHeightMap)[aX + 1 + (XUnits * (aY - 1))].Z	-= aAmount * mod1;
+	(*pHeightMap)[aX - 1 + (XUnits * (aY + 1))].Z	-= aAmount * mod1;
+	(*pHeightMap)[aX - 1 + (XUnits * (aY - 1))].Z	-= aAmount * mod1;
 
 
 }
