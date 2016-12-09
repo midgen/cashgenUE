@@ -40,6 +40,9 @@ struct FCGTerrainConfig
 		int32 DropletAmount;
 	/** Droplet erosion deposition rate *EXPERIMENTAL* **/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+		float DropletErosionMultiplier;
+	/** Droplet erosion deposition rate *EXPERIMENTAL* **/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 		float DropletDespositionMultiplier;
 	/** Droplet erosion deposition Theta *EXPERIMENTAL* **/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")

@@ -32,6 +32,8 @@ class FCGTerrainGeneratorWorker : public FRunnable
 	void ProcessPerBlockGeometry();
 	void ProcessPerVertexTasks();
 	void ProcessBiomeWeightMap();
+
+	void erodeHeightMapAtIndex(int32 aX, int32 aY, float aAmount);
 	FVector GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY);
 	FRuntimeMeshTangent GetTangentFromNormal(const FVector aNormal);
 	void UpdateOneBlockGeometry(const int aX, const int aY, int32& aVertCounter, int32& triCounter);

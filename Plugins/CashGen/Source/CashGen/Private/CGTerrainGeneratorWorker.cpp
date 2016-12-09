@@ -201,6 +201,27 @@ void FCGTerrainGeneratorWorker::AddDepositionToHeightMap()
 	}
 }
 
+
+void FCGTerrainGeneratorWorker::erodeHeightMapAtIndex(int32 aX, int32 aY, float aAmount)
+{
+	int32 XUnits = GetNumberOfNoiseSamplePoints();
+	float mod1 = 0.5f;
+	float mod2 = 0.4f;
+
+	(*pHeightMap)[aX + (XUnits * aY)].Z -= aAmount;
+	(*pHeightMap)[aX + (XUnits * (aY + 1))].Z		-= aAmount * mod1;
+	(*pHeightMap)[aX + (XUnits * (aY - 1))].Z		-= aAmount * mod1;
+	(*pHeightMap)[aX + 1 + (XUnits * (aY))].Z		-= aAmount * mod1;
+	(*pHeightMap)[aX - 1 + (XUnits * (aY))].Z		-= aAmount * mod1;
+
+	(*pHeightMap)[aX + 1 + (XUnits * (aY + 1))].Z	-= aAmount * mod2;
+	(*pHeightMap)[aX + 1 + (XUnits * (aY - 1))].Z	-= aAmount * mod2;
+	(*pHeightMap)[aX - 1 + (XUnits * (aY + 1))].Z	-= aAmount * mod2;
+	(*pHeightMap)[aX - 1 + (XUnits * (aY - 1))].Z	-= aAmount * mod2;
+
+
+}
+
 void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 {
 	int32 XUnits = GetNumberOfNoiseSamplePoints();
@@ -242,12 +263,30 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 		if (downleft.Z < lowestRoute.Z) { lowestRoute = downleft; newCy--; newCx++; }
 		if (downright.Z < lowestRoute.Z) { lowestRoute = downright; newCy--; newCx--; }
 
-		float sedimentDelta = pTerrainConfig->DropletDespositionMultiplier * FVector::DotProduct(velocity, lowestRoute);
+		// The amount of sediment to pick up depends on if we are hitting an obstacle
+		float sedimentUptake = pTerrainConfig->DropletErosionMultiplier * FVector::DotProduct(velocity, lowestRoute);
+		if (sedimentUptake < 0.0f) { sedimentUptake = 0.0f; }
+
+		sedimentAmount += sedimentUptake;
+
+		float sedimentDeposit = 0.0f;
+		// Deposit sediment if we are carrying too much
+		if (sedimentAmount > pTerrainConfig->DropletSedimentCapacity)
+		{
+			sedimentDeposit = (sedimentAmount - pTerrainConfig->DropletSedimentCapacity) * pTerrainConfig->DropletDespositionMultiplier;
+		}
+
+		// Deposit based on slope
+		sedimentDeposit += sedimentAmount * FMath::Clamp(1.0f + lowestRoute.Z, 0.0f, 1.0f);
+
+		sedimentAmount -= sedimentDeposit;
+		
 
 		velocity = lowestRoute;
 
-		(*pHeightMap)[cX + (XUnits * cY)].Z -= sedimentDelta;
-		sedimentAmount += sedimentDelta;
+		//(*pHeightMap)[cX + (XUnits * cY)].Z -= sedimentUptake + (sedimentDeposit * -1.0f);
+		erodeHeightMapAtIndex(cX,cY, (sedimentUptake + (sedimentDeposit * -1.0f)));
+		
 		waterAmount -= pTerrainConfig->DropletEvaporationRate;
 
 		cX = newCx;
