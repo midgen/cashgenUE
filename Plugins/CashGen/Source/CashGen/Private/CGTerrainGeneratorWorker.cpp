@@ -42,6 +42,7 @@ uint32 FCGTerrainGeneratorWorker::Run()
 
 			workLOD = workJob.LOD;
 
+			prepMaps();
 			ProcessTerrainMap();
 			if (workLOD == 0)
 			{
@@ -80,6 +81,17 @@ void FCGTerrainGeneratorWorker::Stop()
 void FCGTerrainGeneratorWorker::Exit()
 {
 
+}
+
+void FCGTerrainGeneratorWorker::prepMaps()
+{
+	for (int32 i = 0; i < pVertexColors->Num(); ++i)
+	{
+		(*pVertexColors)[i].R = 0;
+		(*pVertexColors)[i].G = 0;
+		(*pVertexColors)[i].B = 0;
+		(*pVertexColors)[i].A = 0;
+	}
 }
 
 void FCGTerrainGeneratorWorker::ProcessTerrainMap()
@@ -219,10 +231,15 @@ void FCGTerrainGeneratorWorker::erodeHeightMapAtIndex(int32 aX, int32 aY, float 
 	(*pHeightMap)[aX - 1 + (XUnits * (aY + 1))].Z	-= aAmount * mod1;
 	(*pHeightMap)[aX - 1 + (XUnits * (aY - 1))].Z	-= aAmount * mod1;
 
-	// Add to the Red channel vertex colours
+	// Add to the Red channel for deposition
 	if (aAmount > 0.0f)
 	{
 		(*pVertexColors)[aX - 1 + ((XUnits - 2) * (aY - 1))].R = FMath::Clamp((*pVertexColors)[aX - 1 + ((XUnits - 2) * (aY - 1))].R + FMath::RoundToInt(aAmount), 0, 255);
+	}
+	// Add to the blue channel for erosion
+	if (aAmount <= 0.0f)
+	{
+		(*pVertexColors)[aX - 1 + ((XUnits - 2) * (aY - 1))].B = FMath::Clamp((*pVertexColors)[aX - 1 + ((XUnits - 2) * (aY - 1))].B + FMath::RoundToInt(aAmount * 0.01f), 0, 255);
 	}
 
 }

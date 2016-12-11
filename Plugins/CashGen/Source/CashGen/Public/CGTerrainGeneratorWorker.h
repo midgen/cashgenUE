@@ -25,6 +25,7 @@ class FCGTerrainGeneratorWorker : public FRunnable
 
 	bool IsThreadFinished;
 
+	void prepMaps();
 	void ProcessTerrainMap();
 	void ProcessThermalErosion();
 	void AddDepositionToHeightMap();
