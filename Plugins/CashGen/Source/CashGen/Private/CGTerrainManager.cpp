@@ -230,6 +230,7 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 		aJob.VertexColors = &dataToUse->VertexColors;
 		aJob.Tangents = &dataToUse->Tangents;
 		aJob.HeightMap = &dataToUse->HeightMap;
+		aJob.DespositionMap = &dataToUse->DepositionMap;
 		aJob.Data = dataToUse;
 		return true;
 	}
@@ -318,14 +319,16 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	int32 numXVerts = aLOD == 0 ? aConfig->TileXUnits + 1 : (aConfig->TileXUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
 	int32 numYVerts = aLOD == 0 ? aConfig->TileYUnits + 1 : (aConfig->TileYUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
 
-	aData->Vertices.Reserve(numXVerts * numYVerts);
-	aData->Normals.Reserve(numXVerts * numYVerts);
-	aData->UV0.Reserve(numXVerts * numYVerts);
-	aData->VertexColors.Reserve(numXVerts * numYVerts);
-	aData->Tangents.Reserve(numXVerts * numYVerts);
+	int32 numTotalVertices = numXVerts * numYVerts + (aConfig->TileXUnits * 2) + (aConfig->TileYUnits * 2) + 4;
+
+	aData->Vertices.Reserve(numTotalVertices);
+	aData->Normals.Reserve(numTotalVertices);
+	aData->UV0.Reserve(numTotalVertices);
+	aData->VertexColors.Reserve(numTotalVertices);
+	aData->Tangents.Reserve(numTotalVertices);
 
 	// Generate the per vertex data sets
-	for (int32 i = 0; i < (numXVerts * numYVerts); ++i)
+	for (int32 i = 0; i < (numTotalVertices); ++i)
 	{
 		aData->Vertices.Emplace(0.0f);
 		aData->Normals.Emplace(0.0f, 0.0f, 1.0f);
@@ -337,15 +340,25 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	// Heightmap needs to be larger than the mesh
 	// Using vectors here is a bit wasteful, but it does make normal/tangent or any other
 	// Geometric calculations based on the heightmap a bit easier. Easy enough to change to floats
+
 	aData->HeightMap.Reserve((numXVerts + 2) * (numYVerts + 2));
+	if (TerrainConfig.ThermalErosionIterations > 0) {
+		aData->DepositionMap.Reserve((numXVerts + 2) * (numYVerts + 2));
+	}
 	for (int32 i = 0; i < (numXVerts + 2) * (numYVerts + 2); ++i)
 	{
 		aData->HeightMap.Emplace(0.0f);
+		if (TerrainConfig.ThermalErosionIterations > 0) {
+			aData->DepositionMap.Emplace(0.0f);
+		}
 	}
 
 	// Triangle indexes
-	aData->Triangles.Reserve((numXVerts - 1) * (numYVerts - 1) * 6);
-	for (int32 i = 0; i < (numXVerts - 1) * (numYVerts - 1) * 6; ++i)
+	int32 terrainTris = ((numXVerts - 1) * (numYVerts - 1) * 6);
+	int32 skirtTris = (((numXVerts - 1) * 2) + ((numYVerts - 1) * 2)) * 6;
+	int32 numTris = terrainTris + skirtTris;
+	aData->Triangles.Reserve(numTris);
+	for (int32 i = 0; i < numTris; ++i)
 	{
 		aData->Triangles.Add(i);
 	}

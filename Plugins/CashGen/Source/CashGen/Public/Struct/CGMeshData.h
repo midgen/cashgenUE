@@ -23,5 +23,7 @@ struct FCGMeshData
 		TArray<FRuntimeMeshTangent> Tangents;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
 		TArray<FVector> HeightMap;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
+		TArray<float> DepositionMap;
 
 };
