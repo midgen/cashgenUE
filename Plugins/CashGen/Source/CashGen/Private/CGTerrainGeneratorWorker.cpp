@@ -388,6 +388,7 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 		(*pTriangles)[triStartIndex + (i*6) + 4]	= startIndex + i + 1;
 		(*pTriangles)[triStartIndex + (i*6) + 5]	= i;
 	}
+	triStartIndex += ((numXVerts - 1) * 6);
 
 	startIndex = ((numXVerts) * (numYVerts + 1));
 	// Top Edge verts
@@ -400,7 +401,7 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 		(*pNormals)[startIndex + i] = (*pNormals)[i + startIndex - (numXVerts * 2)];
 	}
 	// top edge triangles
-	triStartIndex += ((numXVerts - 1) * 6);
+	
 	for (int i = 0; i < ((numXVerts - 1)); ++i)
 	{
 		(*pTriangles)[triStartIndex + (i * 6)]		= i + startIndex - (numXVerts * 2);
@@ -411,6 +412,104 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 		(*pTriangles)[triStartIndex + (i * 6) + 4]	= startIndex + i;
 		(*pTriangles)[triStartIndex + (i * 6) + 5]	= startIndex + i + 1;
 	}
+	triStartIndex += ((numXVerts - 1) * 6);
+
+	startIndex = numXVerts * (numYVerts + 2);
+	// Right edge - bit different
+	for (int i = 0; i < numYVerts - 2; ++i)
+	{
+		(*pVertices)[startIndex + i].X = (*pVertices)[(i + 1) * numXVerts].X;
+		(*pVertices)[startIndex + i].Y = (*pVertices)[(i + 1) * numXVerts].Y;
+		(*pVertices)[startIndex + i].Z = -30000.0f;
+
+		(*pNormals)[startIndex + i] = (*pNormals)[(i + 1) * numXVerts];
+	}
+	// Bottom right corner
+	
+
+	(*pTriangles)[triStartIndex]		= 0;
+	(*pTriangles)[triStartIndex + 1]	= numXVerts * numYVerts;
+	(*pTriangles)[triStartIndex + 2]	= numXVerts;
+
+	(*pTriangles)[triStartIndex + 3]	= numXVerts;
+	(*pTriangles)[triStartIndex + 4]	= numXVerts * numYVerts;
+	(*pTriangles)[triStartIndex + 5]	= numXVerts * (numYVerts + 2);
+
+	// Top right corner
+	triStartIndex += 6;
+
+	(*pTriangles)[triStartIndex]		= numXVerts * (numYVerts - 1);
+	(*pTriangles)[triStartIndex + 1]	= (numXVerts * (numYVerts + 2)) + numYVerts - 3;
+	(*pTriangles)[triStartIndex + 2]	= numXVerts * (numYVerts + 1);
+
+	(*pTriangles)[triStartIndex + 3]	= numXVerts * (numYVerts - 1);
+	(*pTriangles)[triStartIndex + 4]	= numXVerts * (numYVerts - 2);
+	(*pTriangles)[triStartIndex + 5]	= (numXVerts * (numYVerts + 2)) + numYVerts - 3;
+
+	// Middle right part!
+	startIndex = numXVerts * (numYVerts + 2);
+	triStartIndex += 6;
+
+	for (int i = 0; i < numYVerts - 3; ++i)
+	{
+		(*pTriangles)[triStartIndex + (i*6)]		= numXVerts * (i + 1);
+		(*pTriangles)[triStartIndex + (i * 6) + 1]	= startIndex + i;
+		(*pTriangles)[triStartIndex + (i * 6) + 2]	= numXVerts * (i + 2);
+
+		(*pTriangles)[triStartIndex + (i * 6) + 3]	= numXVerts * (i + 2);
+		(*pTriangles)[triStartIndex + (i * 6) + 4]	= startIndex + i;
+		(*pTriangles)[triStartIndex + (i * 6) + 5]	= startIndex + i + 1;
+	}
+	triStartIndex += ((numYVerts - 3) * 6);
+
+	
+	startIndex += (numYVerts - 2);
+	// Left edge - bit different
+	for (int i = 0; i < numYVerts - 2; ++i)
+	{
+		(*pVertices)[startIndex + i].X = (*pVertices)[((i + 1) * numXVerts) + numXVerts - 1].X;
+		(*pVertices)[startIndex + i].Y = (*pVertices)[((i + 1) * numXVerts) + numXVerts - 1].Y;
+		(*pVertices)[startIndex + i].Z = -30000.0f;
+
+		(*pNormals)[startIndex + i] = (*pNormals)[((i + 1) * numXVerts) + numXVerts - 1];
+	}
+	// Bottom left corner
+
+
+	(*pTriangles)[triStartIndex]		= numXVerts - 1;
+	(*pTriangles)[triStartIndex + 1]	= (numXVerts*2) - 1;
+	(*pTriangles)[triStartIndex + 2]	= startIndex;
+
+	(*pTriangles)[triStartIndex + 3]	= startIndex;
+	(*pTriangles)[triStartIndex + 4]	= (numXVerts * numYVerts) + numXVerts - 1;
+	(*pTriangles)[triStartIndex + 5]	= numXVerts - 1;
+
+	// Top left corner
+	triStartIndex += 6;
+
+	(*pTriangles)[triStartIndex]		= (numXVerts * numYVerts) - 1;
+	(*pTriangles)[triStartIndex + 1]	= (numXVerts * (numYVerts + 2)) - 1;
+	(*pTriangles)[triStartIndex + 2]	= (numXVerts * (numYVerts + 2)) + ((numYVerts - 2) * 2) - 1;
+
+	(*pTriangles)[triStartIndex + 3]	= (numXVerts * numYVerts) - 1;
+	(*pTriangles)[triStartIndex + 4]	= (numXVerts * (numYVerts + 2)) + ((numYVerts - 2) * 2) - 1;
+	(*pTriangles)[triStartIndex + 5]	= (numXVerts * (numYVerts - 2)) + numXVerts - 1;
+
+	// Middle left part!
+	
+	triStartIndex += 6;
+
+	for (int i = 0; i < numYVerts - 3; ++i)
+	{
+		(*pTriangles)[triStartIndex + (i * 6)]		= (numXVerts * (i + 1)) + numXVerts - 1;
+		(*pTriangles)[triStartIndex + (i * 6) + 1]	= (numXVerts * (i + 2)) + numXVerts - 1;
+		(*pTriangles)[triStartIndex + (i * 6) + 2]	= startIndex + i + 1;
+
+		(*pTriangles)[triStartIndex + (i * 6) + 3]	= (numXVerts * (i + 1)) + numXVerts - 1;
+		(*pTriangles)[triStartIndex + (i * 6) + 4]	= startIndex + i + 1;
+		(*pTriangles)[triStartIndex + (i * 6) + 5]	= startIndex + i;
+	}
+
 
 }
 

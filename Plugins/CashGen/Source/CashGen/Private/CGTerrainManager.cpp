@@ -354,8 +354,9 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	}
 
 	// Triangle indexes
-
-	int32 numTris = ((numXVerts - 1) * (numYVerts - 1) * 6) + (((numXVerts - 1) * 2) + ((numYVerts - 1) * 2) * 6);
+	int32 terrainTris = ((numXVerts - 1) * (numYVerts - 1) * 6);
+	int32 skirtTris = (((numXVerts - 1) * 2) + ((numYVerts - 1) * 2)) * 6;
+	int32 numTris = terrainTris + skirtTris;
 	aData->Triangles.Reserve(numTris);
 	for (int32 i = 0; i < numTris; ++i)
 	{
