@@ -32,7 +32,7 @@ class FCGTerrainGeneratorWorker : public FRunnable
 	void ProcessSingleDropletErosion();
 	void ProcessPerBlockGeometry();
 	void ProcessPerVertexTasks();
-	void ProcessBiomeWeightMap();
+	void ProcessSkirtGeometry();
 
 	void erodeHeightMapAtIndex(int32 aX, int32 aY, float aAmount);
 	FVector GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY);

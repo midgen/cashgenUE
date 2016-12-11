@@ -59,6 +59,7 @@ uint32 FCGTerrainGeneratorWorker::Run()
 
 			ProcessPerBlockGeometry();
 			ProcessPerVertexTasks();
+			ProcessSkirtGeometry();
 
 
 			pTerrainManager->UpdateJobs.Enqueue(workJob);
@@ -318,155 +319,6 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 
 }
 
-//void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
-//{
-//	int32 XUnits = GetNumberOfNoiseSamplePoints();
-//	int32 YUnits = XUnits;
-//
-//	// Pick a random start point that isn't on an edge
-//	int32 cX = FMath::RandRange(1, XUnits -1);
-//	int32 cY = FMath::RandRange(1, YUnits -1);
-//
-//	float waterAmount = 1.0f;
-//	float velocity = 0.0f;
-//	float sedimentAmount = pTerrainConfig->DropletDespositionTheta;
-//	uint8 direction = 0;
-//	uint8 previousDirection = 0;
-//
-//	while (waterAmount > 0.0f && cX > 0 && cX < XUnits - 1 && cY > 0 && cY < YUnits -1)
-//	{
-//		float origin	= (*pHeightMap)[cX + (XUnits * cY)].Z;
-//		float up		= (*pHeightMap)[cX + (XUnits * (cY+1))].Z;
-//		float down		= (*pHeightMap)[cX + (XUnits * (cY - 1))].Z;
-//		float left		= (*pHeightMap)[cX + 1 + (XUnits * (cY))].Z;
-//		float right		= (*pHeightMap)[cX - 1 + (XUnits * (cY))].Z;
-//
-//		float upleft = (*pHeightMap)[cX + 1 +(XUnits * (cY + 1))].Z;
-//		float downleft = (*pHeightMap)[cX + 1 + (XUnits * (cY - 1))].Z;
-//		float upright = (*pHeightMap)[cX - 1 + (XUnits * (cY + 1))].Z;
-//		float downright = (*pHeightMap)[cX - 1 + (XUnits * (cY - 1))].Z;
-//
-//		float dU = up - origin;
-//		float dD = down - origin;
-//		float dL = left - origin;
-//		float dR = right - origin;
-//
-//		float dUL = upleft - origin;
-//		float dUR = upright - origin;
-//		float dDL = downleft - origin;
-//		float dDR = downright - origin;
-//
-//
-//		float dMax = 0.0;
-//
-//		if (dU > dMax) { dMax = dU; }
-//		if (dD > dMax) { dMax = dD; }
-//		if (dL > dMax) { dMax = dL; }
-//		if (dR > dMax) { dMax = dR; }
-//
-//
-//		if (dUL > dMax) { dMax = dUL; }
-//		if (dUR > dMax) { dMax = dUR; }
-//		if (dDL > dMax) { dMax = dDL; }
-//		if (dDR > dMax) { dMax = dDR; }
-//
-//		float depositAmount = sedimentAmount * pTerrainConfig->DropletDespositionRate; 
-//
-//		(*pHeightMap)[cX + (XUnits * (cY))].Z -= depositAmount;
-//
-//		//// if the slope on this grid is less than previous, deposit some sediment
-//		//if (dMax < velocity)
-//		//{
-//		//	(*pHeightMap)[cX + (XUnits * (cY))].Z += depositAmount * 0.1f;
-//		//	sedimentAmount -= depositAmount * 0.1f;
-//		//}
-//
-//		//velocity = dMax;
-//
-//		previousDirection = direction;
-//
-//		if (dU >= dMax - 0.00001f) // Flow UP
-//		{
-//			direction = 0;
-//			if (cY + 1 < YUnits - 1) {
-//				//(*pHeightMap)[cX + (XUnits * (cY + 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
-//			}
-//
-//			cY++;
-//		} 
-//		else if (dD >= dMax - 0.00001f) // Flow DOWN
-//		{
-//			direction = 4;
-//			if (cY - 1 > 0) {
-//				//(*pHeightMap)[cX + (XUnits * (cY - 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
-//			}
-//			cY--;
-//		}
-//		else if (dL >= dMax - 0.00001f) // Flow LEFT
-//		{
-//			direction = 6;
-//			if (cX + 1 < XUnits - 1) {
-//				//(*pHeightMap)[cX + 1 + (XUnits * (cY))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
-//			}
-//			cX++;
-//		}
-//		else if (dR >= dMax - 0.00001f) // Flow RIGHT
-//		{
-//			direction = 2;
-//			if (cX - 1 > 0) {
-//				//(*pHeightMap)[cX - 1 + (XUnits * (cY))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
-//			}
-//			cX--;
-//		}
-//
-//		if (dUL >= dMax - 0.00001f) // Flow UPLEFT
-//		{
-//			direction = 7;
-//			if (cY + 1 < YUnits - 1 && cX + 1 < XUnits - 1) {
-//				//(*pHeightMap)[cX + (XUnits * (cY + 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
-//			}
-//
-//			cY++; cX++;
-//		}
-//		else if (dUL >= dMax - 0.00001f) // Flow UPRIGHT
-//		{
-//			direction = 1;
-//			if (cY + 1 < YUnits - 1 && cX - 1 > 0) {
-//				//(*pHeightMap)[cX + (XUnits * (cY + 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
-//			}
-//
-//			cY++; cX--;
-//		}
-//		else if (dUL >= dMax - 0.00001f) // Flow DOWNLEFT
-//		{
-//			direction = 5;
-//			if (cY - 1 > 0 && cX + 1 < XUnits - 1) {
-//				//(*pHeightMap)[cX + (XUnits * (cY + 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
-//			}
-//
-//			cY--; cX++;
-//		}
-//		else if (dUL >= dMax - 0.00001f) // Flow DOWNRIGHT
-//		{
-//			direction = 3;
-//			if (cY - 1 > 0 && cX - 1 > 0) {
-//				//(*pHeightMap)[cX + (XUnits * (cY + 1))].Z += sedimentAmount * pTerrainConfig->DropletDespositionRate;
-//			}
-//
-//			cY--; cX--;
-//		}
-//
-//		if (previousDirection != direction)
-//		{
-//			(*pHeightMap)[cX + (XUnits * (cY))].Z += depositAmount * 0.1f;
-//			sedimentAmount += depositAmount * 0.1f;
-//		}
-//
-//		waterAmount -= pTerrainConfig->DropletEvaporationRate;
-//
-//	}
-//}
-
 void FCGTerrainGeneratorWorker::ProcessPerBlockGeometry()
 {
 	int32 vertCounter = 0;
@@ -503,8 +355,62 @@ void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 	}
 }
 
-void FCGTerrainGeneratorWorker::ProcessBiomeWeightMap()
+
+// Generates the 'skirt' geometry that falls down from the edges of each tile
+void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 {
+	// Going to do this the simple way, keep code easy to understand!
+
+	int32 numXVerts = workLOD == 0 ? pTerrainConfig->TileXUnits + 1 : (pTerrainConfig->TileXUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1;
+	int32 numYVerts = workLOD == 0 ? pTerrainConfig->TileYUnits + 1 : (pTerrainConfig->TileYUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1;
+
+	
+	int32 startIndex = numXVerts * numYVerts;
+	int32 triStartIndex = ((numXVerts - 1) * (numYVerts - 1) * 6);
+
+	// Bottom Edge verts
+	for (int i = 0; i < numXVerts; ++i)
+	{
+		(*pVertices)[startIndex + i].X = (*pVertices)[i].X;
+		(*pVertices)[startIndex + i].Y = (*pVertices)[i].Y;
+		(*pVertices)[startIndex + i].Z = -30000.0f;
+
+		(*pNormals)[startIndex + i] = (*pNormals)[i];
+	}
+	// bottom edge triangles
+	for (int i = 0; i < ((numXVerts - 1)); ++i)
+	{
+		(*pTriangles)[triStartIndex + (i*6)]		= i;
+		(*pTriangles)[triStartIndex + (i*6) + 1]	= startIndex + i + 1;
+		(*pTriangles)[triStartIndex + (i*6) + 2]	= startIndex + i;
+
+		(*pTriangles)[triStartIndex + (i*6) + 3]	= i + 1;
+		(*pTriangles)[triStartIndex + (i*6) + 4]	= startIndex + i + 1;
+		(*pTriangles)[triStartIndex + (i*6) + 5]	= i;
+	}
+
+	startIndex = ((numXVerts) * (numYVerts + 1));
+	// Top Edge verts
+	for (int i = 0; i < numXVerts; ++i)
+	{
+		(*pVertices)[startIndex + i].X = (*pVertices)[i + startIndex - (numXVerts * 2)].X;
+		(*pVertices)[startIndex + i].Y = (*pVertices)[i + startIndex - (numXVerts * 2)].Y;
+		(*pVertices)[startIndex + i].Z = -30000.0f;
+
+		(*pNormals)[startIndex + i] = (*pNormals)[i + startIndex - (numXVerts * 2)];
+	}
+	// top edge triangles
+	triStartIndex += ((numXVerts - 1) * 6);
+	for (int i = 0; i < ((numXVerts - 1)); ++i)
+	{
+		(*pTriangles)[triStartIndex + (i * 6)]		= i + startIndex - (numXVerts * 2);
+		(*pTriangles)[triStartIndex + (i * 6) + 1]	= startIndex + i;
+		(*pTriangles)[triStartIndex + (i * 6) + 2]	= i + startIndex - (numXVerts * 2) + 1;
+
+		(*pTriangles)[triStartIndex + (i * 6) + 3]	= i + startIndex - (numXVerts * 2) + 1;
+		(*pTriangles)[triStartIndex + (i * 6) + 4]	= startIndex + i;
+		(*pTriangles)[triStartIndex + (i * 6) + 5]	= startIndex + i + 1;
+	}
 
 }
 

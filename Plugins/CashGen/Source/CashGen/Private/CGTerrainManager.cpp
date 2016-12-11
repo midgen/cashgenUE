@@ -319,14 +319,16 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	int32 numXVerts = aLOD == 0 ? aConfig->TileXUnits + 1 : (aConfig->TileXUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
 	int32 numYVerts = aLOD == 0 ? aConfig->TileYUnits + 1 : (aConfig->TileYUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
 
-	aData->Vertices.Reserve(numXVerts * numYVerts);
-	aData->Normals.Reserve(numXVerts * numYVerts);
-	aData->UV0.Reserve(numXVerts * numYVerts);
-	aData->VertexColors.Reserve(numXVerts * numYVerts);
-	aData->Tangents.Reserve(numXVerts * numYVerts);
+	int32 numTotalVertices = numXVerts * numYVerts + (aConfig->TileXUnits * 2) + (aConfig->TileYUnits * 2) + 4;
+
+	aData->Vertices.Reserve(numTotalVertices);
+	aData->Normals.Reserve(numTotalVertices);
+	aData->UV0.Reserve(numTotalVertices);
+	aData->VertexColors.Reserve(numTotalVertices);
+	aData->Tangents.Reserve(numTotalVertices);
 
 	// Generate the per vertex data sets
-	for (int32 i = 0; i < (numXVerts * numYVerts); ++i)
+	for (int32 i = 0; i < (numTotalVertices); ++i)
 	{
 		aData->Vertices.Emplace(0.0f);
 		aData->Normals.Emplace(0.0f, 0.0f, 1.0f);
@@ -352,8 +354,10 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	}
 
 	// Triangle indexes
-	aData->Triangles.Reserve((numXVerts - 1) * (numYVerts - 1) * 6);
-	for (int32 i = 0; i < (numXVerts - 1) * (numYVerts - 1) * 6; ++i)
+
+	int32 numTris = ((numXVerts - 1) * (numYVerts - 1) * 6) + (((numXVerts - 1) * 2) + ((numYVerts - 1) * 2) * 6);
+	aData->Triangles.Reserve(numTris);
+	for (int32 i = 0; i < numTris; ++i)
 	{
 		aData->Triangles.Add(i);
 	}
