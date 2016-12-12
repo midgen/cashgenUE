@@ -54,7 +54,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			HandleTileFlip(delta);
 			if (FMath::Abs(delta.X) > 0 && FMath::Abs(delta.Y))
 			{
-				GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Flipping " + FString::FromInt((newPos - oldPos).X) + " : " + FString::FromInt((newPos - oldPos).Y)));
+				//GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Flipping " + FString::FromInt((newPos - oldPos).X) + " : " + FString::FromInt((newPos - oldPos).Y)));
 			}
 			
 		}
