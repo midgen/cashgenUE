@@ -52,7 +52,7 @@ public:
 	FCGTerrainConfig TerrainConfig;
 
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
-	void SetUpTerrain(UUFNNoiseGenerator* aNoiseGen, AActor* aTrackingActor) { TerrainConfig.NoiseGenerator = aNoiseGen; TrackingActor = aTrackingActor; }
+	void SetUpTerrain(UUFNNoiseGenerator* aNoiseGen, UUFNNoiseGenerator* aBiomeBlendGen, AActor* aTrackingActor) { TerrainConfig.NoiseGenerator = aNoiseGen; TerrainConfig.BiomeBlendGenerator = aBiomeBlendGen; TrackingActor = aTrackingActor; }
 
 	float TimeSinceLastSweep;
 	const float SweepInterval = 0.1f;

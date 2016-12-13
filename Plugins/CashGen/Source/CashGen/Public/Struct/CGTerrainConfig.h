@@ -14,6 +14,8 @@ struct FCGTerrainConfig
 		/** Noise Generator configuration struct */
 	UPROPERTY()
 		UUFNNoiseGenerator* NoiseGenerator;
+	UPROPERTY()
+		UUFNNoiseGenerator* BiomeBlendGenerator;
 	/** Number of blocks along a zone's X axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 		int32 TileXUnits;

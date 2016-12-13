@@ -114,6 +114,20 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
 		}
 	}
+	// Then put the biome map into the Green vertex colour channel
+	exX = workLOD == 0 ? pTerrainConfig->TileXUnits + 1 : (pTerrainConfig->TileXUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor)) + 1;
+	exY = workLOD == 0 ? pTerrainConfig->TileYUnits + 1 : (pTerrainConfig->TileYUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor)) + 1;
+	for (int x = 0; x < exX; ++x)
+	{
+		for (int y = 0; y < exY; ++y)
+		{
+			int32 worldX = (((workJob.Tile->Offset.X * (exX - 1) + x)) * exUnitSize) - exUnitSize;
+			int32 worldY = (((workJob.Tile->Offset.Y * (exY - 1) + y)) * exUnitSize) - exUnitSize;
+			float val = pTerrainConfig->BiomeBlendGenerator->GetNoise2D(worldX, worldY);
+
+			(*pVertexColors)[x + (exX*y)].G = FMath::Clamp(FMath::FloorToInt(((val + 1.0f) / 2.0f) * 128), 0, 255);
+		}
+	}
 }
 
 void FCGTerrainGeneratorWorker::ProcessThermalErosion()
@@ -590,10 +604,10 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int a
 	(*pVertices)[(thisX + 1) + ((thisY + 1) * rowLength)] = (*pHeightMap)[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
 
 	//TODO: Not using Vertex Colour channels at the moment, could be handy though!
-	//(*pVertexColors)[thisX + (thisY * rowLength)].R = (255 / 50000.0f);
-	//(*pVertexColors)[thisX + ((thisY + 1) * rowLength)].R = (255 / 50000.0f);
-	//(*pVertexColors)[(thisX + 1) + (thisY * rowLength)].R = (255 / 50000.0f);
-	//(*pVertexColors)[(thisX + 1) + ((thisY + 1) * rowLength)].R = (255 / 50000.0f);
+	//(*pVertexColors)[thisX + (thisY * rowLength)].G = (255 / 50000.0f);
+	//(*pVertexColors)[thisX + ((thisY + 1) * rowLength)].G = (255 / 50000.0f);
+	//(*pVertexColors)[(thisX + 1) + (thisY * rowLength)].G = (255 / 50000.0f);
+	//(*pVertexColors)[(thisX + 1) + ((thisY + 1) * rowLength)].G = (255 / 50000.0f);
 }
 
 int32 FCGTerrainGeneratorWorker::GetNumberOfNoiseSamplePoints()
