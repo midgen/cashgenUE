@@ -1,8 +1,9 @@
 #include "cashgen.h"
 #include "UFNNoiseGenerator.h"
 #include "CGTerrainGeneratorWorker.h"
+#include <chrono>
 
-
+using namespace std::chrono;
 
 
 FCGTerrainGeneratorWorker::FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager, FCGTerrainConfig* aTerrainConfig)
@@ -42,20 +43,32 @@ uint32 FCGTerrainGeneratorWorker::Run()
 
 			workLOD = workJob.LOD;
 
+			milliseconds startMs = duration_cast<milliseconds>(
+				system_clock::now().time_since_epoch()
+				);
+
 			prepMaps();
 			ProcessTerrainMap();
+
+			workJob.HeightmapGenerationDuration = (duration_cast<milliseconds>(
+				system_clock::now().time_since_epoch()
+				) - startMs).count();
+
+			startMs = duration_cast<milliseconds>(
+				system_clock::now().time_since_epoch()
+				);
+
 			if (workLOD == 0)
 			{
-				for (int32 i = 0; i < pTerrainConfig->ThermalErosionIterations; ++i)
-				{
-					ProcessThermalErosion();
-					AddDepositionToHeightMap();
-				}
 				for (int32 i = 0; i < pTerrainConfig->DropletAmount; ++i)
 				{
 					ProcessSingleDropletErosion();
 				}
 			}
+
+			workJob.ErosionGenerationDuration = (duration_cast<milliseconds>(
+				system_clock::now().time_since_epoch()
+				) - startMs).count();
 
 			ProcessPerBlockGeometry();
 			ProcessPerVertexTasks();

@@ -21,6 +21,9 @@ struct FCGJob
 	TArray<FVector>* HeightMap;
 	TArray<float>* DespositionMap;
 
+	int32 HeightmapGenerationDuration;
+	int32 ErosionGenerationDuration;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	uint8 LOD;
 
