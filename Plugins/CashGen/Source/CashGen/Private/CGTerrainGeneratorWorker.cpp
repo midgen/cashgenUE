@@ -289,6 +289,11 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 	while (waterAmount > 0.0f && cX > 0 && cX < XUnits - 1 && cY > 0 && cY < YUnits - 1)
 	{
 		FVector origin = (*pHeightMap)[cX + (XUnits * cY)];
+		if (origin.Z < 0.0f)
+		{
+			// Don't care about underwater erosion
+			break;
+		}
 		FVector up = ((*pHeightMap)[cX + (XUnits * (cY + 1))] - origin).GetSafeNormal();
 		FVector down = ((*pHeightMap)[cX + (XUnits * (cY - 1))] - origin).GetSafeNormal();
 		FVector left = ((*pHeightMap)[cX + 1 + (XUnits * (cY))] - origin).GetSafeNormal();
