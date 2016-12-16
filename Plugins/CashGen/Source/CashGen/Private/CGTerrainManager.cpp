@@ -317,15 +317,33 @@ void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfi
 		
 	}
 
+
+
+	// Setup the grass foliage spawner.
+
+	FString compString = TEXT("GrassComponent");
+	FName compName = FName(*compString);
+	HISMCGrass = NewObject<UHierarchicalInstancedStaticMeshComponent>(this, compName);
+	HISMCGrass->RegisterComponent();
+	HISMCGrass->SetStaticMesh(TerrainConfig.GrassMesh);
+	HISMCGrass->bCastDynamicShadow = true;
+	HISMCGrass->CastShadow = true;
+	HISMCGrass->SetHiddenInGame(false);
+	HISMCGrass->SetMobility(EComponentMobility::Movable);
+	HISMCGrass->BodyInstance.SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HISMCGrass->BodyInstance.SetObjectType(ECC_WorldDynamic);
+	HISMCGrass->BodyInstance.SetResponseToAllChannels(ECR_Ignore);
+
 	int32 tileIndex = 0;
 	for (ACGTile* tile : Tiles)
 	{
-		tile->SetupTile(GetXYfromIdx(tileIndex), &TerrainConfig, WorldOffset);
+		tile->SetupTile(GetXYfromIdx(tileIndex), &TerrainConfig, WorldOffset, HISMCGrass);
 		tile->RepositionAndHide(GetLODForTile(tile));
 		FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 		CreateTileRefreshJob(job);
 		++tileIndex;
 	}
+
 	isSetup = true;
 
 }

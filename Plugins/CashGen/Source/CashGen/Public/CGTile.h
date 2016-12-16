@@ -25,6 +25,13 @@ class ACGTile : public AActor
 	uint8 CurrentLOD;
 	uint8 PreviousLOD;
 
+	UHierarchicalInstancedStaticMeshComponent* GrassHISM;
+
+	int32 NumGrassInstancesToSpawn = 0;
+	const int32 NumGrassInstancesPerFrame = 4;
+
+	bool GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitPos, FVector* aNormalVector);
+
 public:
 	ACGTile();
 	~ACGTile();
@@ -42,7 +49,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	void SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
+	void SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset, UHierarchicalInstancedStaticMeshComponent* aGrassComp);
 	void UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVertices,
 		TArray<int32>*		aTriangles,
 		TArray<FVector>*	aNormals,

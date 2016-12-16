@@ -57,4 +57,6 @@ struct FCGTerrainConfig
 	UMaterial* TerrainMaterialInstanceParent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FCGLODConfig> LODs;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	UStaticMesh* GrassMesh;
 };

@@ -51,6 +51,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	FCGTerrainConfig TerrainConfig;
 
+	UPROPERTY()
+	UHierarchicalInstancedStaticMeshComponent* HISMCGrass;
+
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
 	void SetUpTerrain(UUFNNoiseGenerator* aNoiseGen, UUFNNoiseGenerator* aBiomeBlendGen, AActor* aTrackingActor) { TerrainConfig.NoiseGenerator = aNoiseGen; TerrainConfig.BiomeBlendGenerator = aBiomeBlendGen; TrackingActor = aTrackingActor; }
 
