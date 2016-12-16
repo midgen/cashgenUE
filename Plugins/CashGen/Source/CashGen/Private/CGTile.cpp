@@ -75,7 +75,7 @@ void ACGTile::Tick(float DeltaSeconds)
 				lod.Value = ELODStatus::CREATED;
 				if (CurrentLOD == 0)
 				{
-					NumGrassInstancesToSpawn = 0
+					NumGrassInstancesToSpawn = 0;
 				}
 			}
 
