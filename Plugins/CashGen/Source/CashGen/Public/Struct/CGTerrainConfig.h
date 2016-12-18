@@ -64,6 +64,8 @@ struct FCGTerrainConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	int32 GrassInstancesPerTick;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	int32 GrassHISMCPoolSize;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	float BiomeThreshold;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	float BiomeFalloff;

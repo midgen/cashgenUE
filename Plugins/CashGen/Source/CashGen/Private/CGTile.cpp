@@ -76,50 +76,52 @@ void ACGTile::Tick(float DeltaSeconds)
 				if (CurrentLOD == 0)
 				{
 					NumGrassInstancesToSpawn = TerrainConfigMaster->GrassInstancesPerTile;
+					GrassIndex = 0;
 				}
 			}
 
 		}
 	}
 
-	if (NumGrassInstancesToSpawn > 0)
-	{
-		for (int i = 0; i < TerrainConfigMaster->GrassInstancesPerTick; ++i)
-		{
-			//FVector startPos = FVector(((Offset.X) * TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize) - WorldOffset->X) + FMath::FRandRange(0.0f, MyConfig.UnitSize),
-			//	(MyOffset.y * MyConfig.YUnits * MyConfig.UnitSize) - worldOffset->Y + ((blockY)* MyConfig.UnitSize) + FMath::FRandRange(0.0f, MyConfig.UnitSize), 50000.0f);
-			float tileWidth = TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize;
-			FVector startPos = FVector(FMath::FRandRange(GetCentrePos().X - (tileWidth * 0.5f), GetCentrePos().X + (tileWidth * 0.5f)),
-										FMath::FRandRange(GetCentrePos().Y - (tileWidth * 0.5f), GetCentrePos().Y + (tileWidth * 0.5f))
-																, 50000.0f);
+	//if (NumGrassInstancesToSpawn > 0)
+	//{
+	//	for (int i = 0; i < TerrainConfigMaster->GrassInstancesPerTick; ++i)
+	//	{
+	//		//FVector startPos = FVector(((Offset.X) * TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize) - WorldOffset->X) + FMath::FRandRange(0.0f, MyConfig.UnitSize),
+	//		//	(MyOffset.y * MyConfig.YUnits * MyConfig.UnitSize) - worldOffset->Y + ((blockY)* MyConfig.UnitSize) + FMath::FRandRange(0.0f, MyConfig.UnitSize), 50000.0f);
+	//		float tileWidth = TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize;
+	//		FVector startPos = FVector(FMath::FRandRange(GetCentrePos().X - (tileWidth * 0.5f), GetCentrePos().X + (tileWidth * 0.5f)),
+	//									FMath::FRandRange(GetCentrePos().Y - (tileWidth * 0.5f), GetCentrePos().Y + (tileWidth * 0.5f))
+	//															, 20000.0f);
 
-			float roll = FMath::FRand() * TerrainConfigMaster->BiomeFalloff;
-			float biome = TerrainConfigMaster->BiomeBlendGenerator->GetNoise2D(startPos.X + WorldOffset.X, startPos.Y + WorldOffset.Y);
+	//		float roll = FMath::FRand() * TerrainConfigMaster->BiomeFalloff;
+	//		float biome = TerrainConfigMaster->BiomeBlendGenerator->GetNoise2D(startPos.X + WorldOffset.X, startPos.Y + WorldOffset.Y);
 
-			if (biome < TerrainConfigMaster->BiomeThreshold || (biome - roll) < TerrainConfigMaster->BiomeThreshold +TerrainConfigMaster->BiomeFalloff)
-			{
-				FVector spawnPoint = FVector(0.0f, 0.0f, 0.0f);
-				FVector normalVector = FVector(0.0f);
-				if (GetGodCastHitPos(startPos, &spawnPoint, &normalVector))
-				{
-					if (spawnPoint.Z > 500.0f)
-					{
-						FRotator rotation = FRotator(0.0f, FMath::FRandRange(-90.f, 90.0f), 0.0f);
+	//		if (biome < TerrainConfigMaster->BiomeThreshold || (biome - roll) < TerrainConfigMaster->BiomeThreshold +TerrainConfigMaster->BiomeFalloff)
+	//		{
+	//			FVector spawnPoint = FVector(0.0f, 0.0f, 0.0f);
+	//			FVector normalVector = FVector(0.0f);
+	//			if (GetGodCastHitPos(startPos, &spawnPoint, &normalVector))
+	//			{
+	//				if (spawnPoint.Z > 500.0f)
+	//				{
+	//					FRotator rotation = FRotator(0.0f, FMath::FRandRange(-90.f, 90.0f), 0.0f);
 
-						rotation += normalVector.Rotation() + FRotator(-90.0f, 0.0f, 0.0f);
+	//					rotation += normalVector.Rotation() + FRotator(-90.0f, 0.0f, 0.0f);
+	//					
+	//					GrassHISMC->UpdateInstanceTransform(GrassIndex, FTransform(rotation, spawnPoint, FVector(1.0f)), true, i == TerrainConfigMaster->GrassInstancesPerTick - 1, true );
+	//					GrassIndex++;
+	//				}
 
-						GrassHISM->AddInstance(FTransform(rotation, spawnPoint, FVector(1.0f)));
-					}
+	//			}
+	//			
+	//		}
+	//		NumGrassInstancesToSpawn--;
 
-				}
-				
-			}
-			NumGrassInstancesToSpawn--;
+	//	}
 
-		}
-
-		
-	}
+	//	
+	//}
 
 
 }
@@ -128,11 +130,10 @@ void ACGTile::Tick(float DeltaSeconds)
 bool ACGTile::GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitPos, FVector* aNormalVector)
 {
 	const FName TraceTag("MyTraceTag");
-	GetWorld()->DebugDrawTraceTag = TraceTag;
 	FCollisionQueryParams MyTraceParams = FCollisionQueryParams(FName(TEXT("TreeTrace")), true);
-	MyTraceParams.bTraceComplex = false;
-	MyTraceParams.bTraceAsyncScene = true;
+	MyTraceParams.bTraceAsyncScene = false;
 	MyTraceParams.bReturnPhysicalMaterial = false;
+	MyTraceParams.bReturnFaceIndex = false;
 
 	FCollisionResponseParams MyResponseParams = FCollisionResponseParams();
 
@@ -140,7 +141,7 @@ bool ACGTile::GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitPos, F
 
 	FVector MyCastDirection = FVector(0.0f, 0.0f, -1.0f);
 
-	if (GetWorld()->LineTraceSingleByChannel(MyHitResult, aVectorToStart, aVectorToStart + (MyCastDirection * 900000.0f), ECC_Visibility, MyTraceParams, MyResponseParams))
+	if (GetWorld()->LineTraceSingleByChannel(MyHitResult, aVectorToStart, aVectorToStart + (MyCastDirection * 20000.0f), ECC_GameTraceChannel1, MyTraceParams, MyResponseParams))
 	{
 		AActor* hitActor = MyHitResult.GetActor();
 		if (hitActor)
@@ -157,15 +158,14 @@ bool ACGTile::GetGodCastHitPos(const FVector aVectorToStart, FVector* aHitPos, F
 /************************************************************************/
 /*  Initial setup of the tile, creates components and material instance
 /************************************************************************/
-void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset, UHierarchicalInstancedStaticMeshComponent* aGrassComp)
+void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset, ACGTerrainManager* aTerrainManager)
 {
 	Offset.X = aOffset.X;
 	Offset.Y = aOffset.Y;
+	TerrainManager = aTerrainManager;
 
 	WorldOffset = aWorldOffset;
 	TerrainConfigMaster = aTerrainConfig;
-
-	GrassHISM = aGrassComp;
 
 	for (int32 i = 0; i < aTerrainConfig->LODs.Num(); ++i)
 	{
@@ -176,7 +176,7 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 		MeshComponents[i]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 		MeshComponents[i]->BodyInstance.SetResponseToAllChannels(ECR_Block);
-
+		MeshComponents[i]->BodyInstance.SetResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 		MeshComponents[i]->bShouldSerializeMeshData = false;
 
 		MeshComponents[i]->RegisterComponent();
@@ -189,6 +189,7 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 			MeshComponents[i]->SetMaterial(0, MaterialInstances[i]);
 		}
 	}
+
 }
  /************************************************************************/
  /*  Updates the mesh for a given LOD and starts the transition effects  

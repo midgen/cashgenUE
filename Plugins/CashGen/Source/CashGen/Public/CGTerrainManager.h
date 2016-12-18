@@ -28,6 +28,7 @@ class ACGTerrainManager : public AActor
 	TArray<ACGTile*> Tiles;
 
 
+
 	bool GetFreeMeshData(FCGJob& aJob);
 	void ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease);
 	void AllocateAllMeshDataStructures();
@@ -37,6 +38,7 @@ class ACGTerrainManager : public AActor
 	uint8 GetLODForTile(ACGTile* aTile);
 
 	CGPoint GetXYfromIdx(const int32 idx) { return CGPoint(idx % XTiles, idx / YTiles); }
+
 
 public:
 	ACGTerrainManager();
@@ -51,8 +53,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	FCGTerrainConfig TerrainConfig;
 
-	UPROPERTY()
-	UHierarchicalInstancedStaticMeshComponent* HISMCGrass;
 
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
 	void SetUpTerrain(UUFNNoiseGenerator* aNoiseGen, UUFNNoiseGenerator* aBiomeBlendGen, AActor* aTrackingActor) { TerrainConfig.NoiseGenerator = aNoiseGen; TerrainConfig.BiomeBlendGenerator = aBiomeBlendGen; TrackingActor = aTrackingActor; }
