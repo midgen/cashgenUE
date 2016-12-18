@@ -59,4 +59,13 @@ struct FCGTerrainConfig
 	TArray<FCGLODConfig> LODs;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	UStaticMesh* GrassMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	int32 GrassInstancesPerTile;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	int32 GrassInstancesPerTick;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	float BiomeThreshold;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	float BiomeFalloff;
+
 };

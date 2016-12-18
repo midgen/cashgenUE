@@ -75,7 +75,7 @@ void ACGTile::Tick(float DeltaSeconds)
 				lod.Value = ELODStatus::CREATED;
 				if (CurrentLOD == 0)
 				{
-					NumGrassInstancesToSpawn = 0;
+					NumGrassInstancesToSpawn = TerrainConfigMaster->GrassInstancesPerTile;
 				}
 			}
 
@@ -84,7 +84,7 @@ void ACGTile::Tick(float DeltaSeconds)
 
 	if (NumGrassInstancesToSpawn > 0)
 	{
-		for (int i = 0; i < NumGrassInstancesPerFrame; ++i)
+		for (int i = 0; i < TerrainConfigMaster->GrassInstancesPerTick; ++i)
 		{
 			//FVector startPos = FVector(((Offset.X) * TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize) - WorldOffset->X) + FMath::FRandRange(0.0f, MyConfig.UnitSize),
 			//	(MyOffset.y * MyConfig.YUnits * MyConfig.UnitSize) - worldOffset->Y + ((blockY)* MyConfig.UnitSize) + FMath::FRandRange(0.0f, MyConfig.UnitSize), 50000.0f);
@@ -93,17 +93,29 @@ void ACGTile::Tick(float DeltaSeconds)
 										FMath::FRandRange(GetCentrePos().Y - (tileWidth * 0.5f), GetCentrePos().Y + (tileWidth * 0.5f))
 																, 50000.0f);
 
-			FVector spawnPoint = FVector(0.0f, 0.0f, 0.0f);
-			FVector normalVector = FVector(0.0f);
-			if (GetGodCastHitPos(startPos, &spawnPoint, &normalVector))
+			float roll = FMath::FRand() * TerrainConfigMaster->BiomeFalloff;
+			float biome = TerrainConfigMaster->BiomeBlendGenerator->GetNoise2D(startPos.X + WorldOffset.X, startPos.Y + WorldOffset.Y);
+
+			if (biome < TerrainConfigMaster->BiomeThreshold || (biome - roll) < TerrainConfigMaster->BiomeThreshold +TerrainConfigMaster->BiomeFalloff)
 			{
-				FRotator rotation = FRotator(0.0f, FMath::FRandRange(-90.f, 90.0f), 0.0f);
+				FVector spawnPoint = FVector(0.0f, 0.0f, 0.0f);
+				FVector normalVector = FVector(0.0f);
+				if (GetGodCastHitPos(startPos, &spawnPoint, &normalVector))
+				{
+					if (spawnPoint.Z > 500.0f)
+					{
+						FRotator rotation = FRotator(0.0f, FMath::FRandRange(-90.f, 90.0f), 0.0f);
 
-				rotation += normalVector.Rotation() + FRotator(-90.0f, 0.0f, 0.0f);
+						rotation += normalVector.Rotation() + FRotator(-90.0f, 0.0f, 0.0f);
 
-				GrassHISM->AddInstance(FTransform(rotation, spawnPoint, FVector(1.0f)));
+						GrassHISM->AddInstance(FTransform(rotation, spawnPoint, FVector(1.0f)));
+					}
+
+				}
+				
 			}
 			NumGrassInstancesToSpawn--;
+
 		}
 
 		

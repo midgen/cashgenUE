@@ -121,21 +121,21 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 	{
 		for (int y = 0; y < exY; ++y)
 		{
-			int32 worldX = (((workJob.Tile->Offset.X * (exX - 3) + x)) * exUnitSize) - exUnitSize;
-			int32 worldY = (((workJob.Tile->Offset.Y * (exY - 3) + y)) * exUnitSize) - exUnitSize;
+			int32 worldX = (((workJob.Tile->Offset.X * (exX - 3)) + x) * exUnitSize);
+			int32 worldY = (((workJob.Tile->Offset.Y * (exX - 3)) + y) * exUnitSize);
 
 			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
 		}
 	}
 	// Then put the biome map into the Green vertex colour channel
-	exX = workLOD == 0 ? pTerrainConfig->TileXUnits + 1 : (pTerrainConfig->TileXUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor)) + 1;
-	exY = workLOD == 0 ? pTerrainConfig->TileYUnits + 1 : (pTerrainConfig->TileYUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor)) + 1;
+	exX -= 2;
+	exY -= 2;
 	for (int x = 0; x < exX; ++x)
 	{
 		for (int y = 0; y < exY; ++y)
 		{
-			int32 worldX = (((workJob.Tile->Offset.X * (exX - 1) + x)) * exUnitSize) - exUnitSize;
-			int32 worldY = (((workJob.Tile->Offset.Y * (exY - 1) + y)) * exUnitSize) - exUnitSize;
+			int32 worldX = (((workJob.Tile->Offset.X * (exX - 1)) + x) * exUnitSize);
+			int32 worldY = (((workJob.Tile->Offset.Y * (exX - 1)) + y) * exUnitSize);
 			float val = pTerrainConfig->BiomeBlendGenerator->GetNoise2D(worldX, worldY);
 
 			(*pVertexColors)[x + (exX*y)].G = FMath::Clamp(FMath::FloorToInt(((val + 1.0f) / 2.0f) * 128), 0, 255);
