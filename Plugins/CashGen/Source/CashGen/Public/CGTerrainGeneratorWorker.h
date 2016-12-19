@@ -27,7 +27,6 @@ class FCGTerrainGeneratorWorker : public FRunnable
 
 	void prepMaps();
 	void ProcessTerrainMap();
-	void ProcessThermalErosion();
 	void AddDepositionToHeightMap();
 	void ProcessSingleDropletErosion();
 	void ProcessPerBlockGeometry();

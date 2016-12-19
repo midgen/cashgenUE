@@ -40,12 +40,7 @@ ATestPawn::ATestPawn()
 // Called when the game starts or when spawned
 void ATestPawn::BeginPlay()
 {
-	Super::BeginPlay();
-
-	FoliageComponent = NewObject<UCGFoliageComponent>(this, TEXT("Foliagecomp"));
-	FoliageComponent->OnComponentCreated();
-	FoliageComponent->RegisterComponent();
-	
+	Super::BeginPlay();	
 }
 
 // Called every frame

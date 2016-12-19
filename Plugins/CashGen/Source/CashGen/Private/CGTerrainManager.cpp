@@ -11,10 +11,9 @@ ACGTerrainManager::~ACGTerrainManager()
 {
 	if(WorkerThread != nullptr)
 	{
-		WorkerThread->Kill(false);
+		WorkerThread->Kill(true);
 	}
 }
-
 
 void ACGTerrainManager::BeginPlay()
 {
@@ -53,11 +52,6 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		{
 			CGPoint delta = newPos - oldPos;
 			HandleTileFlip(delta);
-			if (FMath::Abs(delta.X) > 0 && FMath::Abs(delta.Y))
-			{
-				//GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Flipping " + FString::FromInt((newPos - oldPos).X) + " : " + FString::FromInt((newPos - oldPos).Y)));
-			}
-			
 		}
 
 		// Check for pending jobs
@@ -248,7 +242,6 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 		aJob.VertexColors = &dataToUse->VertexColors;
 		aJob.Tangents = &dataToUse->Tangents;
 		aJob.HeightMap = &dataToUse->HeightMap;
-		aJob.DespositionMap = &dataToUse->DepositionMap;
 		aJob.Data = dataToUse;
 		return true;
 	}
@@ -290,6 +283,10 @@ void ACGTerrainManager::AllocateAllMeshDataStructures()
 
 }
 
+/************************************************************************/
+/*  Main setup method, pass in the config struct and other details
+/*				Spawns the Tile actors into place and sets them up
+/************************************************************************/
 void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfig aTerrainConfig, const int32 aXTiles, const int32 aYTiles)
 {
 	TerrainConfig = aTerrainConfig;
@@ -314,18 +311,12 @@ void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfi
 													FVector((TerrainConfig.TileXUnits * TerrainConfig.UnitSize * GetXYfromIdx(i).X) - WorldOffset.X,
 																(TerrainConfig.TileYUnits * TerrainConfig.UnitSize * GetXYfromIdx(i).Y) - WorldOffset.Y, 0.0f) - WorldOffset, FRotator(0.0f)));
 
-		// Set the correct LOD to prevent a loop on the initial spawn and generate cycle
-		
 	}
-
-
-
-
 
 	int32 tileIndex = 0;
 	for (ACGTile* tile : Tiles)
 	{
-		tile->SetupTile(GetXYfromIdx(tileIndex), &TerrainConfig, WorldOffset, this);
+		tile->SetupTile(GetXYfromIdx(tileIndex), &TerrainConfig, WorldOffset);
 		tile->RepositionAndHide(GetLODForTile(tile));
 		FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 		CreateTileRefreshJob(job);
@@ -333,10 +324,12 @@ void ACGTerrainManager::SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfi
 	}
 
 	isSetup = true;
-
 }
 
-
+/************************************************************************/
+/*  Allocates all the data structures for a single LOD mesh data
+/*		Includes setting up triangles etc.
+/************************************************************************/
 bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD)
 {
 	int32 numXVerts = aLOD == 0 ? aConfig->TileXUnits + 1 : (aConfig->TileXUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
@@ -365,15 +358,9 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	// Geometric calculations based on the heightmap a bit easier. Easy enough to change to floats
 
 	aData->HeightMap.Reserve((numXVerts + 2) * (numYVerts + 2));
-	if (TerrainConfig.ThermalErosionIterations > 0) {
-		aData->DepositionMap.Reserve((numXVerts + 2) * (numYVerts + 2));
-	}
 	for (int32 i = 0; i < (numXVerts + 2) * (numYVerts + 2); ++i)
 	{
 		aData->HeightMap.Emplace(0.0f);
-		if (TerrainConfig.ThermalErosionIterations > 0) {
-			aData->DepositionMap.Emplace(0.0f);
-		}
 	}
 
 	// Triangle indexes

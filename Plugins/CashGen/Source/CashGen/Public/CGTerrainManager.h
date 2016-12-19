@@ -14,7 +14,7 @@ class ACGTerrainManager : public AActor
 {
 	GENERATED_BODY()
 
-	const uint8 MESH_DATA_POOL_SIZE = 10;
+	const uint8 MESH_DATA_POOL_SIZE = 10; // The number of mesh data structs to have in the pool
 	bool isSetup = false;
 	CGPoint currentPlayerZone = CGPoint(0,0);
 	FRunnableThread* WorkerThread;
@@ -27,8 +27,6 @@ class ACGTerrainManager : public AActor
 	FVector WorldOffset;
 	TArray<ACGTile*> Tiles;
 
-
-
 	bool GetFreeMeshData(FCGJob& aJob);
 	void ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease);
 	void AllocateAllMeshDataStructures();
@@ -38,7 +36,8 @@ class ACGTerrainManager : public AActor
 	uint8 GetLODForTile(ACGTile* aTile);
 
 	CGPoint GetXYfromIdx(const int32 idx) { return CGPoint(idx % XTiles, idx / YTiles); }
-
+	float TimeSinceLastSweep;
+	const float SweepInterval = 0.1f;
 
 public:
 	ACGTerrainManager();
@@ -57,8 +56,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
 	void SetUpTerrain(UUFNNoiseGenerator* aNoiseGen, UUFNNoiseGenerator* aBiomeBlendGen, AActor* aTrackingActor) { TerrainConfig.NoiseGenerator = aNoiseGen; TerrainConfig.BiomeBlendGenerator = aBiomeBlendGen; TrackingActor = aTrackingActor; }
 
-	float TimeSinceLastSweep;
-	const float SweepInterval = 0.1f;
+
 
 	TQueue<FCGJob, EQueueMode::Spsc> PendingJobs;
 	TQueue<FCGJob, EQueueMode::Spsc> GeometryJobs;

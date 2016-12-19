@@ -17,57 +17,36 @@ struct FCGTerrainConfig
 	UPROPERTY()
 		UUFNNoiseGenerator* BiomeBlendGenerator;
 	/** Number of blocks along a zone's X axis */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
 		int32 TileXUnits;
 	/** Number of blocks along a zone's Y axis */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
 		int32 TileYUnits;
 	/** Size of a single block in world units */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
 		float UnitSize;
 	/** Multiplier for heightmap*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "cashGen")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "cashGen | Main")
 		float Amplitude;
-	/** Thermal erosion iterations *EXPERIMENTAL* **/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
-		int32 ThermalErosionIterations;
-	/** Thermal erosion threshold *EXPERIMENTAL* **/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
-		int32 ThermalErosionThreshold;
-	/** Thermal erosion deposition amount *EXPERIMENTAL* **/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
-		float ThermalErosionDepositionAmount;
 	/** Droplet erosion droplet amount *EXPERIMENTAL* **/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
 		int32 DropletAmount;
 	/** Droplet erosion deposition rate *EXPERIMENTAL* **/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
 		float DropletErosionMultiplier;
 	/** Droplet erosion deposition rate *EXPERIMENTAL* **/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
 		float DropletDespositionMultiplier;
 	/** Droplet erosion deposition Theta *EXPERIMENTAL* **/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
 		float DropletSedimentCapacity;
 	/** Droplet erosion evaporation rate *EXPERIMENTAL* **/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
 		float DropletEvaporationRate;
 	/** Material for the terrain mesh */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
 	UMaterial* TerrainMaterialInstanceParent;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | LODs")
 	TArray<FCGLODConfig> LODs;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
-	UStaticMesh* GrassMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
-	int32 GrassInstancesPerTile;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
-	int32 GrassInstancesPerTick;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
-	int32 GrassHISMCPoolSize;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
-	float BiomeThreshold;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
-	float BiomeFalloff;
 
 };
