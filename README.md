@@ -26,9 +26,5 @@ https://forums.unrealengine.com/showthread.php?109894-Cashgen-(kinda)-Infinite-P
 
 Demos :
 
-LOD Debug mode
-https://www.youtube.com/watch?v=orUNF4noCNY
-
-Foliage :
-https://www.youtube.com/watch?v=o1bVq9lqui0
+https://www.youtube.com/watch?v=dM0blrBa3LY&t=110s
 
