@@ -2,14 +2,18 @@
 
 Infinite Procedural World Generator for UE 4.14
 
-Credits to :
-Chris Conway (koderz) for the RuntimeMeshComponent (pre-requisite, install from UE Marketplace)
+The plugin generates a tiled heightmap-based terrain dynamically around a specified actor in the level. As the actor moves, tiles are repositioned and regenerated around it.
 
-https://github.com/Auburns/FastNoise for the noise generation code
+[![Cashgen Demo](http://img.youtube.com/vi/T-dM0blrBa3LY/0.jpg)](https://www.youtube.com/watch?v=dM0blrBa3LY)
 
-Aaron from the UE forums for his awesome grass blueprint
+Features:
 
-The OceanPlugin contributors
+* Modular noise generation system ( https://github.com/midgen/UnrealFastNoise )
+* Biome blending (both materials and noise modules)
+* Simple hydraulic (droplet) erosion
+* Threaded heightmap and erosion system
+* LOD system with hidden seams and dithered transition
+
 
 #Instructions
 
@@ -20,11 +24,9 @@ The OceanPlugin contributors
 * Open the .SLN
 * Build, launch!
 
-There is a development thread on the UnrealEngine forums which contains some example blueprints you can use.
 
-https://forums.unrealengine.com/showthread.php?109894-Cashgen-(kinda)-Infinite-Procedural-World-Generator
 
-Demos :
-
-https://www.youtube.com/watch?v=dM0blrBa3LY&t=110s
-
+Credits to :
+* Chris Conway (koderz) for the RuntimeMeshComponent (pre-requisite, install from UE Marketplace)
+* https://github.com/Auburns/FastNoise for the noise generation code
+* The OceanPlugin contributors
