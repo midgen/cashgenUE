@@ -80,7 +80,7 @@ uint32 FCGTerrainGeneratorWorker::Run()
 		// Otherwise, take a nap
 		else
 		{
-			Sleep(10);
+			FPlatformProcess::Sleep(0.01f);
 		}
 	}
 
