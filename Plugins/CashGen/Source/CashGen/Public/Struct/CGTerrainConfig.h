@@ -43,6 +43,9 @@ struct FCGTerrainConfig
 	/** Droplet erosion evaporation rate *EXPERIMENTAL* **/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
 		float DropletEvaporationRate;
+	/** Erosion floor cutoff **/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
+		float DropletErosionFloor;
 	/** Material for the terrain mesh */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
 	UMaterial* TerrainMaterialInstanceParent;

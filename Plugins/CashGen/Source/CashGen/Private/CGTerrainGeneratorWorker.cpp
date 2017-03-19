@@ -124,7 +124,26 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 			int32 worldX = (((workJob.Tile->Offset.X * (exX - 3)) + x) * exUnitSize);
 			int32 worldY = (((workJob.Tile->Offset.Y * (exX - 3)) + y) * exUnitSize);
 
+			//FVector noise = pTerrainConfig->NoiseGenerator->GetNoise2DDeriv(worldX + 0.4f, worldY + 0.4f);
+
+			//FVector2D p = FVector2D(worldX + 0.4f, worldY + 0.4f);
+
+			//float a = 0.0f;
+			//float b = 1.0f;
+			//FVector2D  d = FVector2D(0.0f, 0.0f);
+			//for (int i = 0; i < 15; i++)
+			//{
+			//	FVector n = pTerrainConfig->NoiseGenerator->GetNoise2DDeriv(p.X, p.Y);
+			//	d += FVector2D(n.Y, n.Z);
+			//	a += b*n.X / (1.0 + FVector2D::DotProduct(d, d));
+			//	b *= 0.5;
+			//	p = p*2.0;
+			//}
+			//
+
+			//(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, a * pTerrainConfig->Amplitude);
 			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
+
 		}
 	}
 	// Then put the biome map into the Green vertex colour channel
@@ -201,7 +220,7 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 	while (waterAmount > 0.0f && cX > 0 && cX < XUnits - 1 && cY > 0 && cY < YUnits - 1)
 	{
 		FVector origin = (*pHeightMap)[cX + (XUnits * cY)];
-		if (origin.Z < 0.0f)
+		if (origin.Z < pTerrainConfig->DropletErosionFloor)
 		{
 			// Don't care about underwater erosion
 			break;
@@ -230,6 +249,11 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 		if (downleft.Z < lowestRoute.Z) { lowestRoute = downleft; newCy--; newCx++; }
 		if (downright.Z < lowestRoute.Z) { lowestRoute = downright; newCy--; newCx--; }
 
+		FVector2D direction = FVector2D(newCx, newCy);
+		direction.X += velocity.X;
+		direction.Y += velocity.Y;
+		direction.Normalize();
+
 		// The amount of sediment to pick up depends on if we are hitting an obstacle
 		float sedimentUptake = pTerrainConfig->DropletErosionMultiplier * FVector::DotProduct(velocity, lowestRoute);
 		if (sedimentUptake < 0.0f) { sedimentUptake = 0.0f; }
@@ -248,11 +272,15 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 
 		sedimentAmount -= sedimentDeposit;
 		
+		float descent = lowestRoute.Z;
+		// Average this velocity with previous
+		velocity = (velocity + lowestRoute) * 0.5f;
 
-		velocity = lowestRoute;
+		direction = direction.ClampAxes(1.0f, XUnits - 1.0f);
 
 		//(*pHeightMap)[cX + (XUnits * cY)].Z -= sedimentUptake + (sedimentDeposit * -1.0f);
-		erodeHeightMapAtIndex(cX,cY, (sedimentUptake + (sedimentDeposit * -1.0f)));
+		//erodeHeightMapAtIndex(cX,cY, (sedimentUptake + (sedimentDeposit * -1.0f)));
+		erodeHeightMapAtIndex(FMath::RoundHalfFromZero(direction.X), FMath::RoundHalfFromZero(direction.Y), (sedimentUptake + (sedimentDeposit * -1.0f)));
 		
 		waterAmount -= pTerrainConfig->DropletEvaporationRate;
 

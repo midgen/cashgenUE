@@ -11,5 +11,7 @@ class UNREALFASTNOISEPLUGIN_API UUFNNoiseGenerator : public UObject
 	UFUNCTION(BlueprintCallable, Category="UnrealFastNoise")
 	virtual float GetNoise2D(float aX, float aY);
 	UFUNCTION(BlueprintCallable, Category = "UnrealFastNoise")
+	virtual FVector GetNoise2DDeriv(float aX, float aY);
+	UFUNCTION(BlueprintCallable, Category = "UnrealFastNoise")
 	virtual float GetNoise3D(float aX, float aY, float aZ);
 };

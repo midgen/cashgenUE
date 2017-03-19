@@ -1952,6 +1952,36 @@ void UFastNoise::SinglePositionWarp(unsigned char offset, float warpAmp, float f
 	y += Lerp(ly0x, ly1x, ys) * warpAmp;
 }
 
+FVector UFastNoise::GetNoise2DDeriv(float x, float y)
+{
+	FVector2D p = FVector2D(x, y);
+	p.X = FMath::FloorToFloat(p.X);
+	p.Y = FMath::FloorToFloat(p.Y);
+	FVector2D f = FVector2D(x, y) - p;
+
+	
+
+	FVector2D u = f*f*f;
+
+	float a = GetNoise2D(p.X, p.Y);
+	float b = GetNoise2D(p.X + 1.f, p.Y);
+	float c = GetNoise2D(p.X, p.Y + 1.f);
+	float d = GetNoise2D(p.X + 1.0f, p.Y + 1.0f);
+
+	FVector result;
+
+	const FVector2D Intermediate = 6.0f*f*(f)*(FVector2D(b - a, c - a) + (a - b - c + d)*(FVector2D(u.Y, u.X)));
+
+	result = FVector(a + (b - a)*u.X + (c - a)*u.Y + (a - b - c + d)*u.X*u.Y,
+		Intermediate.X, Intermediate.Y);
+
+	//result = FVector(a + (b - a)*u.X + (c - a)*u.Y + (a - b - c + d)*u.X*u.Y,
+		//6.0*f*(1.0 - f)*(FVector2D(b - a, c - a) + (a - b - c + d)*(FVector2D(u.Y, u.X))));
+
+	return result;
+
+}
+
 float UFastNoise::GetNoise2D(float x, float y)
 {
 	switch (m_positionWarpType)

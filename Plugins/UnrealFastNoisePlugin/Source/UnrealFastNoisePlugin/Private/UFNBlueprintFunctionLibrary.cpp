@@ -7,6 +7,7 @@
 #include "UFNAddModule.h"
 #include "UFNConstantModule.h"
 #include "UFNSplineGenerator.h"
+#include "UFNWarpModule.h"
 #include "Classes/Components/SplineComponent.h"
 #include "UFNBlueprintFunctionLibrary.h"
 
@@ -80,6 +81,27 @@ UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateScaleBiasModule(UObject*
 	scaleBiasModule->bias = bias;
 
 	return scaleBiasModule;
+}
+
+UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateWarpModule(UObject* outer, UUFNNoiseGenerator* inputModule, float Iteration1XOffset, float Iteration1YOffset, float Iteration2XOffset1, float Iteration2YOffset1, float Iteration2XOffset2, float Iteration2YOffset2, float multiplier, float unitSize)
+{
+	if (!(inputModule && outer)) {
+		return nullptr;
+	}
+
+	UUFNWarpModule* warpModule = NewObject<UUFNWarpModule>(outer);
+
+	warpModule->inputModule = inputModule;
+	warpModule->Iteration1XOffset = Iteration1XOffset;
+	warpModule->Iteration1YOffset = Iteration1YOffset;
+	warpModule->Iteration2XOffset1 = Iteration2XOffset1;
+	warpModule->Iteration2YOffset1 = Iteration2YOffset1;
+	warpModule->Iteration2XOffset2 = Iteration2XOffset2;
+	warpModule->Iteration2YOffset2 = Iteration2YOffset2;
+	warpModule->multiplier = multiplier;
+	warpModule->unitSize = unitSize;
+
+	return warpModule;
 }
 
 UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateAddModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* maskModule, float threshold)

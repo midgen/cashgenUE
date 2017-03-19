@@ -1,0 +1,30 @@
+#pragma once
+
+#include "UFNNoiseGenerator.h"
+#include "UFNWarpModule.generated.h"
+
+UCLASS()
+class UNREALFASTNOISEPLUGIN_API UUFNWarpModule : public UUFNNoiseGenerator
+{
+	GENERATED_UCLASS_BODY()
+public:
+
+	virtual float GetNoise3D(float aX, float aY, float aZ) override;
+	virtual float GetNoise2D(float aX, float aY) override;
+
+	UPROPERTY()
+	UUFNNoiseGenerator* inputModule;
+
+	float Iteration1XOffset;
+	float Iteration1YOffset;
+
+	float Iteration2XOffset1;
+	float Iteration2YOffset1;
+	float Iteration2XOffset2;
+	float Iteration2YOffset2;
+
+	float unitSize;
+
+	float multiplier;
+
+};

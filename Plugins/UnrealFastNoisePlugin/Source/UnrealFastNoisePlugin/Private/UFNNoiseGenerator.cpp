@@ -12,6 +12,11 @@ float UUFNNoiseGenerator::GetNoise2D(float aX, float aY)
 	return -2.0f;
 }
 
+FVector UUFNNoiseGenerator::GetNoise2DDeriv(float aX, float aY)
+{
+	return FVector(-1.0f);
+}
+
 float UUFNNoiseGenerator::GetNoise3D(float aX, float aY, float aZ)
 {
 	return -2.0f;
