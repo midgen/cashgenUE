@@ -15,6 +15,9 @@ public:
 	UPROPERTY()
 	UUFNNoiseGenerator* inputModule;
 
+	UPROPERTY()
+	UUFNNoiseGenerator* warpModule;
+
 	float Iteration1XOffset;
 	float Iteration1YOffset;
 

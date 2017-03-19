@@ -83,25 +83,26 @@ UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateScaleBiasModule(UObject*
 	return scaleBiasModule;
 }
 
-UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateWarpModule(UObject* outer, UUFNNoiseGenerator* inputModule, float Iteration1XOffset, float Iteration1YOffset, float Iteration2XOffset1, float Iteration2YOffset1, float Iteration2XOffset2, float Iteration2YOffset2, float multiplier, float unitSize)
+UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateWarpModule(UObject* outer, UUFNNoiseGenerator* inputModule, UUFNNoiseGenerator* warpModule, float Iteration1XOffset, float Iteration1YOffset, float Iteration2XOffset1, float Iteration2YOffset1, float Iteration2XOffset2, float Iteration2YOffset2, float multiplier, float unitSize)
 {
 	if (!(inputModule && outer)) {
 		return nullptr;
 	}
 
-	UUFNWarpModule* warpModule = NewObject<UUFNWarpModule>(outer);
+	UUFNWarpModule* thiswarpModule = NewObject<UUFNWarpModule>(outer);
 
-	warpModule->inputModule = inputModule;
-	warpModule->Iteration1XOffset = Iteration1XOffset;
-	warpModule->Iteration1YOffset = Iteration1YOffset;
-	warpModule->Iteration2XOffset1 = Iteration2XOffset1;
-	warpModule->Iteration2YOffset1 = Iteration2YOffset1;
-	warpModule->Iteration2XOffset2 = Iteration2XOffset2;
-	warpModule->Iteration2YOffset2 = Iteration2YOffset2;
-	warpModule->multiplier = multiplier;
-	warpModule->unitSize = unitSize;
+	thiswarpModule->inputModule = inputModule;
+	thiswarpModule->warpModule = warpModule;
+	thiswarpModule->Iteration1XOffset = Iteration1XOffset;
+	thiswarpModule->Iteration1YOffset = Iteration1YOffset;
+	thiswarpModule->Iteration2XOffset1 = Iteration2XOffset1;
+	thiswarpModule->Iteration2YOffset1 = Iteration2YOffset1;
+	thiswarpModule->Iteration2XOffset2 = Iteration2XOffset2;
+	thiswarpModule->Iteration2YOffset2 = Iteration2YOffset2;
+	thiswarpModule->multiplier = multiplier;
+	thiswarpModule->unitSize = unitSize;
 
-	return warpModule;
+	return thiswarpModule;
 }
 
 UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateAddModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* maskModule, float threshold)
