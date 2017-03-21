@@ -128,38 +128,43 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 
 			//FVector2D p = FVector2D(worldX + 0.4f, worldY + 0.4f);
 
-			//float a = 0.0f;
-			//float b = 1.0f;
-			//FVector2D  d = FVector2D(0.0f, 0.0f);
-			//for (int i = 0; i < 15; i++)
+			//float sum = 0.5f;
+			//float freq = 1.0f;
+			//float amp = 1.0f;
+			//FVector2D  dsum = FVector2D(0.0f, 0.0f);
+			//for (int i = 0; i < 2; i++)
 			//{
 			//	FVector n = pTerrainConfig->NoiseGenerator->GetNoise2DDeriv(p.X, p.Y);
-			//	d += FVector2D(n.Y, n.Z);
-			//	a += b*n.X / (1.0 + FVector2D::DotProduct(d, d));
-			//	b *= 0.5;
-			//	p = p*2.0;
+			//	dsum += FVector2D(n.Y, n.Z);
+			//	sum += amp*n.X / (1.0f + FVector2D::DotProduct(dsum, dsum));
+			//	freq *= 1.8f;
+			//	amp += 0.5f;
 			//}
-			//
 
-			//(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, a * pTerrainConfig->Amplitude);
+			//(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, sum * pTerrainConfig->Amplitude);
+
 			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
 
 		}
 	}
 	// Then put the biome map into the Green vertex colour channel
-	exX -= 2;
-	exY -= 2;
-	for (int x = 0; x < exX; ++x)
+	if (pTerrainConfig->BiomeBlendGenerator)
 	{
-		for (int y = 0; y < exY; ++y)
+		exX -= 2;
+		exY -= 2;
+		for (int x = 0; x < exX; ++x)
 		{
-			int32 worldX = (((workJob.Tile->Offset.X * (exX - 1)) + x) * exUnitSize);
-			int32 worldY = (((workJob.Tile->Offset.Y * (exX - 1)) + y) * exUnitSize);
-			float val = pTerrainConfig->BiomeBlendGenerator->GetNoise2D(worldX, worldY);
+			for (int y = 0; y < exY; ++y)
+			{
+				int32 worldX = (((workJob.Tile->Offset.X * (exX - 1)) + x) * exUnitSize);
+				int32 worldY = (((workJob.Tile->Offset.Y * (exX - 1)) + y) * exUnitSize);
+				float val = pTerrainConfig->BiomeBlendGenerator->GetNoise2D(worldX, worldY);
 
-			(*pVertexColors)[x + (exX*y)].G = FMath::Clamp(FMath::FloorToInt(((val + 1.0f) / 2.0f) * 128), 0, 255);
+				(*pVertexColors)[x + (exX*y)].G = FMath::Clamp(FMath::FloorToInt(((val + 1.0f) / 2.0f) * 128), 0, 255);
+			}
 		}
 	}
+
 }
 
 void FCGTerrainGeneratorWorker::AddDepositionToHeightMap()

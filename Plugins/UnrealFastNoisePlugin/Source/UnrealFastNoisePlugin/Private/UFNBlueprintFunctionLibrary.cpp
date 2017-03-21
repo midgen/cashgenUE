@@ -7,6 +7,7 @@
 #include "UFNAddModule.h"
 #include "UFNConstantModule.h"
 #include "UFNSplineGenerator.h"
+#include "UFNUberNoiseModule.h"
 #include "UFNWarpModule.h"
 #include "Classes/Components/SplineComponent.h"
 #include "UFNBlueprintFunctionLibrary.h"
@@ -236,6 +237,24 @@ UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateSplineGenerator(UObject*
 
 	return newSplineGenerator;
 }
+
+UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateUberNoiseModule(UObject* outer, UUFNNoiseGenerator* inputModule, float sampleRange, int iterations)
+{
+	if (!(outer && inputModule))
+	{
+		return nullptr;
+	}
+
+	UUFNUberNoiseModule* noiseGen = NewObject<UUFNUberNoiseModule>(outer);
+
+	noiseGen->inputModule = inputModule;
+	noiseGen->sampleRange = sampleRange;
+	noiseGen->iterations = iterations;
+
+	return noiseGen;
+}
+
+
 
 UUFNBlueprintFunctionLibrary::UUFNBlueprintFunctionLibrary(const class FObjectInitializer& obj)
 	: Super(obj)
