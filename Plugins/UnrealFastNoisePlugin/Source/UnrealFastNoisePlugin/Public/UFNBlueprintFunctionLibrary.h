@@ -9,7 +9,7 @@ class UNREALFASTNOISEPLUGIN_API UUFNBlueprintFunctionLibrary : public UBlueprint
 	GENERATED_UCLASS_BODY()
 	// Creates a new noise generator module. Note that not all parameters may be relevant e.g. Fractal noise types will ignore Cellular parameters
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
-	static UUFNNoiseGenerator* CreateNoiseGenerator(UObject* outer, ENoiseType noiseType, ECellularDistanceFunction cellularDistanceFunction, ECellularReturnType cellularReturnType, EFractalType fractalType, EInterp interpolation, int32 seed = 1337, int32 octaves = 4, float frequency = 0.001f, float lacunarity = 2.0f, float fractalGain = 0.5f, EPositionWarpType positionWarpType = EPositionWarpType::None, float positionWarpAmplitude = 45.0f);
+	static UUFNNoiseGenerator* CreateNoiseGenerator(UObject* outer, ENoiseType noiseType, ECellularDistanceFunction cellularDistanceFunction, ECellularReturnType cellularReturnType, EFractalType fractalType, EInterp interpolation, int32 seed = 1337, int32 octaves = 4, float frequency = 0.001f, float lacunarity = 2.0f, float fractalGain = 0.5f);
 	// Creates a Select module. Returns a value either from input1 or input 2, depending on the value returned from the select module. Has sine in/out smooth falloff option (may be wonky)
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
 	static UUFNNoiseGenerator* CreateSelectModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* selectModule, ESelectInterpType interpolationType = ESelectInterpType::None, float falloff = 0.0f, float threshold = 0.0f, int32 steps = 4);
@@ -20,7 +20,7 @@ class UNREALFASTNOISEPLUGIN_API UUFNBlueprintFunctionLibrary : public UBlueprint
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
 	static UUFNNoiseGenerator* CreateScaleBiasModule(UObject* outer, UUFNNoiseGenerator* inputModule, float scale = 1.0f, float bias = 0.0f);
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
-	static UUFNNoiseGenerator* CreateWarpModule(UObject* outer, UUFNNoiseGenerator* inputModule, UUFNNoiseGenerator* warpModule, float Iteration1XOffset, float Iteration1YOffset, float Iteration2XOffset1, float Iteration2YOffset1, float Iteration2XOffset2, float Iteration2YOffset2, float multiplier, float unitSize);
+	static UUFNNoiseGenerator* CreateWarpModule(UObject* outer, UUFNNoiseGenerator* inputModule, UUFNNoiseGenerator* warpModule, float multiplier);
 	// Creates an Add module. Adds two modules together, clamping the result and optionally accepting a third module as a mask with threshold
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
 	static UUFNNoiseGenerator* CreateAddModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* maskModule = nullptr, float threshold = 1.0f);
@@ -29,21 +29,18 @@ class UNREALFASTNOISEPLUGIN_API UUFNBlueprintFunctionLibrary : public UBlueprint
 	static UUFNNoiseGenerator* CreateConstantModule(UObject* outer, float constantValue);
 	// Creates a simple (non-fractal) noise module
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
-	static UUFNNoiseGenerator* CreateSimpleNoiseGenerator(UObject* outer, ESimpleNoiseType noiseType, int32 seed = 12345, float frequency = 0.1f, EInterp interpolation = EInterp::InterpLinear, EPositionWarpType positionWarpType = EPositionWarpType::None, float positionWarpAmplitude = 30.0f);
+	static UUFNNoiseGenerator* CreateSimpleNoiseGenerator(UObject* outer, ESimpleNoiseType noiseType, int32 seed = 12345, float frequency = 0.1f, EInterp interpolation = EInterp::InterpLinear);
 	// Creates a Fractal noise module
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
-	static UUFNNoiseGenerator* CreateFractalNoiseGenerator(UObject* outer, EFractalNoiseType noiseType, int32 seed = 12345, float frequency = 0.1f, float fractalGain = 0.5f, EInterp interpolation = EInterp::InterpLinear, EFractalType fractalType = EFractalType::Billow, int32 octaves = 4, float lacunarity = 2.0f, EPositionWarpType positionWarpType = EPositionWarpType::None, float positionWarpAmplitude = 30.0f);
+	static UUFNNoiseGenerator* CreateFractalNoiseGenerator(UObject* outer, EFractalNoiseType noiseType, int32 seed = 12345, float frequency = 0.1f, float fractalGain = 0.5f, EInterp interpolation = EInterp::InterpLinear, EFractalType fractalType = EFractalType::Billow, int32 octaves = 4, float lacunarity = 2.0f);
 	// Creates a Cellular (Voronoi) noise module
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
-	static UUFNNoiseGenerator* CreateCellularNoiseGenerator(UObject* outer, int32 seed = 12345, float frequency = 0.1f, ECellularDistanceFunction cellularDistanceFunction = ECellularDistanceFunction::Euclidean, ECellularReturnType cellularReturnType = ECellularReturnType::CellValue, EPositionWarpType positionWarpType = EPositionWarpType::None, float positionWarpAmplitude = 30.0f);
+	static UUFNNoiseGenerator* CreateCellularNoiseGenerator(UObject* outer, int32 seed = 12345, float frequency = 0.1f, ECellularDistanceFunction cellularDistanceFunction = ECellularDistanceFunction::Euclidean, ECellularReturnType cellularReturnType = ECellularReturnType::CellValue);
 	// Creates a spline module.
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
 	static UUFNNoiseGenerator* CreateSplineGenerator(UObject* outer, float MaxDistance, float MinDistance, TArray<class USplineComponent*> Splines, UCurveFloat* falloffCurve = nullptr);
 	// Creates a Select module. Returns a value either from input1 or input 2 or input 3, depending on the value returned from the select module.
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
 	static UUFNNoiseGenerator* Create3SelectModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* inputModule3, UUFNNoiseGenerator* selectModule, float lowerThreshold = 0.0f, float upperThreshold = 0.0f, ESelectInterpType interpolationType = ESelectInterpType::None, float falloff = 0.0f, int32 steps = 4);
-	// Create a  module that does some derivatives shenanigans
-	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
-	static UUFNNoiseGenerator* CreateUberNoiseModule(UObject* outer, UUFNNoiseGenerator* inputModule, float sampleRange = 1.0f, int32 iterations = 1);
 
 };
