@@ -3,10 +3,6 @@
 #pragma once
 
 #include "Engine.h"
-
-#pragma once
-
-#include "Engine.h"
 #include "ModuleManager.h"
 
 #define Msg(Text) if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Green, TEXT(Text));
@@ -18,4 +14,10 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+};
+
+UENUM(BlueprintType)
+enum class EWarpIterations : uint8
+{
+	One, Two
 };

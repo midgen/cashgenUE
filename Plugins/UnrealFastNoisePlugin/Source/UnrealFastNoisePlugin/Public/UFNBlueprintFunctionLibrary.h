@@ -20,7 +20,7 @@ class UNREALFASTNOISEPLUGIN_API UUFNBlueprintFunctionLibrary : public UBlueprint
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
 	static UUFNNoiseGenerator* CreateScaleBiasModule(UObject* outer, UUFNNoiseGenerator* inputModule, float scale = 1.0f, float bias = 0.0f);
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
-	static UUFNNoiseGenerator* CreateWarpModule(UObject* outer, UUFNNoiseGenerator* inputModule, UUFNNoiseGenerator* warpModule, float multiplier);
+	static UUFNNoiseGenerator* CreateWarpModule(UObject* outer, UUFNNoiseGenerator* inputModule, UUFNNoiseGenerator* warpModule, float multiplier, EWarpIterations warpIterations);
 	// Creates an Add module. Adds two modules together, clamping the result and optionally accepting a third module as a mask with threshold
 	UFUNCTION(BlueprintPure, Category = "UnrealFastNoise")
 	static UUFNNoiseGenerator* CreateAddModule(UObject* outer, UUFNNoiseGenerator* inputModule1, UUFNNoiseGenerator* inputModule2, UUFNNoiseGenerator* maskModule = nullptr, float threshold = 1.0f);

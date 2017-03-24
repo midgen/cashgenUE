@@ -8,8 +8,8 @@ class UUFNSplineGenerator : public UUFNNoiseGenerator
 {
 	GENERATED_UCLASS_BODY()
 public:
-	virtual float GetNoise3D(float aX, float aY, float aZ) override;
-	virtual float GetNoise2D(float aX, float aY) override;
+	float GetNoise3D(float aX, float aY, float aZ) override;
+	float GetNoise2D(float aX, float aY) override;
 
 	UFUNCTION(BlueprintCallable, Category="FastNoise")
 	void AddSpline(USplineComponent* Spline);

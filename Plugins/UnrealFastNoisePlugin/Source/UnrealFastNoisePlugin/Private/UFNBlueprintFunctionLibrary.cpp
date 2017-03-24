@@ -82,7 +82,7 @@ UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateScaleBiasModule(UObject*
 	return scaleBiasModule;
 }
 
-UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateWarpModule(UObject* outer, UUFNNoiseGenerator* inputModule, UUFNNoiseGenerator* warpModule, float multiplier)
+UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateWarpModule(UObject* outer, UUFNNoiseGenerator* inputModule, UUFNNoiseGenerator* warpModule, float multiplier, EWarpIterations warpIterations)
 {
 	if (!(inputModule && outer)) {
 		return nullptr;
@@ -99,6 +99,7 @@ UUFNNoiseGenerator* UUFNBlueprintFunctionLibrary::CreateWarpModule(UObject* oute
 	thiswarpModule->Iteration2XOffset2 = 2.1f;
 	thiswarpModule->Iteration2YOffset2 = 3.5f;
 	thiswarpModule->multiplier = multiplier;
+	thiswarpModule->warpIterations = warpIterations;
 
 	return thiswarpModule;
 }

@@ -174,9 +174,9 @@ public:
 	float GetWhiteNoise(float x, float y);
 	float GetWhiteNoiseInt(int x, int y);
 
-	float GetNoise(float x, float y);
-	float GetNoise2D(float x, float y);
-	FVector GetNoise2DDeriv(float x, float y);
+	FORCEINLINE float GetNoise(float x, float y);
+	FORCEINLINE float GetNoise2D(float x, float y);
+	FORCEINLINE FVector GetNoise2DDeriv(float x, float y);
 
 	void PositionWarp(float& x, float& y);
 	void PositionWarpFractal(float& x, float& y);
@@ -196,8 +196,8 @@ public:
 	float GetWhiteNoise(float x, float y, float z);
 	float GetWhiteNoiseInt(int x, int y, int z);
 
-	float GetNoise(float x, float y, float z);
-	float GetNoise3D(float x, float y, float z);
+	FORCEINLINE float GetNoise(float x, float y, float z);
+	FORCEINLINE float GetNoise3D(float x, float y, float z);
 
 	void PositionWarp(float& x, float& y, float& z);
 	void PositionWarpFractal(float& x, float& y, float& z);
