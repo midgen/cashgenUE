@@ -50,7 +50,7 @@ void ACGTile::Tick(float DeltaSeconds)
 {
 	for (auto& lod : LODStatus)
 	{
-		if (lod.Value == ELODStatus::TRANSITION)
+		if (lod.Value == ELODStatus::TRANSITION && MaterialInstances.Num() > 0)
 		{
 			if (LODTransitionOpacity >= -1.0f)
 			{
