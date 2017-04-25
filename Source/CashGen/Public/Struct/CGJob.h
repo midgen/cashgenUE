@@ -1,6 +1,9 @@
 #pragma once
-
+#include "RuntimeMeshComponent.h"
 #include "CGJob.generated.h"
+
+class ACGTile;
+struct FCGMeshData;
 
 USTRUCT()
 struct FCGJob

@@ -1,6 +1,5 @@
 #pragma once
 #include "GameFramework/Actor.h"
-#include "CGTile.h"
 #include "Struct/CGJob.h"
 #include "Struct/CGTerrainConfig.h"
 #include "Struct/CGMeshData.h"
@@ -8,17 +7,16 @@
 #include "Struct/CGLODMeshData.h"
 #include "CGTerrainManager.generated.h"
 
+class ACGTile;
 
 UCLASS(BlueprintType, Blueprintable)
 class ACGTerrainManager : public AActor
 {
 	GENERATED_BODY()
 
-	//const uint8 MESH_DATA_POOL_SIZE = 10; // The number of mesh data structs to have in the pool
 	bool isSetup = false;
 	CGPoint currentPlayerZone = CGPoint(0,0);
 	TArray<FRunnableThread*> WorkerThreads;
-	//FRunnableThread* WorkerThread;
 
 	void HandleTileFlip(CGPoint deltaTile);
 	UPROPERTY()

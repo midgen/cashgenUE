@@ -1,5 +1,6 @@
 #include "cashgen.h"
 #include "CGTerrainManager.h"
+#include "CGJob.h"
 
 
 ACGTerrainManager::ACGTerrainManager()
@@ -16,7 +17,6 @@ ACGTerrainManager::~ACGTerrainManager()
 			thread->Kill(true);
 		}
 	}
-
 }
 
 void ACGTerrainManager::BeginPlay()
@@ -77,7 +77,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			}
 		}
 
-
+		// Now check for Update jobs
 		for (uint8 i = 0; i < TerrainConfig.MeshUpdatesPerFrame; i++)
 		{
 			FCGJob updateJob;
@@ -105,7 +105,6 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 				QueuedTiles.Remove(updateJob.Tile);
 			}
 		}
-		// Now check for Update jobs
 
 
 		// Now check for LOD sweeps;

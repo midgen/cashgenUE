@@ -2,12 +2,11 @@
 
 #include "cashgen.h"
 #include "CGPoint.h"
-#include "Struct/CGMeshData.h"
-#include "Struct/CGTerrainConfig.h"
 #include "RuntimeMeshComponent.h"
 #include "CGTile.generated.h"
 
 class ACGTerrainManager;
+struct FCGTerrainConfig;
 
 enum ELODStatus { NOT_CREATED, CREATED, TRANSITION };
 
@@ -30,8 +29,6 @@ class ACGTile : public AActor
 public:
 	ACGTile();
 	~ACGTile();
-
-
 
 	CGPoint Offset;
 	FVector WorldOffset;
