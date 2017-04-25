@@ -264,9 +264,9 @@ void ACGTerrainManager::AllocateAllMeshDataStructures()
 		FreeMeshData.Add(TSet<FCGMeshData*>());
 		InUseMeshData.Add(TSet<FCGMeshData*>());
 
-		MeshData[lod].Data.Reserve(MESH_DATA_POOL_SIZE);
+		MeshData[lod].Data.Reserve(TerrainConfig.MeshDataPoolSize);
 
-		for (int j = 0; j < MESH_DATA_POOL_SIZE; ++j)
+		for (int j = 0; j < TerrainConfig.MeshDataPoolSize; ++j)
 		{
 			MeshData[lod].Data.Add(FCGMeshData());
 			AllocateDataStructuresForLOD(&MeshData[lod].Data[j], &TerrainConfig, lod);
@@ -275,7 +275,7 @@ void ACGTerrainManager::AllocateAllMeshDataStructures()
 
 	for (uint8 lod = 0; lod < TerrainConfig.LODs.Num(); ++lod)
 	{
-		for (int j = 0; j < MESH_DATA_POOL_SIZE; ++j)
+		for (int j = 0; j < TerrainConfig.MeshDataPoolSize; ++j)
 		{
 			FreeMeshData[lod].Add(&MeshData[lod].Data[j]);
 		}

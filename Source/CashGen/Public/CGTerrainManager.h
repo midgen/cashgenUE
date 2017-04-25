@@ -14,7 +14,7 @@ class ACGTerrainManager : public AActor
 {
 	GENERATED_BODY()
 
-	const uint8 MESH_DATA_POOL_SIZE = 10; // The number of mesh data structs to have in the pool
+	//const uint8 MESH_DATA_POOL_SIZE = 10; // The number of mesh data structs to have in the pool
 	bool isSetup = false;
 	CGPoint currentPlayerZone = CGPoint(0,0);
 	FRunnableThread* WorkerThread;
@@ -52,11 +52,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	FCGTerrainConfig TerrainConfig;
 
-
+	/* Spawn the terrain */
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
 	void SetUpTerrain(UUFNNoiseGenerator* aNoiseGen, UUFNNoiseGenerator* aBiomeBlendGen, AActor* aTrackingActor) { TerrainConfig.NoiseGenerator = aNoiseGen; TerrainConfig.BiomeBlendGenerator = aBiomeBlendGen; TrackingActor = aTrackingActor; }
-
-
 
 	TQueue<FCGJob, EQueueMode::Spsc> PendingJobs;
 	TQueue<FCGJob, EQueueMode::Spsc> GeometryJobs;
@@ -66,8 +64,7 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
-	
-	UFUNCTION(BlueprintCallable, Category = "CashGen")
+
 	void SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfig aTerrainConfig, const int32 aXTiles, const int32 aYTiles);
 
 	

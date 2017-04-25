@@ -30,8 +30,6 @@ uint32 FCGTerrainGeneratorWorker::Run()
 	{
 		if (pTerrainManager->GeometryJobs.Dequeue(workJob))
 		{
-			//pMeshData = workJob.Data;
-
 			pVertices = workJob.Vertices;
 			pTriangles = workJob.Triangles;
 			pNormals = workJob.Normals;
@@ -123,25 +121,6 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 		{
 			int32 worldX = (((workJob.Tile->Offset.X * (exX - 3)) + x) * exUnitSize);
 			int32 worldY = (((workJob.Tile->Offset.Y * (exX - 3)) + y) * exUnitSize);
-
-			//FVector noise = pTerrainConfig->NoiseGenerator->GetNoise2DDeriv(worldX + 0.4f, worldY + 0.4f);
-
-			//FVector2D p = FVector2D(worldX + 0.4f, worldY + 0.4f);
-
-			//float sum = 0.5f;
-			//float freq = 1.0f;
-			//float amp = 1.0f;
-			//FVector2D  dsum = FVector2D(0.0f, 0.0f);
-			//for (int i = 0; i < 2; i++)
-			//{
-			//	FVector n = pTerrainConfig->NoiseGenerator->GetNoise2DDeriv(p.X, p.Y);
-			//	dsum += FVector2D(n.Y, n.Z);
-			//	sum += amp*n.X / (1.0f + FVector2D::DotProduct(dsum, dsum));
-			//	freq *= 1.8f;
-			//	amp += 0.5f;
-			//}
-
-			//(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, sum * pTerrainConfig->Amplitude);
 
 			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
 
@@ -283,8 +262,6 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 
 		direction = direction.ClampAxes(1.0f, XUnits - 1.0f);
 
-		//(*pHeightMap)[cX + (XUnits * cY)].Z -= sedimentUptake + (sedimentDeposit * -1.0f);
-		//erodeHeightMapAtIndex(cX,cY, (sedimentUptake + (sedimentDeposit * -1.0f)));
 		erodeHeightMapAtIndex(FMath::RoundHalfFromZero(direction.X), FMath::RoundHalfFromZero(direction.Y), (sedimentUptake + (sedimentDeposit * -1.0f)));
 		
 		waterAmount -= pTerrainConfig->DropletEvaporationRate;
@@ -326,8 +303,6 @@ void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 		for (int32 x = 0; x < xUnits + 1; ++x)
 		{
 			(*pNormals)[x + (y * rowLength)] = GetNormalFromHeightMapForVertex(x, y);
-			// TODO: Pretty sure this is wrong, so out it goes for now
-			//(*pTangents)[x + (y * rowLength)] = GetTangentFromNormal((*pNormals)[x + (y * rowLength)]);
 		}
 	}
 }
@@ -565,12 +540,6 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int a
 	(*pVertices)[(thisX + 1) + (thisY * rowLength)] = (*pHeightMap)[(heightMapX + 1) + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
 	// BR
 	(*pVertices)[(thisX + 1) + ((thisY + 1) * rowLength)] = (*pHeightMap)[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
-
-	//TODO: Not using Vertex Colour channels at the moment, could be handy though!
-	//(*pVertexColors)[thisX + (thisY * rowLength)].G = (255 / 50000.0f);
-	//(*pVertexColors)[thisX + ((thisY + 1) * rowLength)].G = (255 / 50000.0f);
-	//(*pVertexColors)[(thisX + 1) + (thisY * rowLength)].G = (255 / 50000.0f);
-	//(*pVertexColors)[(thisX + 1) + ((thisY + 1) * rowLength)].G = (255 / 50000.0f);
 }
 
 int32 FCGTerrainGeneratorWorker::GetNumberOfNoiseSamplePoints()
