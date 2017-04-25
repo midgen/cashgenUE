@@ -17,7 +17,8 @@ class ACGTerrainManager : public AActor
 	//const uint8 MESH_DATA_POOL_SIZE = 10; // The number of mesh data structs to have in the pool
 	bool isSetup = false;
 	CGPoint currentPlayerZone = CGPoint(0,0);
-	FRunnableThread* WorkerThread;
+	TArray<FRunnableThread*> WorkerThreads;
+	//FRunnableThread* WorkerThread;
 
 	void HandleTileFlip(CGPoint deltaTile);
 	UPROPERTY()
@@ -57,8 +58,8 @@ public:
 	void SetUpTerrain(UUFNNoiseGenerator* aNoiseGen, UUFNNoiseGenerator* aBiomeBlendGen, AActor* aTrackingActor) { TerrainConfig.NoiseGenerator = aNoiseGen; TerrainConfig.BiomeBlendGenerator = aBiomeBlendGen; TrackingActor = aTrackingActor; }
 
 	TQueue<FCGJob, EQueueMode::Spsc> PendingJobs;
-	TQueue<FCGJob, EQueueMode::Spsc> GeometryJobs;
-	TQueue<FCGJob, EQueueMode::Spsc> UpdateJobs;
+	TArray<TQueue<FCGJob, EQueueMode::Spsc>> GeometryJobs;
+	TQueue<FCGJob, EQueueMode::Mpsc> UpdateJobs;
 
 	TSet<ACGTile*> QueuedTiles;
 

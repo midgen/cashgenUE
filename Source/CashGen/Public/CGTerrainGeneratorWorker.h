@@ -3,14 +3,14 @@
 #include "CGTerrainManager.h"
 #include "CGTerrainConfig.h"
 
-
+struct FCGJob;
 
 class FCGTerrainGeneratorWorker : public FRunnable
 {
 
 	ACGTerrainManager* pTerrainManager;
 	FCGTerrainConfig* pTerrainConfig;
-	//TSharedPtr<FCGMeshData> pMeshData;
+	TQueue<FCGJob, EQueueMode::Spsc>* inputQueue;
 	FCGJob workJob;
 	uint8 workLOD;
 
@@ -43,7 +43,8 @@ class FCGTerrainGeneratorWorker : public FRunnable
 public:
 
 	FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager,
-		FCGTerrainConfig* aTerrainConfig);
+		FCGTerrainConfig* aTerrainConfig,
+		TQueue<FCGJob, EQueueMode::Spsc>* anInputQueue);
 
 	virtual ~FCGTerrainGeneratorWorker();
 

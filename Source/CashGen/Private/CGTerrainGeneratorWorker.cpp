@@ -6,10 +6,11 @@
 using namespace std::chrono;
 
 
-FCGTerrainGeneratorWorker::FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager, FCGTerrainConfig* aTerrainConfig)
+FCGTerrainGeneratorWorker::FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager, FCGTerrainConfig* aTerrainConfig, TQueue<FCGJob, EQueueMode::Spsc>* anInputQueue)
 {
 	pTerrainManager = aTerrainManager;
 	pTerrainConfig = aTerrainConfig;
+	inputQueue = anInputQueue;
 }
 
 FCGTerrainGeneratorWorker::~FCGTerrainGeneratorWorker()
@@ -28,7 +29,7 @@ uint32 FCGTerrainGeneratorWorker::Run()
 	// Here's the loop
 	while (!IsThreadFinished)
 	{
-		if (pTerrainManager->GeometryJobs.Dequeue(workJob))
+		if (inputQueue->Dequeue(workJob))
 		{
 			pVertices = workJob.Vertices;
 			pTriangles = workJob.Triangles;

@@ -49,6 +49,10 @@ struct FCGTerrainConfig
 	/** Size of MeshData pool */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
 		uint8 MeshDataPoolSize = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
+		uint8 NumberOfThreads = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
+		uint8 MeshUpdatesPerFrame = 1;
 	/** Material for the terrain mesh */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
 	UMaterial* TerrainMaterialInstanceParent;

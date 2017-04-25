@@ -9,10 +9,14 @@ ACGTerrainManager::ACGTerrainManager()
 
 ACGTerrainManager::~ACGTerrainManager()
 {
-	if(WorkerThread != nullptr)
+	for (auto& thread : WorkerThreads)
 	{
-		WorkerThread->Kill(true);
+		if (thread != nullptr)
+		{
+			thread->Kill(true);
+		}
 	}
+
 }
 
 void ACGTerrainManager::BeginPlay()
@@ -21,12 +25,15 @@ void ACGTerrainManager::BeginPlay()
 
 	FString threadName = "TerrainWorkerThread";
 
-	WorkerThread = FRunnableThread::Create
-		(new FCGTerrainGeneratorWorker(this, &TerrainConfig),
-			*threadName,
-			0, EThreadPriority::TPri_BelowNormal, FPlatformAffinity::GetNoAffinityMask());
+	for (int i = 0; i < TerrainConfig.NumberOfThreads; i++)
+	{
+		GeometryJobs.Emplace();
 
-	
+		WorkerThreads.Add(FRunnableThread::Create
+		(new FCGTerrainGeneratorWorker(this, &TerrainConfig, &GeometryJobs[i]),
+			*threadName,
+			0, EThreadPriority::TPri_BelowNormal, FPlatformAffinity::GetNoAffinityMask()));
+	}
 }
 
 void ACGTerrainManager::Tick(float DeltaSeconds)
@@ -55,43 +62,51 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		}
 
 		// Check for pending jobs
-		FCGJob pendingJob;
-		if (PendingJobs.Peek(pendingJob))
+		for (int i = 0; i < TerrainConfig.NumberOfThreads; i++)
 		{
-			// If there's free data to allocate, dequeue and send to worker thread
-			if (FreeMeshData[pendingJob.LOD].Num() > 0)
+			FCGJob pendingJob;
+			if (PendingJobs.Peek(pendingJob))
 			{
-				PendingJobs.Dequeue(pendingJob);
-				GetFreeMeshData(pendingJob);
-				GeometryJobs.Enqueue(pendingJob);
+				// If there's free data to allocate, dequeue and send to worker thread
+				if (FreeMeshData[pendingJob.LOD].Num() > 0)
+				{
+					PendingJobs.Dequeue(pendingJob);
+					GetFreeMeshData(pendingJob);
+					GeometryJobs[i].Enqueue(pendingJob);
+				}
 			}
 		}
 
-		// Now check for Update jobs
-		FCGJob updateJob;
-		if (UpdateJobs.Dequeue(updateJob))
+
+		for (uint8 i = 0; i < TerrainConfig.MeshUpdatesPerFrame; i++)
 		{
-			milliseconds startMs = duration_cast<milliseconds>(
-				system_clock::now().time_since_epoch()
-				);
+			FCGJob updateJob;
+			if (UpdateJobs.Dequeue(updateJob))
+			{
+				milliseconds startMs = duration_cast<milliseconds>(
+					system_clock::now().time_since_epoch()
+					);
 
-			updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
+				updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
 
-			int32 updateMS = (duration_cast<milliseconds>(
-				system_clock::now().time_since_epoch()
-				) - startMs).count();
+				int32 updateMS = (duration_cast<milliseconds>(
+					system_clock::now().time_since_epoch()
+					) - startMs).count();
 
 #ifdef UE_BUILD_DEBUG
-			if (updateJob.LOD == 0)
-			{
-				GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Heightmap gen " + FString::FromInt(updateJob.HeightmapGenerationDuration) + "ms"));
-				GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, TEXT("Erosion gen " + FString::FromInt(updateJob.ErosionGenerationDuration) + "ms"));
-				GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Red, TEXT("MeshUpdate " + FString::FromInt(updateMS) + "ms"));
-			}
+				if (updateJob.LOD == 0)
+				{
+					GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Heightmap gen " + FString::FromInt(updateJob.HeightmapGenerationDuration) + "ms"));
+					GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, TEXT("Erosion gen " + FString::FromInt(updateJob.ErosionGenerationDuration) + "ms"));
+					GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Red, TEXT("MeshUpdate " + FString::FromInt(updateMS) + "ms"));
+				}
 #endif
-			ReleaseMeshData(updateJob.LOD, updateJob.Data);
-			QueuedTiles.Remove(updateJob.Tile);
+				ReleaseMeshData(updateJob.LOD, updateJob.Data);
+				QueuedTiles.Remove(updateJob.Tile);
+			}
 		}
+		// Now check for Update jobs
+
 
 		// Now check for LOD sweeps;
 		if (TimeSinceLastSweep > SweepInterval)
