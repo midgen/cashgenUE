@@ -20,6 +20,6 @@ UnrealFastNoise by myself, a modular noise generation plugin
 3. Checkout this repository into your engine or project plugins folder
 4. Add "CashGen", "UnrealFastNoise" to your project Build.cs (required to package project)
 5. Open the project, and add a CGTerrainManager. 
-6. On the beginplay event, call the SetupTiles method.
+6. On the beginplay event, call the SetupTerrain method.
 
 
