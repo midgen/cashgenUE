@@ -30,5 +30,5 @@ public:
 	void RenderMesh();
 
 	void InitializeSphere(FRuntimeMeshComponentVerticesBuilder* aVertices, FRuntimeMeshIndicesBuilder* aIndices, const int32 aDepth, const float aScale);
-	void SubDivide(const FVector &v1, const FVector &v2, const FVector &v3, const int32 aDepth);
+	void SubDivide(const FRuntimeMeshVertexSimple &v1, const FRuntimeMeshVertexSimple &v2, const FRuntimeMeshVertexSimple &v3, const int32 aDepth, const float aScale);
 };
