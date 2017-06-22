@@ -5,6 +5,7 @@
 
 
 class URuntimeMeshComponent;
+class ACGWorldFace;
 
 UCLASS()
 class ACGWorld : public AActor
@@ -18,6 +19,8 @@ class ACGWorld : public AActor
 	TArray<FRuntimeMeshVertexSimple> MyVertices;
 	TArray<int32> MyIndices;
 
+	TArray<ACGWorldFace*> MyFaces;
+
 public:
 	ACGWorld(const FObjectInitializer& ObjectInitializer);
 	~ACGWorld();
@@ -30,5 +33,4 @@ public:
 	void RenderMesh();
 
 	void InitializeSphere(FRuntimeMeshComponentVerticesBuilder* aVertices, FRuntimeMeshIndicesBuilder* aIndices, const int32 aDepth, const float aScale);
-	void SubDivide(const FRuntimeMeshVertexSimple &v1, const FRuntimeMeshVertexSimple &v2, const FRuntimeMeshVertexSimple &v3, const int32 aDepth, const float aScale);
 };
