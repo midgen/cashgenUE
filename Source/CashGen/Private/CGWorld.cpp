@@ -39,6 +39,11 @@ void ACGWorld::RenderMesh()
 	//MeshComponent->CreateMeshSection(0, MyVertices, MyIndices, false, EUpdateFrequency::Infrequent, ESectionUpdateFlags::CalculateNormalTangent);
 }
 
+void ACGWorld::AddFace(ACGWorldFace* aFace)
+{
+	MyFaces.Add(aFace);
+}
+
 void ACGWorld::InitializeSphere(FRuntimeMeshComponentVerticesBuilder* aVertices, FRuntimeMeshIndicesBuilder* aIndices, const int32 aDepth, const float aScale)
 {
 	const float X = 0.525731112119133606f * aScale;
@@ -71,8 +76,10 @@ void ACGWorld::InitializeSphere(FRuntimeMeshComponentVerticesBuilder* aVertices,
 												MyVertices[MyIndices[(i * 3) + 1]],
 												MyVertices[MyIndices[(i * 3) + 2]], 
 												FVector(0.0f),
-												WorldConfig.Subdivisions,
-												WorldConfig.Radius);
+												WorldConfig.DebugSubdivisions ? i : WorldConfig.Subdivisions,
+												WorldConfig.Radius,
+												this,
+												nullptr);
 	}
 	
 	//for (int i = 0; i < 20; i++)

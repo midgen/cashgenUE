@@ -22,6 +22,8 @@ struct FCGWorldConfig
 	/** Multiplier for heightmap*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "cashGen | Main")
 		float Amplitude = 5000.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "cashGen | Main")
+		bool DebugSubdivisions = false;
 	/** Material for the terrain mesh */
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
 		//UMaterial* TerrainMaterialInstanceParent;

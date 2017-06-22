@@ -32,5 +32,7 @@ public:
 
 	void RenderMesh();
 
+	void AddFace(ACGWorldFace* aFace);
+
 	void InitializeSphere(FRuntimeMeshComponentVerticesBuilder* aVertices, FRuntimeMeshIndicesBuilder* aIndices, const int32 aDepth, const float aScale);
 };
