@@ -57,12 +57,12 @@ void ACGWorldFace::Tick(float DeltaSeconds)
 
 }
 
-void ACGWorldFace::SetupFace(FRuntimeMeshVertexSimple v1, FRuntimeMeshVertexSimple v2, FRuntimeMeshVertexSimple v3, const FVector aOrigin, int32 aDepth, const float aScale, ACGWorld* aWorld, ACGWorldFace* aParentFace)
+void ACGWorldFace::SetupFace(FRuntimeMeshVertexSimple v1, FRuntimeMeshVertexSimple v2, FRuntimeMeshVertexSimple v3, const FVector aOrigin, int32 aDepth , const int32 aSubDivLimit, const float aScale, ACGWorld* aWorld, ACGWorldFace* aParentFace)
 {
 	MyWorld = aWorld;
 	MyParentFace = aParentFace;
 	// We need to spawn more faces rather than try to do this all at once
-	if (aDepth > 4)
+	if (aDepth > aSubDivLimit)
 	{
 		// Subdivide once to get all our points
 		SubDivideGeometry(v1, v2, v3, 1, aScale);
@@ -80,6 +80,7 @@ void ACGWorldFace::SetupFace(FRuntimeMeshVertexSimple v1, FRuntimeMeshVertexSimp
 				MyVertices[MyIndices[(i * 3) + 2]],
 				FVector(0.0f),
 				aDepth,
+				aSubDivLimit,
 				aScale, 
 				aWorld,
 				this);

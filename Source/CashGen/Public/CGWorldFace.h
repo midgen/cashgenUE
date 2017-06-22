@@ -31,7 +31,7 @@ public:
 	void BeginPlay() override;
 	void Tick(float DeltaSeconds) override;
 
-	void SetupFace(FRuntimeMeshVertexSimple v1, FRuntimeMeshVertexSimple v2, FRuntimeMeshVertexSimple v3, const FVector aOrigin, int32 aDepth, const float aScale, ACGWorld* aWorld, ACGWorldFace* aParentFace);
+	void SetupFace(FRuntimeMeshVertexSimple v1, FRuntimeMeshVertexSimple v2, FRuntimeMeshVertexSimple v3, const FVector aOrigin, int32 aDepth, const int32 aSubDivLimit, const float aScale, ACGWorld* aWorld, ACGWorldFace* aParentFace);
 
 	void RenderMesh();
 

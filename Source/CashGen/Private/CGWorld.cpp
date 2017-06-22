@@ -77,6 +77,7 @@ void ACGWorld::InitializeSphere(FRuntimeMeshComponentVerticesBuilder* aVertices,
 												MyVertices[MyIndices[(i * 3) + 2]], 
 												FVector(0.0f),
 												WorldConfig.DebugSubdivisions ? i : WorldConfig.Subdivisions,
+												WorldConfig.SubDivFaceLimit,
 												WorldConfig.Radius,
 												this,
 												nullptr);

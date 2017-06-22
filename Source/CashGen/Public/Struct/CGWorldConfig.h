@@ -19,6 +19,9 @@ struct FCGWorldConfig
 	/** Number of blocks along a zone's Y axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
 		int32 Subdivisions = 1;
+	/** Number of blocks along a zone's Y axis */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
+		int32 SubDivFaceLimit = 4;
 	/** Multiplier for heightmap*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "cashGen | Main")
 		float Amplitude = 5000.0f;
