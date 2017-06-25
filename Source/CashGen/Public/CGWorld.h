@@ -1,19 +1,19 @@
 #pragma once
 #include "cashgen.h"
 #include "CGWorldConfig.h"
+#include "CGWorldMeshData.h"
 #include "CGWorld.generated.h"
 
 
 class URuntimeMeshComponent;
 class ACGWorldFace;
+struct FCGWorldFaceJob;
 
 UCLASS()
 class ACGWorld : public AActor
 {
 	GENERATED_BODY()
 
-	URuntimeMeshComponent* MeshComponent;
-	//UMaterialInstanceDynamic* MaterialInstance;
 	USphereComponent* SphereComponent;
 
 	TArray<FRuntimeMeshVertexSimple> MyVertices;
@@ -21,18 +21,32 @@ class ACGWorld : public AActor
 
 	TArray<ACGWorldFace*> MyFaces;
 
+	TArray<FCGWorldMeshData> MyMeshData;
+	TSet<FCGWorldMeshData*>  MyFreeMeshData;
+	TSet<FCGWorldMeshData*> MyInUseMeshData;
+
+	FRunnableThread* MyWorkerThread;
+
+	float TimeSinceLastSweep;
+	const float SweepInterval = 0.1f;
+
+
+	bool GetFreeMeshData(FCGWorldFaceJob& aJob);
+
+	void ReleaseMeshData(FCGWorldFaceJob& aJob);
+
 public:
 	ACGWorld(const FObjectInitializer& ObjectInitializer);
 	~ACGWorld();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CGWorld")
 	FCGWorldConfig WorldConfig;
 
+	TQueue<FCGWorldFaceJob, EQueueMode::Spsc> PendingJobs;
+	TQueue<FCGWorldFaceJob, EQueueMode::Spsc> GeometryJobs;
+	TQueue<FCGWorldFaceJob, EQueueMode::Mpsc> UpdateJobs;
+
 	void BeginPlay() override;
 	void Tick(float DeltaSeconds) override;
-
-	void RenderMesh();
-
 	void AddFace(ACGWorldFace* aFace);
-
-	void InitializeSphere(FRuntimeMeshComponentVerticesBuilder* aVertices, FRuntimeMeshIndicesBuilder* aIndices, const int32 aDepth, const float aScale);
+	void InitializeSphere(const int32 aDepth, const float aScale);
 };

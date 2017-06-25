@@ -1,7 +1,46 @@
 #include "cashgen.h"
 #include "RuntimeMeshComponent.h"
+#include "CGWorldGeneratorWorker.h"
 #include "CGWorldFace.h"
 #include "CGWorld.h"
+
+bool ACGWorld::GetFreeMeshData(FCGWorldFaceJob& aJob)
+{
+	// No free mesh data
+	if (MyFreeMeshData.Num() < 1)
+	{
+		return false;
+	}
+	else
+	{
+		FCGWorldMeshData* dataToUse;
+		// Use the first free data set, there'll always be one, we checked!
+		for (FCGWorldMeshData* data : MyFreeMeshData)
+		{
+			dataToUse = data;
+			break;
+		}
+		// Add to the in use set
+		MyInUseMeshData.Add(dataToUse);
+		// Remove from the Free set
+		MyFreeMeshData.Remove(dataToUse);
+
+		// TODO: Fix this nasty allocation code, will do for now
+		dataToUse->Allocate(aJob.SubDivisions);
+
+		aJob.pMeshData = dataToUse;
+
+		return true;
+	}
+
+	return false;
+}
+
+void ACGWorld::ReleaseMeshData(FCGWorldFaceJob& aJob)
+{
+	MyInUseMeshData.Remove(aJob.pMeshData);
+	MyFreeMeshData.Add(aJob.pMeshData);
+}
 
 ACGWorld::ACGWorld(const FObjectInitializer& ObjectInitializer)
 {
@@ -13,30 +52,27 @@ ACGWorld::ACGWorld(const FObjectInitializer& ObjectInitializer)
 
 ACGWorld::~ACGWorld()
 {
-
+	if (MyWorkerThread != nullptr)
+	{
+		MyWorkerThread->Kill(true);
+	}
 }
 
 void ACGWorld::BeginPlay()
 {
-	FString compName = "RMC";
-	MeshComponent = NewObject<URuntimeMeshComponent>(this, URuntimeMeshComponent::StaticClass(), *compName);
-	MeshComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	MeshComponent->BodyInstance.SetResponseToAllChannels(ECR_Block);
-	MeshComponent->bShouldSerializeMeshData = false;
-	MeshComponent->RegisterComponent();
+	Super::BeginPlay();
+	InitializeSphere(WorldConfig.Subdivisions, WorldConfig.Radius);
 
-	RenderMesh();
-}
+	FString threadName = "WorldWorkerThread";
 
-void ACGWorld::RenderMesh()
-{
-	FRuntimeMeshComponentVerticesBuilder vertices(true, false, false, false, false);
-	FRuntimeMeshIndicesBuilder indices;
+	MyWorkerThread = FRunnableThread::Create(new FCGWorldGeneratorWorker(this, &WorldConfig, &GeometryJobs),
+		*threadName,
+		0, EThreadPriority::TPri_BelowNormal, FPlatformAffinity::GetNoAffinityMask());
 
+	// Add some working data to begin with
+	MyMeshData.Add(FCGWorldMeshData());
+	MyFreeMeshData.Add(&MyMeshData[0]);
 
-	InitializeSphere(&vertices, &indices, WorldConfig.Subdivisions, WorldConfig.Radius);
-
-	//MeshComponent->CreateMeshSection(0, MyVertices, MyIndices, false, EUpdateFrequency::Infrequent, ESectionUpdateFlags::CalculateNormalTangent);
 }
 
 void ACGWorld::AddFace(ACGWorldFace* aFace)
@@ -44,7 +80,7 @@ void ACGWorld::AddFace(ACGWorldFace* aFace)
 	MyFaces.Add(aFace);
 }
 
-void ACGWorld::InitializeSphere(FRuntimeMeshComponentVerticesBuilder* aVertices, FRuntimeMeshIndicesBuilder* aIndices, const int32 aDepth, const float aScale)
+void ACGWorld::InitializeSphere(const int32 aDepth, const float aScale)
 {
 	const float X = 0.525731112119133606f * aScale;
 	const float Z = 0.850650808352039932f * aScale;
@@ -83,11 +119,37 @@ void ACGWorld::InitializeSphere(FRuntimeMeshComponentVerticesBuilder* aVertices,
 												nullptr);
 	}
 	
-	//for (int i = 0; i < 20; i++)
-		//SubDivide(MyVertices[MyIndices[(i*3)+0]], MyVertices[MyIndices[(i*3) + 1]], MyVertices[MyIndices[(i*3) + 2]], aDepth, aScale);
 }
 
 void ACGWorld::Tick(float DeltaSeconds)
 {
+	Super::Tick(DeltaSeconds);
+	// Check for pending jobs
 
+	for (int i = 0; i < WorldConfig.MeshUpdatesPerFrame; i++)
+	{
+		FCGWorldFaceJob pendingJob;
+		if (PendingJobs.Peek(pendingJob))
+		{
+			if (MyFreeMeshData.Num() > 0)
+			{
+				PendingJobs.Dequeue(pendingJob);
+				GetFreeMeshData(pendingJob);
+				GeometryJobs.Enqueue(pendingJob);
+			}
+		}
+	}
+
+	// Now check for geometry that is ready to be updated
+
+	for (int i = 0; i < WorldConfig.MeshUpdatesPerFrame; i++)
+	{
+		FCGWorldFaceJob updateJob;
+		if (UpdateJobs.Dequeue(updateJob))
+		{
+			updateJob.pFace->UpdateMesh(updateJob.pMeshData->Vertices, updateJob.pMeshData->Indices);
+
+			ReleaseMeshData(updateJob);
+		}
+	}
 }

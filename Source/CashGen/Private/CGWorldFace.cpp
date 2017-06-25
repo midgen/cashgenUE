@@ -1,5 +1,6 @@
 #include "cashgen.h"
 #include "RuntimeMeshComponent.h"
+#include "CGWorldFaceJob.h"
 #include "CGWorldFace.h"
 
 ACGWorldFace::ACGWorldFace(const FObjectInitializer& ObjectInitializer)
@@ -55,18 +56,19 @@ void ACGWorldFace::SubDivideGeometry(const FRuntimeMeshVertexSimple &v1, const F
 void ACGWorldFace::Tick(float DeltaSeconds)
 {
 
+
 }
 
-void ACGWorldFace::SetupFace(FRuntimeMeshVertexSimple v1, FRuntimeMeshVertexSimple v2, FRuntimeMeshVertexSimple v3, const FVector aOrigin, int32 aDepth , const int32 aSubDivLimit, const float aScale, ACGWorld* aWorld, ACGWorldFace* aParentFace)
+void ACGWorldFace::SetupFace(FRuntimeMeshVertexSimple v1, FRuntimeMeshVertexSimple v2, FRuntimeMeshVertexSimple v3, const FVector aOrigin, int32 aSubDivisions , const int32 aSubDivLimit, const float aRadius, ACGWorld* aWorld, ACGWorldFace* aParentFace)
 {
 	MyWorld = aWorld;
 	MyParentFace = aParentFace;
 	// We need to spawn more faces rather than try to do this all at once
-	if (aDepth > aSubDivLimit)
+	if (aSubDivisions > aSubDivLimit)
 	{
 		// Subdivide once to get all our points
-		SubDivideGeometry(v1, v2, v3, 1, aScale);
-		aDepth = aDepth - 5;
+		SubDivideGeometry(v1, v2, v3, 1, aRadius);
+		aSubDivisions = aSubDivisions - aSubDivLimit;
 
 		UWorld* _world = GetWorld();
 
@@ -79,18 +81,28 @@ void ACGWorldFace::SetupFace(FRuntimeMeshVertexSimple v1, FRuntimeMeshVertexSimp
 				MyVertices[MyIndices[(i * 3) + 1]],
 				MyVertices[MyIndices[(i * 3) + 2]],
 				FVector(0.0f),
-				aDepth,
+				aSubDivisions,
 				aSubDivLimit,
-				aScale, 
+				aRadius, 
 				aWorld,
 				this);
 		}
 	}
 	else
 	{
-		SubDivideGeometry(v1, v2, v3, aDepth, aScale);
+		// Otherwise, we will be rendering this face, so enqueue a generation job
+		FCGWorldFaceJob newJob;
+		newJob.pFace = this;
+		newJob.Radius = aRadius;
+		newJob.v1 = v1;
+		newJob.v2 = v2;
+		newJob.v3 = v3;
+		newJob.SubDivisions = aSubDivisions;
+		aWorld->PendingJobs.Enqueue(newJob);
 	}
-	
+}
 
-	RenderMesh();
+void ACGWorldFace::UpdateMesh(TArray<FRuntimeMeshVertexSimple>& aVertices, TArray<int32>& aIndices)
+{
+	MeshComponent->CreateMeshSection(0, aVertices, aIndices, false, EUpdateFrequency::Infrequent, ESectionUpdateFlags::CalculateNormalTangent);
 }
