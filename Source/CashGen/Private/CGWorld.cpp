@@ -58,10 +58,15 @@ ACGWorld::~ACGWorld()
 	}
 }
 
+void ACGWorld::SetupWorld(UUFNNoiseGenerator* aNoiseGen)
+{
+	WorldConfig.NoiseGenerator = aNoiseGen;
+	isSetup = true;
+}
+
 void ACGWorld::BeginPlay()
 {
 	Super::BeginPlay();
-	InitializeSphere(WorldConfig.Subdivisions, WorldConfig.Radius);
 
 	FString threadName = "WorldWorkerThread";
 
@@ -70,8 +75,13 @@ void ACGWorld::BeginPlay()
 		0, EThreadPriority::TPri_BelowNormal, FPlatformAffinity::GetNoAffinityMask());
 
 	// Add some working data to begin with
-	MyMeshData.Add(FCGWorldMeshData());
-	MyFreeMeshData.Add(&MyMeshData[0]);
+	for (int i = 0; i < WorldConfig.MeshDataPoolSize; i++)
+	{
+		MyMeshData.Add(FCGWorldMeshData());
+		MyFreeMeshData.Add(&MyMeshData[MyMeshData.Num() - 1]);
+	}
+	
+	InitializeSphere(WorldConfig.Subdivisions, WorldConfig.Radius);
 
 }
 
@@ -126,30 +136,34 @@ void ACGWorld::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	// Check for pending jobs
 
-	for (int i = 0; i < WorldConfig.MeshUpdatesPerFrame; i++)
+	if (isSetup)
 	{
-		FCGWorldFaceJob pendingJob;
-		if (PendingJobs.Peek(pendingJob))
+
+		for (int i = 0; i < WorldConfig.MeshUpdatesPerFrame; i++)
 		{
-			if (MyFreeMeshData.Num() > 0)
+			FCGWorldFaceJob pendingJob;
+			if (PendingJobs.Peek(pendingJob))
 			{
-				PendingJobs.Dequeue(pendingJob);
-				GetFreeMeshData(pendingJob);
-				GeometryJobs.Enqueue(pendingJob);
+				if (MyFreeMeshData.Num() > 0)
+				{
+					PendingJobs.Dequeue(pendingJob);
+					GetFreeMeshData(pendingJob);
+					GeometryJobs.Enqueue(pendingJob);
+				}
 			}
 		}
-	}
 
-	// Now check for geometry that is ready to be updated
+		// Now check for geometry that is ready to be updated
 
-	for (int i = 0; i < WorldConfig.MeshUpdatesPerFrame; i++)
-	{
-		FCGWorldFaceJob updateJob;
-		if (UpdateJobs.Dequeue(updateJob))
+		for (int i = 0; i < WorldConfig.MeshUpdatesPerFrame; i++)
 		{
-			updateJob.pFace->UpdateMesh(updateJob.pMeshData->Vertices, updateJob.pMeshData->Indices);
+			FCGWorldFaceJob updateJob;
+			if (UpdateJobs.Dequeue(updateJob))
+			{
+				updateJob.pFace->UpdateMesh(updateJob.pMeshData->Vertices, updateJob.pMeshData->Indices);
 
-			ReleaseMeshData(updateJob);
+				ReleaseMeshData(updateJob);
+			}
 		}
 	}
 }

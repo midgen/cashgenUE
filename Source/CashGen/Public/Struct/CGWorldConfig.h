@@ -29,6 +29,8 @@ struct FCGWorldConfig
 		uint8 MeshUpdatesPerFrame = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "cashGen | Main")
 		bool DebugSubdivisions = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cashgen | Main")
+		int32 MeshDataPoolSize = 10;
 	/** Material for the terrain mesh */
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
 		//UMaterial* TerrainMaterialInstanceParent;

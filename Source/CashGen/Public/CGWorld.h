@@ -30,6 +30,7 @@ class ACGWorld : public AActor
 	float TimeSinceLastSweep;
 	const float SweepInterval = 0.1f;
 
+	bool isSetup = false;
 
 	bool GetFreeMeshData(FCGWorldFaceJob& aJob);
 
@@ -44,6 +45,9 @@ public:
 	TQueue<FCGWorldFaceJob, EQueueMode::Spsc> PendingJobs;
 	TQueue<FCGWorldFaceJob, EQueueMode::Spsc> GeometryJobs;
 	TQueue<FCGWorldFaceJob, EQueueMode::Mpsc> UpdateJobs;
+
+	UFUNCTION(BlueprintCallable, Category = "CashGen")
+	void SetupWorld(UUFNNoiseGenerator* aNoiseGen);
 
 	void BeginPlay() override;
 	void Tick(float DeltaSeconds) override;
