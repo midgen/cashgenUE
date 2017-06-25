@@ -20,7 +20,7 @@ class ACGWorld : public AActor
 	TArray<int32> MyIndices;
 
 	TArray<ACGWorldFace*> MyFaces;
-
+	UPROPERTY()
 	TArray<FCGWorldMeshData> MyMeshData;
 	TSet<FCGWorldMeshData*>  MyFreeMeshData;
 	TSet<FCGWorldMeshData*> MyInUseMeshData;

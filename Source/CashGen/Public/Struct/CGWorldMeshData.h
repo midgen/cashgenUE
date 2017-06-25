@@ -9,12 +9,14 @@ struct FCGWorldMeshData
 {
 	GENERATED_USTRUCT_BODY()
 	TArray<FRuntimeMeshVertexSimple> Vertices;
+	UPROPERTY()
 	TArray<int32> Indices;
 
 public:
 	void Allocate(const uint16& aSubDivisions) 
 	{ 
 		Vertices.Empty();
+
 		Indices.Empty();
 
 		int32 numTris = (3)* (FMath::Pow(4, aSubDivisions));

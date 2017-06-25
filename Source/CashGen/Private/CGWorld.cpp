@@ -75,6 +75,8 @@ void ACGWorld::BeginPlay()
 		0, EThreadPriority::TPri_BelowNormal, FPlatformAffinity::GetNoAffinityMask());
 
 	// Add some working data to begin with
+	MyMeshData.Reserve(WorldConfig.MeshDataPoolSize);
+	
 	for (int i = 0; i < WorldConfig.MeshDataPoolSize; i++)
 	{
 		MyMeshData.Add(FCGWorldMeshData());
