@@ -104,5 +104,5 @@ void ACGWorldFace::SetupFace(FRuntimeMeshVertexSimple v1, FRuntimeMeshVertexSimp
 
 void ACGWorldFace::UpdateMesh(TArray<FRuntimeMeshVertexSimple>& aVertices, TArray<int32>& aIndices)
 {
-	MeshComponent->CreateMeshSection(0, aVertices, aIndices, false, EUpdateFrequency::Infrequent, ESectionUpdateFlags::CalculateNormalTangent);
+	MeshComponent->CreateMeshSection(0, aVertices, aIndices, false, EUpdateFrequency::Infrequent);
 }
