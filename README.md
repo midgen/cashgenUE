@@ -18,7 +18,11 @@ UnrealFastNoise by myself, a modular noise generation plugin
 1. Checkout UE4RuntimeMeshComponent into your engine or project plugins folder ( https://github.com/Koderz/UE4RuntimeMeshComponent )
 2. Checkout UnrealFastNoisePlugin into your engine or project plugins folder ( https://github.com/midgen/UnrealFastNoise )
 3. Checkout this repository into your engine or project plugins folder
-4. Add "CashGen", "UnrealFastNoise" to your project Build.cs (required to package project)
+4. Add "CashGen", "UnrealFastNoisePlugin" to your project Build.cs (required to package project)
+```csharp
+PrivateDependencyModuleNames.AddRange(new string[] { "CashGen", "UnrealFastNoisePlugin" });
+PublicDependencyModuleNames.AddRange(new string[] { "CashGen", "UnrealFastNoisePlugin" });
+```
 5. Open the project, and add a CGTerrainManager. 
 6. On the beginplay event, call the SetupTerrain method.
 
