@@ -162,7 +162,7 @@ void ACGWorld::Tick(float DeltaSeconds)
 			FCGWorldFaceJob updateJob;
 			if (UpdateJobs.Dequeue(updateJob))
 			{
-				updateJob.pFace->UpdateMesh(updateJob.pMeshData->Vertices, updateJob.pMeshData->Indices);
+				updateJob.pFace->UpdateMesh(updateJob.pMeshData->Vertices, updateJob.pMeshData->Indices, WorldConfig);
 
 				ReleaseMeshData(updateJob);
 			}

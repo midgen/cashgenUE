@@ -10,12 +10,18 @@ using namespace std::chrono;
 void FCGWorldGeneratorWorker::SubDivideGeometry(const FRuntimeMeshVertexSimple &v1, const FRuntimeMeshVertexSimple &v2, const FRuntimeMeshVertexSimple &v3, const int32 aDepth, const float aScale)
 {
 	if (aDepth == 0) {
-		FVector v1t = v1.Position + ((v1.Position.GetSafeNormal() * pWorldConfig->NoiseGenerator->GetNoise3D(v1.Position.X, v1.Position.Y, v1.Position.Z)) * pWorldConfig->Amplitude);
-		FVector v2t = v2.Position + ((v2.Position.GetSafeNormal() * pWorldConfig->NoiseGenerator->GetNoise3D(v2.Position.X, v2.Position.Y, v2.Position.Z)) * pWorldConfig->Amplitude);
-		FVector v3t = v3.Position + ((v3.Position.GetSafeNormal() * pWorldConfig->NoiseGenerator->GetNoise3D(v3.Position.X, v3.Position.Y, v3.Position.Z)) * pWorldConfig->Amplitude);
+		float v1n = pWorldConfig->NoiseGenerator->GetNoise3D(v1.Position.X, v1.Position.Y, v1.Position.Z);
+		float v2n = pWorldConfig->NoiseGenerator->GetNoise3D(v2.Position.X, v2.Position.Y, v2.Position.Z);
+		float v3n = pWorldConfig->NoiseGenerator->GetNoise3D(v3.Position.X, v3.Position.Y, v3.Position.Z);
+
+		FVector v1t = v1.Position + ((v1.Position.GetSafeNormal() * v1n) * pWorldConfig->Amplitude);
+		FVector v2t = v2.Position + ((v2.Position.GetSafeNormal() * v2n) * pWorldConfig->Amplitude);
+		FVector v3t = v3.Position + ((v3.Position.GetSafeNormal() * v3n) * pWorldConfig->Amplitude);
+
 		(*pVertices)[vertexIndex++] = FRuntimeMeshVertexSimple(v1t);
 		(*pVertices)[vertexIndex++] = FRuntimeMeshVertexSimple(v2t);
 		(*pVertices)[vertexIndex++] = FRuntimeMeshVertexSimple(v3t);
+
 
 		(*pIndices)[triangleIndex++] = vertexIndex - 3;
 		(*pIndices)[triangleIndex++] = vertexIndex - 2;
