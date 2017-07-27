@@ -27,11 +27,6 @@ void ACGWorldFace::BeginPlay()
 
 }
 
-void ACGWorldFace::RenderMesh()
-{
-	MeshComponent->CreateMeshSection(0, MyVertices, MyIndices, false, EUpdateFrequency::Infrequent, ESectionUpdateFlags::CalculateNormalTangent);
-}
-
 void ACGWorldFace::SubDivideGeometry(const FRuntimeMeshVertexSimple &v1, const FRuntimeMeshVertexSimple &v2, const FRuntimeMeshVertexSimple &v3, const int32 aDepth, const float aScale)
 {
 	if (aDepth == 0) {
@@ -105,4 +100,5 @@ void ACGWorldFace::SetupFace(FRuntimeMeshVertexSimple v1, FRuntimeMeshVertexSimp
 void ACGWorldFace::UpdateMesh(TArray<FRuntimeMeshVertexSimple>& aVertices, TArray<int32>& aIndices, FCGWorldConfig& aWorldConfig)
 {
 	MeshComponent->CreateMeshSection(0, aVertices, aIndices, aWorldConfig.CollisionEnabled,  EUpdateFrequency::Infrequent);
+	MeshComponent->CookCollisionNow();
 }
