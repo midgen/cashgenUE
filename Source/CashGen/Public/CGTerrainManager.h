@@ -42,6 +42,12 @@ public:
 	ACGTerrainManager();
 	~ACGTerrainManager();
 
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTileMeshUpdated, ACGTile*, Tile);
+	UPROPERTY(BlueprintAssignable)
+		FTileMeshUpdated OnTileMeshUpdated;
+
+
 	UPROPERTY()
 	AActor* TrackingActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")

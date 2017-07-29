@@ -30,14 +30,7 @@ public:
 	ACGTile();
 	~ACGTile();
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTileMeshUpdated, int, previousLOD, int, newLOD);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTileTransitionComplete, int, previousLOD, int, newLOD);
-
 public:
-	UPROPERTY(BlueprintAssignable)
-	FTileMeshUpdated OnTileMeshUpdated;
-	UPROPERTY(BlueprintAssignable)
-	FTileTransitionComplete OnTileTransitionComplete;
 
 	CGPoint Offset;
 	FVector WorldOffset;

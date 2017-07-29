@@ -89,6 +89,8 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 
 				updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
 
+				OnTileMeshUpdated.Broadcast(updateJob.Tile);
+
 				int32 updateMS = (duration_cast<milliseconds>(
 					system_clock::now().time_since_epoch()
 					) - startMs).count();
