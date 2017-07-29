@@ -73,6 +73,7 @@ void ACGTile::Tick(float DeltaSeconds)
 				
 				LODTransitionOpacity = 1.0f;
 				lod.Value = ELODStatus::CREATED;
+				OnTileTransitionComplete.Broadcast(PreviousLOD, CurrentLOD);
 			}
 
 		}
@@ -148,6 +149,9 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVe
 			MeshComponents[i]->SetVisibility(false);
 		}
 	}
+
+	OnTileMeshUpdated.Broadcast(PreviousLOD, CurrentLOD);
+
 
 }
 

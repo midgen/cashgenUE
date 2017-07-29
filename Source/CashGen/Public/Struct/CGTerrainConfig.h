@@ -54,7 +54,7 @@ struct FCGTerrainConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
 		uint8 MeshUpdatesPerFrame = 1;
 	/** Material for the terrain mesh */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Materials")
 	UMaterial* TerrainMaterialInstanceParent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | LODs")
 	TArray<FCGLODConfig> LODs;
