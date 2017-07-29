@@ -31,12 +31,19 @@ class ACGWorld : public AActor
 	const float SweepInterval = 0.1f;
 
 	bool isSetup = false;
+	bool isFirstUpdate = true;
 
 	bool GetFreeMeshData(FCGWorldFaceJob& aJob);
 
 	void ReleaseMeshData(FCGWorldFaceJob& aJob);
 
 public:
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDrawComplete);
+	UPROPERTY(BlueprintAssignable)
+	FDrawComplete OnDrawComplete;
+
+
 	ACGWorld(const FObjectInitializer& ObjectInitializer);
 	~ACGWorld();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CGWorld")
