@@ -62,6 +62,9 @@ struct FCGTerrainConfig
 	/** If no TerrainMaterial and LOD transitions disabled, just use the same static instance for all LODs **/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Materials")
 	UMaterialInstance* TerrainMaterialInstance;
+	/** Make a dynamic material instance */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Materials")
+	bool MakeDynamicMaterialInstance;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | LODs")
 	TArray<FCGLODConfig> LODs;
 

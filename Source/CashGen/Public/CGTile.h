@@ -55,4 +55,6 @@ public:
 
 	FVector GetCentrePos();
 
+	UMaterialInstanceDynamic* GetMaterialInstanceDynamic(const uint8 aLOD);
+
 };

@@ -122,11 +122,16 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 			Material = TerrainConfigMaster->TerrainMaterial;
 			MeshComponents[i]->SetMaterial(0, Material);
 		}
-		// Or just a material instance
-		else if (TerrainConfigMaster->TerrainMaterialInstance)
+		// Or just a static material instance
+		else if (TerrainConfigMaster->TerrainMaterialInstance && !TerrainConfigMaster->MakeDynamicMaterialInstance)
 		{
 			MaterialInstance = TerrainConfigMaster->TerrainMaterialInstance;
 			MeshComponents[i]->SetMaterial(0, MaterialInstance);
+		}
+		else if (TerrainConfigMaster->TerrainMaterialInstance && TerrainConfigMaster->MakeDynamicMaterialInstance)
+		{
+			MaterialInstances.Add(i, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterialInstance, this));
+			MeshComponents[i]->SetMaterial(0, MaterialInstances[i]);
 		}
 		
 	}
@@ -178,4 +183,15 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVe
 FVector ACGTile::GetCentrePos()
 {
 	return  FVector(((Offset.X + 0.5f) * TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize) - WorldOffset.X, ((Offset.Y + 0.5f) * TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize) - WorldOffset.Y, 0.0f);
+}
+
+UMaterialInstanceDynamic* ACGTile::GetMaterialInstanceDynamic(const uint8 aLOD)
+{
+	if (aLOD < MaterialInstances.Num() - 1)
+	{
+		return MaterialInstances[aLOD];
+	}
+
+	return nullptr;
+	
 }
