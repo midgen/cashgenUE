@@ -13,14 +13,17 @@ class ACGWorldFace : public AActor
 {
 	GENERATED_BODY()
 
-	URuntimeMeshComponent* MeshComponent;
-	USphereComponent* SphereComponent;
+	URuntimeMeshComponent* myMeshComponent;
+	USphereComponent* mySphereComponent;
 
-	TArray<FRuntimeMeshVertexSimple> MyVertices;
-	TArray<int32> MyIndices;
+	UMaterial* myMaterial;
+	UMaterialInstanceDynamic* myMaterialInstanceDynamic;
 
-	ACGWorldFace* MyParentFace;
-	ACGWorld* MyWorld;
+	TArray<FRuntimeMeshVertexSimple> myVertices;
+	TArray<int32> myIndices;
+
+	ACGWorldFace* myParentFace;
+	ACGWorld* myWorld;
 
 	void SubDivideGeometry(const FRuntimeMeshVertexSimple &v1, const FRuntimeMeshVertexSimple &v2, const FRuntimeMeshVertexSimple &v3, const int32 aDepth, const float aScale);
 
@@ -33,6 +36,7 @@ public:
 
 	void SetupFace(FRuntimeMeshVertexSimple v1, FRuntimeMeshVertexSimple v2, FRuntimeMeshVertexSimple v3, const FVector aOrigin, int32 aDepth, const int32 aSubDivLimit, const float aScale, ACGWorld* aWorld, ACGWorldFace* aParentFace);
 	void UpdateMesh(TArray<FRuntimeMeshVertexSimple>& aVertices, TArray<int32>& aIndices, FCGWorldConfig& aWorldConfig);
+	UMaterialInstanceDynamic* GetMaterialInstanceDynamic();
 
 	
 };

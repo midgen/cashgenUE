@@ -34,8 +34,10 @@ struct FCGWorldConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cashgen | Main")
 		bool CollisionEnabled = false;
 	/** Material for the terrain mesh */
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Erosion")
-		//UMaterial* TerrainMaterialInstanceParent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Material")
+	UMaterial* TerrainMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Material")
+	bool MakeDynamicInstance;
 
 
 };
