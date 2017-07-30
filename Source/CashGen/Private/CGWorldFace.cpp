@@ -109,7 +109,11 @@ void ACGWorldFace::UpdateMesh(TArray<FRuntimeMeshVertexSimple>& aVertices, TArra
 	{
 		myMeshComponent->SetMaterial(0, myMaterial);
 	}
-	myMeshComponent->CookCollisionNow();
+	if (aWorldConfig.CollisionEnabled)
+	{
+		myMeshComponent->CookCollisionNow();
+	}
+	
 }
 
 UMaterialInstanceDynamic* ACGWorldFace::GetMaterialInstanceDynamic()
