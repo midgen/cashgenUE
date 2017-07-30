@@ -17,6 +17,8 @@ class ACGTile : public AActor
 
 	TMap<uint8, URuntimeMeshComponent*> MeshComponents;
 	TMap<uint8, UMaterialInstanceDynamic*> MaterialInstances;
+	UMaterialInstance* MaterialInstance;
+	UMaterial* Material;
 	TMap<uint8, ELODStatus> LODStatus;
 
 	float LODTransitionOpacity = 0.0f;

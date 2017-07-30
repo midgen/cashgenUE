@@ -90,6 +90,10 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 	WorldOffset = aWorldOffset;
 	TerrainConfigMaster = aTerrainConfig;
 
+	// Disable tick if we're not doing lod transitions
+
+	SetActorTickEnabled(TerrainConfigMaster->DitheringLODTransitions && aTerrainConfig->LODs.Num() > 1);
+
 	for (int32 i = 0; i < aTerrainConfig->LODs.Num(); ++i)
 	{
 
@@ -106,11 +110,25 @@ void ACGTile::SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVect
 
 		LODStatus.Add(i, ELODStatus::NOT_CREATED);
 
-		if (TerrainConfigMaster->TerrainMaterialInstanceParent != nullptr)
+		// Use dynamic material instances and do LOD dithering
+		if (TerrainConfigMaster->TerrainMaterial != nullptr && TerrainConfigMaster->DitheringLODTransitions && aTerrainConfig->LODs.Num() > 1)
 		{
-			MaterialInstances.Add(i, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterialInstanceParent, this));
+			MaterialInstances.Add(i, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterial, this));
 			MeshComponents[i]->SetMaterial(0, MaterialInstances[i]);
 		}
+		// Just use a static material
+		else if (TerrainConfigMaster->TerrainMaterial)
+		{
+			Material = TerrainConfigMaster->TerrainMaterial;
+			MeshComponents[i]->SetMaterial(0, Material);
+		}
+		// Or just a material instance
+		else if (TerrainConfigMaster->TerrainMaterialInstance)
+		{
+			MaterialInstance = TerrainConfigMaster->TerrainMaterialInstance;
+			MeshComponents[i]->SetMaterial(0, MaterialInstance);
+		}
+		
 	}
 
 }
