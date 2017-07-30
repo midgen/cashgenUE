@@ -117,6 +117,12 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			SpawnTiles(TrackingActor, TerrainConfig, XTiles, YTiles);
 		}
 	}
+
+	if (isFirstDraw && PendingJobs.IsEmpty() && UpdateJobs.IsEmpty())
+	{
+		OnInitialTileDrawComplete();
+		isFirstDraw = false;
+	}
 }
 
 void ACGTerrainManager::SweepLODs()

@@ -179,7 +179,7 @@ void ACGWorld::Tick(float DeltaSeconds)
 
 	if (isFirstUpdate && PendingJobs.IsEmpty() && UpdateJobs.IsEmpty() && GeometryJobs.IsEmpty())
 	{
-		OnDrawComplete.Broadcast();
+		OnDrawComplete();
 		isFirstUpdate = false;
 	}
 }

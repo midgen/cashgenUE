@@ -39,10 +39,8 @@ class ACGWorld : public AActor
 
 public:
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDrawComplete);
-	UPROPERTY(BlueprintAssignable)
-	FDrawComplete OnDrawComplete;
-
+	UFUNCTION(BlueprintImplementableEvent, Category = "CGWorld")
+	void OnDrawComplete();
 
 	ACGWorld(const FObjectInitializer& ObjectInitializer);
 	~ACGWorld();

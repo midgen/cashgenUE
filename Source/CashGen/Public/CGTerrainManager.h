@@ -38,6 +38,8 @@ class ACGTerrainManager : public AActor
 	float TimeSinceLastSweep;
 	const float SweepInterval = 0.1f;
 
+	bool isFirstDraw = true;
+
 public:
 	ACGTerrainManager();
 	~ACGTerrainManager();
@@ -47,6 +49,8 @@ public:
 	UPROPERTY(BlueprintAssignable)
 		FTileMeshUpdated OnTileMeshUpdated;
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "CGWorld")
+	void OnInitialTileDrawComplete();
 
 	UPROPERTY()
 	AActor* TrackingActor;
