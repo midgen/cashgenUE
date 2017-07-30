@@ -9,6 +9,11 @@ using namespace std::chrono;
 
 void FCGWorldGeneratorWorker::SubDivideGeometry(const FRuntimeMeshVertexSimple &v1, const FRuntimeMeshVertexSimple &v2, const FRuntimeMeshVertexSimple &v3, const int32 aDepth, const float aScale)
 {
+	if (!pWorldConfig->NoiseGenerator->IsValidLowLevel())
+	{
+		return;
+	}
+
 	if (aDepth == 0) {
 		float v1n = pWorldConfig->NoiseGenerator->GetNoise3D(v1.Position.X, v1.Position.Y, v1.Position.Z);
 		float v2n = pWorldConfig->NoiseGenerator->GetNoise3D(v2.Position.X, v2.Position.Y, v2.Position.Z);
@@ -60,6 +65,11 @@ uint32 FCGWorldGeneratorWorker::Run()
 	// Here's the loop
 	while (!IsThreadFinished)
 	{
+		// Return complete if something is wrong.
+		if (!pWorldConfig->NoiseGenerator)
+		{
+			return 1;
+		}
 		if (inputQueue->Dequeue(workJob))
 		{
 			pVertices = &workJob.pMeshData->Vertices;

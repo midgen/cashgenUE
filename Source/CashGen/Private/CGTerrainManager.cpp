@@ -10,13 +10,7 @@ ACGTerrainManager::ACGTerrainManager()
 
 ACGTerrainManager::~ACGTerrainManager()
 {
-	for (auto& thread : WorkerThreads)
-	{
-		if (thread != nullptr)
-		{
-			thread->Kill(true);
-		}
-	}
+
 }
 
 void ACGTerrainManager::BeginPlay()
@@ -142,6 +136,18 @@ void ACGTerrainManager::SweepLODs()
 	}
 }
 
+void ACGTerrainManager::BeginDestroy()
+{
+	for (auto& thread : WorkerThreads)
+	{
+		if (thread != nullptr)
+		{
+			thread->Kill();
+		}
+	}
+
+	Super::BeginDestroy();
+}
 
 uint8 ACGTerrainManager::GetLODForTile(ACGTile* aTile)
 {

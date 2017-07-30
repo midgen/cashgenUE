@@ -72,5 +72,5 @@ public:
 
 	void SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfig aTerrainConfig, const int32 aXTiles, const int32 aYTiles);
 
-	
+	void BeginDestroy() override;
 };

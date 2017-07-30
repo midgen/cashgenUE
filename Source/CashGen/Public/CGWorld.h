@@ -60,4 +60,5 @@ public:
 	void Tick(float DeltaSeconds) override;
 	void AddFace(ACGWorldFace* aFace);
 	void InitializeSphere(const int32 aDepth, const float aScale);
+	void BeginDestroy() override;
 };

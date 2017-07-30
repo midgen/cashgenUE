@@ -52,10 +52,7 @@ ACGWorld::ACGWorld(const FObjectInitializer& ObjectInitializer)
 
 ACGWorld::~ACGWorld()
 {
-	if (MyWorkerThread != nullptr)
-	{
-		MyWorkerThread->Kill(true);
-	}
+
 }
 
 void ACGWorld::SetupWorld(UUFNNoiseGenerator* aNoiseGen)
@@ -131,6 +128,17 @@ void ACGWorld::InitializeSphere(const int32 aDepth, const float aScale)
 												nullptr);
 	}
 	
+}
+
+
+void ACGWorld::BeginDestroy()
+{
+	if (MyWorkerThread)
+	{
+		MyWorkerThread->Kill();
+	}
+	
+	Super::BeginDestroy();
 }
 
 void ACGWorld::Tick(float DeltaSeconds)
