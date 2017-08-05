@@ -18,7 +18,6 @@ class ACGTerrainManager : public AActor
 	CGPoint currentPlayerZone = CGPoint(0,0);
 	TArray<FRunnableThread*> WorkerThreads;
 
-	void HandleTileFlip(CGPoint deltaTile);
 	UPROPERTY()
 	TArray<FCGLODMeshData> MeshData;
 	TArray<TSet<FCGMeshData*>> FreeMeshData;
@@ -44,6 +43,11 @@ public:
 	ACGTerrainManager();
 	~ACGTerrainManager();
 
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void HandleTileFlip(int32 sectorX, int32 sectorY);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerCallTileFlip(int32 sectorX, int32 sectorY);
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTileMeshUpdated, ACGTile*, Tile);
 	UPROPERTY(BlueprintAssignable)
@@ -52,7 +56,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "CGWorld")
 	void OnInitialTileDrawComplete();
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	AActor* TrackingActor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	int32 XTiles;
@@ -63,7 +67,7 @@ public:
 
 	/* Spawn the terrain */
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
-	void SetUpTerrain(UUFNNoiseGenerator* aNoiseGen, UUFNNoiseGenerator* aBiomeBlendGen, AActor* aTrackingActor) { TerrainConfig.NoiseGenerator = aNoiseGen; TerrainConfig.BiomeBlendGenerator = aBiomeBlendGen; TrackingActor = aTrackingActor; }
+		void SetupTerrainClient(UUFNNoiseGenerator* aNoiseGen, UUFNNoiseGenerator* aBiomeBlendGen, AActor* aTrackingActor);
 
 	TQueue<FCGJob, EQueueMode::Spsc> PendingJobs;
 	TArray<TQueue<FCGJob, EQueueMode::Spsc>> GeometryJobs;
@@ -73,8 +77,16 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
+	//void SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfig aTerrainConfig, const int32 aXTiles, const int32 aYTiles);
+	//UFUNCTION(NetMulticast, Reliable, WithValidation)
+	UFUNCTION(BlueprintCallable, Category = "CashGen")
+		void SpawnTiles(const int32 aXTiles, const int32 aYTiles) { ServerCallSpawnTiles(aXTiles, aYTiles); };
 
-	void SpawnTiles(AActor* aTrackingActor, const FCGTerrainConfig aTerrainConfig, const int32 aXTiles, const int32 aYTiles);
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+		void HandleSpawnTiles(const int32 aXTiles, const int32 aYTiles);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+		void ServerCallSpawnTiles(const int32 aXTiles, const int32 aYTiles);
 
 	void BeginDestroy() override;
 };

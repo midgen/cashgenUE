@@ -40,6 +40,7 @@ public:
 
 	uint8 GetCurrentLOD();
 
+	//UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void RepositionAndHide(uint8 aNewLOD);
 
 	virtual void BeginPlay() override;
