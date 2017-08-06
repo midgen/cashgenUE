@@ -1,13 +1,10 @@
-#include "cashgen.h"
+#include "CashGen.h"
 #include "CGTerrainManager.h"
 #include "CGJob.h"
-
 
 ACGTerrainManager::ACGTerrainManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	bAlwaysRelevant = true;
-	bReplicates = true;
 }
 
 ACGTerrainManager::~ACGTerrainManager()
@@ -15,12 +12,7 @@ ACGTerrainManager::~ACGTerrainManager()
 
 }
 
-void ACGTerrainManager::SetupTerrainClient(UUFNNoiseGenerator* aNoiseGen, UUFNNoiseGenerator* aBiomeBlendGen, AActor* aTrackingActor)
-{
-	TerrainConfig.NoiseGenerator = aNoiseGen;
-	TerrainConfig.BiomeBlendGenerator = aBiomeBlendGen;
-	TrackingActor = aTrackingActor; 
-}
+
 
 void ACGTerrainManager::BeginPlay()
 {
@@ -28,136 +20,20 @@ void ACGTerrainManager::BeginPlay()
 
 	FString threadName = "TerrainWorkerThread";
 
-	for (int i = 0; i < TerrainConfig.NumberOfThreads; i++)
+	for (int i = 0; i < myTerrainConfig.NumberOfThreads; i++)
 	{
-		GeometryJobs.Emplace();
+		myGeometryJobQueues.Emplace();
 
-		WorkerThreads.Add(FRunnableThread::Create
-		(new FCGTerrainGeneratorWorker(this, &TerrainConfig, &GeometryJobs[i]),
+		myWorkerThreads.Add(FRunnableThread::Create
+		(new FCGTerrainGeneratorWorker(this, &myTerrainConfig, &myGeometryJobQueues[i]),
 			*threadName,
 			0, EThreadPriority::TPri_BelowNormal, FPlatformAffinity::GetNoAffinityMask()));
 	}
 }
 
-void ACGTerrainManager::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	TimeSinceLastSweep += DeltaSeconds;
-
-	if (TrackingActor->IsValidLowLevel())
-	{
-		// First check for the tracking actor crossing a tile boundary
-		CGPoint oldPos = currentPlayerZone;
-
-		if (TrackingActor->IsValidLowLevel())
-		{
-			currentPlayerZone.X = floor(TrackingActor->GetActorLocation().X / (TerrainConfig.UnitSize * TerrainConfig.TileXUnits));
-			currentPlayerZone.Y = floor(TrackingActor->GetActorLocation().Y / (TerrainConfig.UnitSize * TerrainConfig.TileYUnits));
-		}
-
-		CGPoint newPos = currentPlayerZone;
-
-		if (oldPos != newPos)
-		{
-			CGPoint delta = newPos - oldPos;
-			HandleTileFlip(delta.X, delta.Y);
-		}
-
-		// Check for pending jobs
-		for (int i = 0; i < TerrainConfig.NumberOfThreads; i++)
-		{
-			FCGJob pendingJob;
-			if (PendingJobs.Peek(pendingJob))
-			{
-				// If there's free data to allocate, dequeue and send to worker thread
-				if (FreeMeshData[pendingJob.LOD].Num() > 0)
-				{
-					PendingJobs.Dequeue(pendingJob);
-					GetFreeMeshData(pendingJob);
-					GeometryJobs[i].Enqueue(pendingJob);
-				}
-			}
-		}
-
-		// Now check for Update jobs
-		for (uint8 i = 0; i < TerrainConfig.MeshUpdatesPerFrame; i++)
-		{
-			FCGJob updateJob;
-			if (UpdateJobs.Dequeue(updateJob))
-			{
-				milliseconds startMs = duration_cast<milliseconds>(
-					system_clock::now().time_since_epoch()
-					);
-
-				updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
-
-				OnTileMeshUpdated.Broadcast(updateJob.Tile);
-
-				int32 updateMS = (duration_cast<milliseconds>(
-					system_clock::now().time_since_epoch()
-					) - startMs).count();
-
-#ifdef UE_BUILD_DEBUG
-				if (updateJob.LOD == 0)
-				{
-					GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Heightmap gen " + FString::FromInt(updateJob.HeightmapGenerationDuration) + "ms"));
-					GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, TEXT("Erosion gen " + FString::FromInt(updateJob.ErosionGenerationDuration) + "ms"));
-					GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Red, TEXT("MeshUpdate " + FString::FromInt(updateMS) + "ms"));
-				}
-#endif
-				ReleaseMeshData(updateJob.LOD, updateJob.Data);
-				QueuedTiles.Remove(updateJob.Tile);
-			}
-		}
-
-
-		// Now check for LOD sweeps;
-		if (TimeSinceLastSweep > SweepInterval)
-		{
-			SweepLODs();
-			TimeSinceLastSweep = 0.0f;
-		}
-	}
-	//else
-	//{
-	//	if (TerrainConfig.NoiseGenerator != nullptr && XTiles > 0 && YTiles > 0)
-	//	{
-	//		SpawnTiles(TrackingActor, TerrainConfig, XTiles, YTiles);
-	//	}
-	//}
-
-	if (isFirstDraw && PendingJobs.IsEmpty() && UpdateJobs.IsEmpty())
-	{
-		OnInitialTileDrawComplete();
-		isFirstDraw = false;
-	}
-}
-
-void ACGTerrainManager::SweepLODs()
-{
-	if (!TrackingActor)
-	{
-		return;
-	}
-	for (ACGTile* tile : Tiles)
-	{
-		uint8 newLOD = GetLODForTile(tile);
-		// LOD has decreased, we need to generate geometry
-		if (tile->GetCurrentLOD() > newLOD && !QueuedTiles.Contains(tile))
-		{
-			FCGJob newJob;
-			newJob.Tile = tile;
-			newJob.LOD = newLOD;
-			newJob.IsInPlaceUpdate = true;
-			CreateTileRefreshJob(newJob);
-		}
-	}
-}
-
 void ACGTerrainManager::BeginDestroy()
 {
-	for (auto& thread : WorkerThreads)
+	for (auto& thread : myWorkerThreads)
 	{
 		if (thread != nullptr)
 		{
@@ -168,109 +44,69 @@ void ACGTerrainManager::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-uint8 ACGTerrainManager::GetLODForTile(ACGTile* aTile)
+void ACGTerrainManager::Tick(float DeltaSeconds)
 {
-	FVector diff;
+	Super::Tick(DeltaSeconds);
+}
 
-	FVector centreOfTile = aTile->GetCentrePos();
+FIntVector2 ACGTerrainManager::GetSector(const FVector& aLocation)
+{
+	FIntVector2 sector;
+	sector.X = static_cast<int32>(aLocation.X) / 1000;
+	sector.Y = static_cast<int32>(aLocation.Y) / 1000;
 
-	diff = TrackingActor->GetActorLocation() - centreOfTile;
+	return sector;
+}
 
-	float distance = diff.Size();
-	uint8 lodIndex = 0;
 
-	for (FCGLODConfig& lod : TerrainConfig.LODs)
+TArray<FIntVector2> ACGTerrainManager::GetRelevantSectorsForActor(const AActor* anActor)
+{
+	TArray<FIntVector2> result;
+
+	FIntVector2 rootSector = GetSector(anActor->GetActorLocation());
+
+
+	for (int x = 0; x < 10; x++)
 	{
-		if (distance < lod.Range)
+		for (int y = 0; y < 10; y++)
 		{
-			return lodIndex;
+			result.Emplace(rootSector.X - 5 + x, rootSector.Y - 5 + y);
 		}
-		++lodIndex;
 	}
 
-	return 10;
+	return result;
 }
+
+void ACGTerrainManager::SetTerrainConfig(FCGTerrainConfig aTerrainConfig)
+{
+
+}
+
+void ACGTerrainManager::HandlePlayerSectorChange(const uint8 aPlayerID, const FIntVector2& anOldSector, const FIntVector2& aNewSector)
+{
+
+}
+
+void ACGTerrainManager::AddPawn()
+{
+
+}
+
 
 void ACGTerrainManager::CreateTileRefreshJob(FCGJob aJob)
 {
 	if (aJob.LOD != 10)
 	{
-		PendingJobs.Enqueue(aJob);
+		myPendingJobQueue.Enqueue(aJob);
 		QueuedTiles.Add(aJob.Tile);
 	}
 
 }
 
-bool ACGTerrainManager::ServerCallTileFlip_Validate(int32 sectorX, int32 sectorY)
-{
-	return true;
-}
-void ACGTerrainManager::ServerCallTileFlip_Implementation(int32 sectorX, int32 sectorY)
-{
-	HandleTileFlip(sectorX, sectorY);
-}
-
-bool ACGTerrainManager::HandleTileFlip_Validate(int32 sectorX, int32 sectorY)
-{
-	return true;
-}
-void ACGTerrainManager::HandleTileFlip_Implementation(int32 sectorX, int32 sectorY)
-{
-	// this section is still horrible, oh well!
-	int32 minX = 999999999;
-	int32 maxX = -99999999;
-	int32 minY = 999999999;
-	int32 maxY = -99999999;
-
-	for (ACGTile* tile : Tiles)
-	{
-		if (tile->Offset.X < minX) {
-			minX = tile->Offset.X;
-		}
-		if (tile->Offset.X > maxX) {
-			maxX = tile->Offset.X;
-		}
-		if (tile->Offset.Y < minY) {
-			minY = tile->Offset.Y;
-		}
-		if (tile->Offset.Y > maxY) {
-			maxY = tile->Offset.Y;
-		}
-	}
-
-	for (ACGTile* tile : Tiles)
-	{
-		if (sectorX < -0.1 && tile->Offset.X == maxX) {
-			tile->Offset.X = minX - 1;
-			tile->RepositionAndHide(GetLODForTile(tile));
-			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
-			CreateTileRefreshJob(job);
-		}
-		else if (sectorX > 0.1 && tile->Offset.X == minX) {
-			tile->Offset.X = maxX + 1;
-			tile->RepositionAndHide(GetLODForTile(tile));
-			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
-			CreateTileRefreshJob(job);
-		}
-		if (sectorY < -0.1 && tile->Offset.Y == maxY) {
-			tile->Offset.Y = minY - 1;
-			tile->RepositionAndHide(GetLODForTile(tile));
-			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
-			CreateTileRefreshJob(job);
-		}
-		else if (sectorY > 0.1 && tile->Offset.Y == minY) {
-			tile->Offset.Y = maxY + 1;
-			tile->RepositionAndHide(GetLODForTile(tile));
-			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
-			CreateTileRefreshJob(job);
-		}
-	}
-}
-
 bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 {
 	// No free mesh data
-	if (FreeMeshData[aJob.LOD].Num() < 1)
+	if (myFreeMeshData[aJob.LOD].Num() < 1)
 	{
 		return false;
 	}
@@ -278,15 +114,15 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 	{
 		FCGMeshData* dataToUse;
 		// Use the first free data set, there'll always be one, we checked!
-		for (FCGMeshData* data : FreeMeshData[aJob.LOD])
+		for (FCGMeshData* data : myFreeMeshData[aJob.LOD])
 		{
 			dataToUse = data;
 			break;
 		}
 		// Add to the in use set
-		InUseMeshData[aJob.LOD].Add(dataToUse);
+		myInUseMeshData[aJob.LOD].Add(dataToUse);
 		// Remove from the Free set
-		FreeMeshData[aJob.LOD].Remove(dataToUse);
+		myFreeMeshData[aJob.LOD].Remove(dataToUse);
 
 		aJob.Vertices = &dataToUse->Vertices;
 		aJob.Triangles = &dataToUse->Triangles;
@@ -304,105 +140,37 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 
 void ACGTerrainManager::ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease)
 {
-	InUseMeshData[aLOD].Remove(aDataToRelease);
-	FreeMeshData[aLOD].Add(aDataToRelease);
+	myInUseMeshData[aLOD].Remove(aDataToRelease);
+	myFreeMeshData[aLOD].Add(aDataToRelease);
 }
 
 /** Allocates data structures and pointers for mesh data **/
 void ACGTerrainManager::AllocateAllMeshDataStructures()
 {
-	for (uint8 lod = 0; lod < TerrainConfig.LODs.Num(); ++lod)
+	for (uint8 lod = 0; lod < myTerrainConfig.LODs.Num(); ++lod)
 	{
-		MeshData.Add(FCGLODMeshData());
-		FreeMeshData.Add(TSet<FCGMeshData*>());
-		InUseMeshData.Add(TSet<FCGMeshData*>());
+		myMeshData.Add(FCGLODMeshData());
+		myFreeMeshData.Add(TSet<FCGMeshData*>());
+		myInUseMeshData.Add(TSet<FCGMeshData*>());
 
-		MeshData[lod].Data.Reserve(TerrainConfig.MeshDataPoolSize);
+		myMeshData[lod].Data.Reserve(myTerrainConfig.MeshDataPoolSize);
 
-		for (int j = 0; j < TerrainConfig.MeshDataPoolSize; ++j)
+		for (int j = 0; j < myTerrainConfig.MeshDataPoolSize; ++j)
 		{
-			MeshData[lod].Data.Add(FCGMeshData());
-			AllocateDataStructuresForLOD(&MeshData[lod].Data[j], &TerrainConfig, lod);
+			myMeshData[lod].Data.Add(FCGMeshData());
+			AllocateDataStructuresForLOD(&myMeshData[lod].Data[j], &myTerrainConfig, lod);
 		}
 	}
 
-	for (uint8 lod = 0; lod < TerrainConfig.LODs.Num(); ++lod)
+	for (uint8 lod = 0; lod < myTerrainConfig.LODs.Num(); ++lod)
 	{
-		for (int j = 0; j < TerrainConfig.MeshDataPoolSize; ++j)
+		for (int j = 0; j < myTerrainConfig.MeshDataPoolSize; ++j)
 		{
-			FreeMeshData[lod].Add(&MeshData[lod].Data[j]);
+			myFreeMeshData[lod].Add(&myMeshData[lod].Data[j]);
 		}
 	}
 
 }
-
-bool ACGTerrainManager::ServerCallSpawnTiles_Validate(int32 sectorX, int32 sectorY)
-{
-	return true;
-}
-void ACGTerrainManager::ServerCallSpawnTiles_Implementation(int32 sectorX, int32 sectorY)
-{
-	HandleSpawnTiles(sectorX, sectorY);
-}
-bool ACGTerrainManager::HandleSpawnTiles_Validate(const int32 aXTiles, const int32 aYTiles)
-{
-	return true;
-}
-
-
-
-
-/************************************************************************/
-/*  Main setup method, pass in the config struct and other details
-/*				Spawns the Tile actors into place and sets them up
-/************************************************************************/
-//void ACGTerrainManager::SpawnTiles_Implementation(AActor* aTrackingActor, const FCGTerrainConfig aTerrainConfig, const int32 aXTiles, const int32 aYTiles)
-void ACGTerrainManager::HandleSpawnTiles_Implementation(const int32 aXTiles, const int32 aYTiles)
-{
-	//TerrainConfig = aTerrainConfig;
-	//TrackingActor = aTrackingActor;
-	XTiles = aXTiles;
-	YTiles = aYTiles;
-	currentPlayerZone.X = 0; currentPlayerZone.Y = 0;
-
-	AllocateAllMeshDataStructures();
-
-	WorldOffset = FVector((XTiles / 2.0f) * TerrainConfig.TileXUnits * TerrainConfig.UnitSize, (YTiles / 2.0f) * TerrainConfig.TileYUnits * TerrainConfig.UnitSize, 0.0f);
-	
-	//if (aTrackingActor)
-	//{
-		//currentPlayerZone.X = floor(aTrackingActor->GetActorLocation().X / ((TerrainConfig.UnitSize * TerrainConfig.TileXUnits) - WorldOffset.X));
-		//currentPlayerZone.Y = floor(aTrackingActor->GetActorLocation().Y / ((TerrainConfig.UnitSize * TerrainConfig.TileYUnits) - WorldOffset.Y));
-	//}
-
-	FActorSpawnParameters spawnParameters;
-	
-	for (int32 i = 0; i < XTiles * YTiles; ++i)
-	{
-		Tiles.Add(GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(),
-													FVector((TerrainConfig.TileXUnits * TerrainConfig.UnitSize * GetXYfromIdx(i).X) - WorldOffset.X,
-																(TerrainConfig.TileYUnits * TerrainConfig.UnitSize * GetXYfromIdx(i).Y) - WorldOffset.Y, 0.0f) - WorldOffset, FRotator(0.0f)));
-
-	}
-
-	int32 tileIndex = 0;
-	for (ACGTile* tile : Tiles)
-	{
-		// Initially spawn at LOD10 (don't render)
-		tile->SetupTile(GetXYfromIdx(tileIndex), &TerrainConfig, WorldOffset);
-		tile->RepositionAndHide(10);
-		//FCGJob job; job.Tile = tile; job.LOD = 10; job.IsInPlaceUpdate = false;
-		//CreateTileRefreshJob(job);
-		++tileIndex;
-	}
-
-	//isSetup = true;
-}
-
-//bool ACGTerrainManager::SpawnTiles_Validate(AActor* aTrackingActor, const FCGTerrainConfig aTerrainConfig, const int32 aXTiles, const int32 aYTiles)
-//{
-//	return true;
-//}
 
 /************************************************************************/
 /*  Allocates all the data structures for a single LOD mesh data
@@ -410,8 +178,8 @@ void ACGTerrainManager::HandleSpawnTiles_Implementation(const int32 aXTiles, con
 /************************************************************************/
 bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD)
 {
-	int32 numXVerts = aLOD == 0 ? aConfig->TileXUnits + 1 : (aConfig->TileXUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
-	int32 numYVerts = aLOD == 0 ? aConfig->TileYUnits + 1 : (aConfig->TileYUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
+	int32 numXVerts = aLOD == 0 ? aConfig->TileXUnits + 1 : (aConfig->TileXUnits / myTerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
+	int32 numYVerts = aLOD == 0 ? aConfig->TileYUnits + 1 : (aConfig->TileYUnits / myTerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
 
 	int32 numTotalVertices = numXVerts * numYVerts + (aConfig->TileXUnits * 2) + (aConfig->TileYUnits * 2) + 4;
 
@@ -456,11 +224,11 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	int32 thisX, thisY;
 	int32 rowLength;
 
-	rowLength = aLOD == 0 ? aConfig->TileXUnits + 1 : (aConfig->TileXUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor + 1);
+	rowLength = aLOD == 0 ? aConfig->TileXUnits + 1 : (aConfig->TileXUnits / myTerrainConfig.LODs[aLOD].ResolutionDivisor + 1);
 	float maxUV = aLOD == 0 ? 1.0f : 1.0f / aLOD;
 
-	int32 exX = aLOD == 0 ? aConfig->TileXUnits : (aConfig->TileXUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor);
-	int32 exY = aLOD == 0 ? aConfig->TileYUnits : (aConfig->TileYUnits / TerrainConfig.LODs[aLOD].ResolutionDivisor);
+	int32 exX = aLOD == 0 ? aConfig->TileXUnits : (aConfig->TileXUnits / myTerrainConfig.LODs[aLOD].ResolutionDivisor);
+	int32 exY = aLOD == 0 ? aConfig->TileYUnits : (aConfig->TileYUnits / myTerrainConfig.LODs[aLOD].ResolutionDivisor);
 
 	for (int32 y = 0; y < exY; ++y)
 	{

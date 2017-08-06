@@ -75,7 +75,7 @@ uint32 FCGTerrainGeneratorWorker::Run()
 			ProcessSkirtGeometry();
 
 
-			pTerrainManager->UpdateJobs.Enqueue(workJob);
+			pTerrainManager->myUpdateJobQueue.Enqueue(workJob);
 		}
 		// Otherwise, take a nap
 		else

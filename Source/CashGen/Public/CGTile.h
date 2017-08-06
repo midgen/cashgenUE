@@ -1,11 +1,11 @@
 #pragma once
 
 #include "cashgen.h"
-#include "CGPoint.h"
+#include "IntVector2.h"
 #include "RuntimeMeshComponent.h"
 #include "CGTile.generated.h"
 
-class ACGTerrainManager;
+class ACGTerrainManager_Legacy;
 struct FCGTerrainConfig;
 
 enum ELODStatus { NOT_CREATED, CREATED, TRANSITION };
@@ -34,7 +34,7 @@ public:
 
 public:
 
-	CGPoint Offset;
+	FIntVector2 Offset;
 	FVector WorldOffset;
 	FCGTerrainConfig* TerrainConfigMaster;
 
@@ -46,7 +46,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	void SetupTile(CGPoint aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
+	void SetupTile(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
 	void UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVertices,
 		TArray<int32>*		aTriangles,
 		TArray<FVector>*	aNormals,
