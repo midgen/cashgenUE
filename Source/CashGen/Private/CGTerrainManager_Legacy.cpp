@@ -225,42 +225,42 @@ void ACGTerrainManager_Legacy::HandleTileFlip_Implementation(int32 sectorX, int3
 
 	for (ACGTile* tile : Tiles)
 	{
-		if (tile->Offset.X < minX) {
-			minX = tile->Offset.X;
+		if (tile->mySector.X < minX) {
+			minX = tile->mySector.X;
 		}
-		if (tile->Offset.X > maxX) {
-			maxX = tile->Offset.X;
+		if (tile->mySector.X > maxX) {
+			maxX = tile->mySector.X;
 		}
-		if (tile->Offset.Y < minY) {
-			minY = tile->Offset.Y;
+		if (tile->mySector.Y < minY) {
+			minY = tile->mySector.Y;
 		}
-		if (tile->Offset.Y > maxY) {
-			maxY = tile->Offset.Y;
+		if (tile->mySector.Y > maxY) {
+			maxY = tile->mySector.Y;
 		}
 	}
 
 	for (ACGTile* tile : Tiles)
 	{
-		if (sectorX < -0.1 && tile->Offset.X == maxX) {
-			tile->Offset.X = minX - 1;
+		if (sectorX < -0.1 && tile->mySector.X == maxX) {
+			tile->mySector.X = minX - 1;
 			tile->RepositionAndHide(GetLODForTile(tile));
 			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 			CreateTileRefreshJob(job);
 		}
-		else if (sectorX > 0.1 && tile->Offset.X == minX) {
-			tile->Offset.X = maxX + 1;
+		else if (sectorX > 0.1 && tile->mySector.X == minX) {
+			tile->mySector.X = maxX + 1;
 			tile->RepositionAndHide(GetLODForTile(tile));
 			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 			CreateTileRefreshJob(job);
 		}
-		if (sectorY < -0.1 && tile->Offset.Y == maxY) {
-			tile->Offset.Y = minY - 1;
+		if (sectorY < -0.1 && tile->mySector.Y == maxY) {
+			tile->mySector.Y = minY - 1;
 			tile->RepositionAndHide(GetLODForTile(tile));
 			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 			CreateTileRefreshJob(job);
 		}
-		else if (sectorY > 0.1 && tile->Offset.Y == minY) {
-			tile->Offset.Y = maxY + 1;
+		else if (sectorY > 0.1 && tile->mySector.Y == minY) {
+			tile->mySector.Y = maxY + 1;
 			tile->RepositionAndHide(GetLODForTile(tile));
 			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
 			CreateTileRefreshJob(job);

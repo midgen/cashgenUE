@@ -12,9 +12,9 @@ struct FCGTerrainConfig
 {
 	GENERATED_USTRUCT_BODY()
 		/** Noise Generator configuration struct */
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
 		UUFNNoiseGenerator* NoiseGenerator;
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
 		UUFNNoiseGenerator* BiomeBlendGenerator;
 	/** Number of blocks along a zone's X axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
@@ -53,6 +53,8 @@ struct FCGTerrainConfig
 		uint8 NumberOfThreads = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
 		uint8 MeshUpdatesPerFrame = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
+		FTimespan TileReleaseDelay;
 	/** Material for the terrain mesh */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Materials")
 	UMaterial* TerrainMaterial;

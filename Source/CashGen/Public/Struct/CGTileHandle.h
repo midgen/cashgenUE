@@ -16,7 +16,8 @@ struct FCGTileHandle
 	// Current rendering status of the sector
 	ETileStatus myStatus;
 	// Handle to the tile actor
+	UPROPERTY()
 	ACGTile* myHandle;
 	// Bitmask to indicate which players require this sector
-	uint32 myPlayerMask;
+	FDateTime myLastRequiredTimestamp;
 };

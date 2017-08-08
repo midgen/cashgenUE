@@ -15,7 +15,8 @@ class ACGTerrainManager : public AActor
 {
 	GENERATED_BODY()
 
-	TArray<AActor*> myTrackedActors;
+	TArray<APawn*> myTrackedPawns;
+	TMap<APawn*, FIntVector2> myPawnLocationMap;
 
 	TArray<FRunnableThread*> myWorkerThreads;
 
@@ -27,10 +28,11 @@ class ACGTerrainManager : public AActor
 	TQueue<FCGJob, EQueueMode::Spsc> myPendingJobQueue;
 	TArray<TQueue<FCGJob, EQueueMode::Spsc>> myGeometryJobQueues;
 
-	TSet<ACGTile*> QueuedTiles;
+	TSet<ACGTile*> myQueuedTiles;
+	TArray<ACGTile*> myFreeTiles;
 
 	UPROPERTY()
-	TMap<FIntVector2, FCGTileHandle> myTileHandles;
+	TMap<FIntVector2, FCGTileHandle> myTileHandleMap;
 
 
 	bool GetFreeMeshData(FCGJob& aJob);
@@ -39,14 +41,22 @@ class ACGTerrainManager : public AActor
 	bool AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD);
 	void CreateTileRefreshJob(FCGJob aJob);
 
+	ACGTile* GetFreeTile();
+	void FreeTile(ACGTile* aTile);
+
+
 	UPROPERTY()
 	FCGTerrainConfig myTerrainConfig;
 
 
-	TMap<AActor*, FIntVector> myPawnLocationMap;
+
 
 	FIntVector2 GetSector(const FVector& aLocation);
-	TArray<FIntVector2> GetRelevantSectorsForActor(const AActor* anActor);
+	TArray<FIntVector2> GetRelevantSectorsForActor(const APawn* aPawn);
+
+
+	float myTimeSinceLastSweep = 0.0f;
+	const float mySweepTime = 2.0f;
 
 
 public:
@@ -55,11 +65,13 @@ public:
 
 	TQueue<FCGJob, EQueueMode::Mpsc> myUpdateJobQueue;
 	
+	UFUNCTION(BlueprintCallable, Category = "CashGen")
 	void SetTerrainConfig(FCGTerrainConfig aTerrainConfig);
 
-	void HandlePlayerSectorChange(const uint8 aPlayerID, const FIntVector2& anOldSector, const FIntVector2& aNewSector);
+	void HandlePlayerSectorChange(const APawn* aPawn, const FIntVector2& anOldSector, const FIntVector2& aNewSector);
 
-	void AddPawn();
+	UFUNCTION(BlueprintCallable, Category = "CashGen")
+	void AddPawn(APawn* aPawn);
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;

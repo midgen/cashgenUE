@@ -12,6 +12,8 @@ ACGTile::ACGTile()
 	CurrentLOD = 10;
 	PreviousLOD = 10;
 
+	mySector = FIntVector2(0, 0);
+
 	//bAlwaysRelevant = true;
 	//bReplicateMovement = true;
 	bReplicates = true;
@@ -32,13 +34,13 @@ uint8 ACGTile::GetCurrentLOD()
 /************************************************************************/
 void ACGTile::RepositionAndHide(uint8 aNewLOD)
 {
-	SetActorLocation(FVector((TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize * Offset.X) - WorldOffset.X, (TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize * Offset.Y) - WorldOffset.Y, 0.0f));
+	SetActorLocation(FVector((TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize * mySector.X) - WorldOffset.X, (TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize * mySector.Y) - WorldOffset.Y, 0.0f));
 
 	CurrentLOD = aNewLOD;
 
 	for (auto& lod : LODStatus)
 	{
-		MeshComponents[lod.Key]->SetVisibility(false);
+		//MeshComponents[lod.Key]->SetVisibility(false);
 	}
 }
 
@@ -93,8 +95,8 @@ void ACGTile::Tick(float DeltaSeconds)
 /************************************************************************/
 void ACGTile::SetupTile(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset)
 {
-	Offset.X = aOffset.X;
-	Offset.Y = aOffset.Y;
+	mySector.X = aOffset.X;
+	mySector.Y = aOffset.Y;
 
 	WorldOffset = aWorldOffset;
 	TerrainConfigMaster = aTerrainConfig;
@@ -191,7 +193,7 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVe
 /************************************************************************/
 FVector ACGTile::GetCentrePos()
 {
-	return  FVector(((Offset.X + 0.5f) * TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize) - WorldOffset.X, ((Offset.Y + 0.5f) * TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize) - WorldOffset.Y, 0.0f);
+	return  FVector(((mySector.X + 0.5f) * TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize) - WorldOffset.X, ((mySector.Y + 0.5f) * TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize) - WorldOffset.Y, 0.0f);
 }
 
 UMaterialInstanceDynamic* ACGTile::GetMaterialInstanceDynamic(const uint8 aLOD)

@@ -10,6 +10,8 @@ struct FCGLODConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Range;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int SectorDistance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	uint8 ResolutionDivisor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool isCollisionEnabled;

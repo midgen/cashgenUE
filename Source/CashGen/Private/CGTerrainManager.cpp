@@ -47,30 +47,186 @@ void ACGTerrainManager::BeginDestroy()
 void ACGTerrainManager::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	myTimeSinceLastSweep += DeltaSeconds;
+
+
+	// Check for pending jobs
+	for (int i = 0; i < myTerrainConfig.NumberOfThreads; i++)
+	{
+		FCGJob pendingJob;
+		if (myPendingJobQueue.Peek(pendingJob))
+		{
+			// If there's free data to allocate, dequeue and send to worker thread
+			if (myFreeMeshData[pendingJob.LOD].Num() > 0)
+			{
+				myPendingJobQueue.Dequeue(pendingJob);
+				GetFreeMeshData(pendingJob);
+				myGeometryJobQueues[i].Enqueue(pendingJob);
+			}
+		}
+	}
+
+	// Now check for Update jobs
+	for (uint8 i = 0; i < myTerrainConfig.MeshUpdatesPerFrame; i++)
+	{
+		FCGJob updateJob;
+		if (myUpdateJobQueue.Dequeue(updateJob))
+		{
+			milliseconds startMs = duration_cast<milliseconds>(
+				system_clock::now().time_since_epoch()
+				);
+
+			updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
+
+			updateJob.Tile->SetActorHiddenInGame(false);
+			int32 updateMS = (duration_cast<milliseconds>(
+				system_clock::now().time_since_epoch()
+				) - startMs).count();
+
+#ifdef UE_BUILD_DEBUG
+			if (updateJob.LOD == 0)
+			{
+				GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Heightmap gen " + FString::FromInt(updateJob.HeightmapGenerationDuration) + "ms"));
+				GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, TEXT("Erosion gen " + FString::FromInt(updateJob.ErosionGenerationDuration) + "ms"));
+				GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Red, TEXT("MeshUpdate " + FString::FromInt(updateMS) + "ms"));
+			}
+#endif
+			ReleaseMeshData(updateJob.LOD, updateJob.Data);
+			myQueuedTiles.Remove(updateJob.Tile);
+		}
+	}
+
+
+	// New actor processing stuff here
+	// Gonna be changed ALOT
+
+
+	if (myTimeSinceLastSweep >= mySweepTime)
+	{
+		// Run through our tracked pawns
+		for (APawn*& pawn : myTrackedPawns)
+		{
+			// Compare current location to previous
+			FIntVector2 oldSector = myPawnLocationMap[pawn];
+			FIntVector2 newSector = GetSector(pawn->GetActorLocation());
+			if (oldSector != newSector)
+			{
+				// Take care of spawning new sectors if necessary
+				HandlePlayerSectorChange(pawn, oldSector, newSector);
+			}
+			// Now run through the timestamp each required sector so it doesn't get released
+			for (FIntVector2& sector : GetRelevantSectorsForActor(pawn))
+			{
+				if (myTileHandleMap.Contains(sector))
+				{
+					myTileHandleMap[sector].myLastRequiredTimestamp = FDateTime::Now();
+				}
+				else
+				{
+					FCGTileHandle tileHandle;
+					tileHandle.myHandle = GetFreeTile();
+					tileHandle.myHandle->SetupTile(sector, &myTerrainConfig, FVector(0.f));
+					tileHandle.myHandle->RepositionAndHide(10);
+					myTileHandleMap.Add(sector, tileHandle);
+
+					FCGJob job;
+					job.Tile = tileHandle.myHandle;
+					job.LOD = 0;
+					job.IsInPlaceUpdate = false;
+
+
+					CreateTileRefreshJob(job);
+				}
+
+			}
+
+		}
+
+		myTimeSinceLastSweep = 0.0f;
+	}
+
+
+
+	for (auto& elem : myTileHandleMap)
+	{
+		// The tile hasn't been required for 5 seconds, free it
+		if (elem.Value.myLastRequiredTimestamp + FTimespan(0, 0, 0, 5, 0) < FDateTime::Now())
+		{
+			FreeTile(elem.Value.myHandle);
+			myTileHandleMap.Remove(elem.Key);
+		}
+		
+	}
+
+
+
+
+}
+
+ACGTile* ACGTerrainManager::GetFreeTile()
+{
+	ACGTile* result = nullptr;
+
+	if (myFreeTiles.Num())
+	{
+		result = myFreeTiles.Pop();
+		//result->SetActorHiddenInGame(false);
+	}
+	
+	
+	if (!result)
+	{
+		//FCGTileHandle tileHandle;
+		result = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(), FVector(0.0f), FRotator(0.0f));
+		//tileHandle.myStatus = ETileStatus::SPAWNED;
+		//tileHandle.myLastRequiredTimestamp = FDateTime::Now();
+	}
+
+	return result;
+}
+
+void ACGTerrainManager::FreeTile(ACGTile* aTile)
+{
+	//aTile->SetActorHiddenInGame(true);
+	myFreeTiles.Push(aTile);
+}
+
+void ACGTerrainManager::HandlePlayerSectorChange(const APawn* aPawn, const FIntVector2& anOldSector, const FIntVector2& aNewSector)
+{
+	GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, TEXT("Sector change "));
+	myPawnLocationMap[aPawn] = aNewSector;
 }
 
 FIntVector2 ACGTerrainManager::GetSector(const FVector& aLocation)
 {
 	FIntVector2 sector;
-	sector.X = static_cast<int32>(aLocation.X) / 1000;
-	sector.Y = static_cast<int32>(aLocation.Y) / 1000;
+	sector.X = static_cast<int32>(aLocation.X) / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize);
+	sector.Y = static_cast<int32>(aLocation.Y) / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize);
 
 	return sector;
 }
 
 
-TArray<FIntVector2> ACGTerrainManager::GetRelevantSectorsForActor(const AActor* anActor)
+TArray<FIntVector2> ACGTerrainManager::GetRelevantSectorsForActor(const APawn* aPawn)
 {
 	TArray<FIntVector2> result;
 
-	FIntVector2 rootSector = GetSector(anActor->GetActorLocation());
+	FIntVector2 rootSector = GetSector(aPawn->GetActorLocation());
 
+	const int range2 = myTerrainConfig.LODs[0].SectorDistance * myTerrainConfig.LODs[0].SectorDistance;
 
-	for (int x = 0; x < 10; x++)
+	for (int x = 0; x < myTerrainConfig.LODs[0].SectorDistance * 3; x++)
 	{
-		for (int y = 0; y < 10; y++)
+		for (int y = 0; y < myTerrainConfig.LODs[0].SectorDistance * 3; y++)
 		{
-			result.Emplace(rootSector.X - 5 + x, rootSector.Y - 5 + y);
+			FIntVector2 newSector = FIntVector2(rootSector.X - 5 + x, rootSector.Y - 5 + y);
+			FIntVector2 diff = newSector - rootSector;
+			if ((diff.X * diff.X + diff.Y * diff.Y) < range2)
+			{
+				result.Add(newSector);
+			}
+			
 		}
 	}
 
@@ -79,17 +235,47 @@ TArray<FIntVector2> ACGTerrainManager::GetRelevantSectorsForActor(const AActor* 
 
 void ACGTerrainManager::SetTerrainConfig(FCGTerrainConfig aTerrainConfig)
 {
+	myTerrainConfig = aTerrainConfig;
 
+	AllocateAllMeshDataStructures();
 }
 
-void ACGTerrainManager::HandlePlayerSectorChange(const uint8 aPlayerID, const FIntVector2& anOldSector, const FIntVector2& aNewSector)
+
+
+void ACGTerrainManager::AddPawn(APawn* aPawn)
 {
+	myTrackedPawns.Add(aPawn);
+	FIntVector2 pawnSector = GetSector(aPawn->GetActorLocation());
+	myPawnLocationMap.Add(aPawn, pawnSector);
+	for (FIntVector2& sector : GetRelevantSectorsForActor(aPawn))
+	{
+			FCGTileHandle tileHandle;
+			tileHandle.myHandle = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(),
+				FVector((myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * sector.X) ,
+				(myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * sector.Y), 0.0f), FRotator(0.0f));
+			tileHandle.myStatus = ETileStatus::SPAWNED;
+			tileHandle.myLastRequiredTimestamp = FDateTime::Now();
 
-}
+			myTileHandleMap.Add(sector, tileHandle);
 
-void ACGTerrainManager::AddPawn()
-{
+			if (!myQueuedTiles.Contains(tileHandle.myHandle))
+			{
+				FCGJob job;
+				job.Tile = tileHandle.myHandle;
+				job.LOD = 0;
+				job.IsInPlaceUpdate = true;
 
+				tileHandle.myHandle->SetupTile(sector, &myTerrainConfig, FVector(0.f));
+				tileHandle.myHandle->RepositionAndHide(10);
+
+				CreateTileRefreshJob(job);
+			}
+
+		
+
+		
+
+	}
 }
 
 
@@ -98,7 +284,7 @@ void ACGTerrainManager::CreateTileRefreshJob(FCGJob aJob)
 	if (aJob.LOD != 10)
 	{
 		myPendingJobQueue.Enqueue(aJob);
-		QueuedTiles.Add(aJob.Tile);
+		myQueuedTiles.Add(aJob.Tile);
 	}
 
 }

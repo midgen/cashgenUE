@@ -28,13 +28,16 @@ class ACGTile : public AActor
 
 	USphereComponent* SphereComponent;
 
+
 public:
 	ACGTile();
 	~ACGTile();
 
 public:
 
-	FIntVector2 Offset;
+	FIntVector2 mySector;
+	
+
 	FVector WorldOffset;
 	FCGTerrainConfig* TerrainConfigMaster;
 
