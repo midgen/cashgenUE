@@ -20,7 +20,7 @@
 			"Type": "Developer",
 			"LoadingPhase": "Default"
 		}
-	]
+	],
 	"Plugins": [
 		{
 			"Name": "RuntimeMeshComponent",
