@@ -5,7 +5,7 @@
 #include "CGMeshdata.generated.h"
 
 /** Defines the data required for a single procedural mesh section */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FCGMeshData
 {
 	GENERATED_USTRUCT_BODY()

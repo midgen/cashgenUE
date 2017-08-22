@@ -7,7 +7,7 @@
 
 
 /** Struct defines all applicable attributes for managing generation of a single zone */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FCGTerrainConfig
 {
 	GENERATED_USTRUCT_BODY()

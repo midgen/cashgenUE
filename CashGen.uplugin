@@ -21,4 +21,14 @@
 			"LoadingPhase": "Default"
 		}
 	]
+	"Plugins": [
+		{
+			"Name": "RuntimeMeshComponent",
+			"Enabled": true
+		},
+		{
+			"Name": "UnrealFastNoisePlugin",
+			"Enabled": true
+		}
+	]	
 }

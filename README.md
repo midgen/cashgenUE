@@ -1,5 +1,5 @@
 # cashgenUE
-Procedural Terrain Generator for UnrealEngine 4.15
+Procedural Terrain Generator for UnrealEngine 4.17
 
 This plugin generates heightmap-based terrain tiles in realtime, and move the tiles around to track a player pawn. 
 

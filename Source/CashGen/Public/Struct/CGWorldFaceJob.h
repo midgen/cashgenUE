@@ -5,7 +5,7 @@
 class ACGWorldFace;
 struct FCGWorldMeshData;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FCGWorldFaceJob
 {
 	GENERATED_USTRUCT_BODY()
