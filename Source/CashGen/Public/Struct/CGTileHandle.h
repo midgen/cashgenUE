@@ -2,6 +2,8 @@
 #include "cashgen.h"
 #include "CGTileHandle.generated.h"
 
+class ACGTile;
+
 UENUM(BlueprintType)
 enum class ETileStatus : uint8
 {

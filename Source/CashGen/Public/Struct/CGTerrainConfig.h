@@ -55,6 +55,8 @@ struct FCGTerrainConfig
 		uint8 MeshUpdatesPerFrame = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
 		FTimespan TileReleaseDelay;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
+		float TileSweepTime;
 	/** Material for the terrain mesh */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Materials")
 	UMaterial* TerrainMaterial;

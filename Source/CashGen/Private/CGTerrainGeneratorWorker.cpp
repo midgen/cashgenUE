@@ -121,8 +121,8 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 	{
 		for (int y = 0; y < exY; ++y)
 		{
-			int32 worldX = (((workJob.Tile->mySector.X * (exX - 3)) + x) * exUnitSize);
-			int32 worldY = (((workJob.Tile->mySector.Y * (exX - 3)) + y) * exUnitSize);
+			int32 worldX = (((workJob.myTileHandle.myHandle->mySector.X * (exX - 3)) + x) * exUnitSize);
+			int32 worldY = (((workJob.myTileHandle.myHandle->mySector.Y * (exX - 3)) + y) * exUnitSize);
 
 			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
 
@@ -137,8 +137,8 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 		{
 			for (int y = 0; y < exY; ++y)
 			{
-				int32 worldX = (((workJob.Tile->mySector.X * (exX - 1)) + x) * exUnitSize);
-				int32 worldY = (((workJob.Tile->mySector.Y * (exX - 1)) + y) * exUnitSize);
+				int32 worldX = (((workJob.myTileHandle.myHandle->mySector.X * (exX - 1)) + x) * exUnitSize);
+				int32 worldY = (((workJob.myTileHandle.myHandle->mySector.Y * (exX - 1)) + y) * exUnitSize);
 				float val = pTerrainConfig->BiomeBlendGenerator->GetNoise2D(worldX, worldY);
 
 				(*pVertexColors)[x + (exX*y)].G = FMath::Clamp(FMath::FloorToInt(((val + 1.0f) / 2.0f) * 128), 0, 255);

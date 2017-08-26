@@ -36,6 +36,11 @@ struct FIntVector2
 		return (X != Src.X) || (Y != Src.Y);
 	}
 
+	FString ToString()
+	{
+		return "[" + FString::FromInt(X) + ":" + FString::FromInt(Y) + "]";
+	}
+
 	friend FORCEINLINE uint32 GetTypeHash(const FIntVector2& point)
 	{
 		return FCrc::MemCrc_DEPRECATED(&point, sizeof(FIntVector2));

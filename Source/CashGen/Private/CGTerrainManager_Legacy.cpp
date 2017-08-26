@@ -91,9 +91,9 @@ void ACGTerrainManager_Legacy::Tick(float DeltaSeconds)
 					system_clock::now().time_since_epoch()
 					);
 
-				updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
+				//updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
 
-				OnTileMeshUpdated.Broadcast(updateJob.Tile);
+				//OnTileMeshUpdated.Broadcast(updateJob.Tile);
 
 				int32 updateMS = (duration_cast<milliseconds>(
 					system_clock::now().time_since_epoch()
@@ -108,7 +108,7 @@ void ACGTerrainManager_Legacy::Tick(float DeltaSeconds)
 				}
 #endif
 				ReleaseMeshData(updateJob.LOD, updateJob.Data);
-				QueuedTiles.Remove(updateJob.Tile);
+				//QueuedTiles.Remove(updateJob.Tile);
 			}
 		}
 
@@ -148,7 +148,7 @@ void ACGTerrainManager_Legacy::SweepLODs()
 		if (tile->GetCurrentLOD() > newLOD && !QueuedTiles.Contains(tile))
 		{
 			FCGJob newJob;
-			newJob.Tile = tile;
+			//newJob.Tile = tile;
 			newJob.LOD = newLOD;
 			newJob.IsInPlaceUpdate = true;
 			CreateTileRefreshJob(newJob);
@@ -197,7 +197,7 @@ void ACGTerrainManager_Legacy::CreateTileRefreshJob(FCGJob aJob)
 	if (aJob.LOD != 10)
 	{
 		PendingJobs.Enqueue(aJob);
-		QueuedTiles.Add(aJob.Tile);
+		//QueuedTiles.Add(aJob.Tile);
 	}
 
 }
@@ -244,26 +244,26 @@ void ACGTerrainManager_Legacy::HandleTileFlip_Implementation(int32 sectorX, int3
 		if (sectorX < -0.1 && tile->mySector.X == maxX) {
 			tile->mySector.X = minX - 1;
 			tile->RepositionAndHide(GetLODForTile(tile));
-			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
-			CreateTileRefreshJob(job);
+			//FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
+			//CreateTileRefreshJob(job);
 		}
 		else if (sectorX > 0.1 && tile->mySector.X == minX) {
 			tile->mySector.X = maxX + 1;
 			tile->RepositionAndHide(GetLODForTile(tile));
-			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
-			CreateTileRefreshJob(job);
+			//FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
+			//CreateTileRefreshJob(job);
 		}
 		if (sectorY < -0.1 && tile->mySector.Y == maxY) {
 			tile->mySector.Y = minY - 1;
 			tile->RepositionAndHide(GetLODForTile(tile));
-			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
-			CreateTileRefreshJob(job);
+			//FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
+			//CreateTileRefreshJob(job);
 		}
 		else if (sectorY > 0.1 && tile->mySector.Y == minY) {
 			tile->mySector.Y = maxY + 1;
 			tile->RepositionAndHide(GetLODForTile(tile));
-			FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
-			CreateTileRefreshJob(job);
+			//FCGJob job; job.Tile = tile; job.LOD = GetLODForTile(tile); job.IsInPlaceUpdate = false;
+			//CreateTileRefreshJob(job);
 		}
 	}
 }

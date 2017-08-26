@@ -77,9 +77,9 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 				system_clock::now().time_since_epoch()
 				);
 
-			updateJob.Tile->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
+			updateJob.myTileHandle.myHandle->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
 
-			updateJob.Tile->SetActorHiddenInGame(false);
+			updateJob.myTileHandle.myHandle->SetActorHiddenInGame(false);
 			int32 updateMS = (duration_cast<milliseconds>(
 				system_clock::now().time_since_epoch()
 				) - startMs).count();
@@ -93,16 +93,20 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			}
 #endif
 			ReleaseMeshData(updateJob.LOD, updateJob.Data);
-			myQueuedTiles.Remove(updateJob.Tile);
+			myQueuedSectors.Remove(updateJob.mySector);
 		}
 	}
 
+	for (APawn*& pawn : myTrackedPawns)
+	{
+		GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, GetSector(pawn->GetActorLocation()).ToString());
+	}
 
 	// New actor processing stuff here
 	// Gonna be changed ALOT
 
 
-	if (myTimeSinceLastSweep >= mySweepTime)
+	if (myTimeSinceLastSweep > myTerrainConfig.TileSweepTime)
 	{
 		// Run through our tracked pawns
 		for (APawn*& pawn : myTrackedPawns)
@@ -114,33 +118,32 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			{
 				// Take care of spawning new sectors if necessary
 				HandlePlayerSectorChange(pawn, oldSector, newSector);
-			}
-			// Now run through the timestamp each required sector so it doesn't get released
-			for (FIntVector2& sector : GetRelevantSectorsForActor(pawn))
-			{
-				if (myTileHandleMap.Contains(sector))
+
+
+				for (FIntVector2& sector : GetRelevantSectorsForActor(pawn))
 				{
-					myTileHandleMap[sector].myLastRequiredTimestamp = FDateTime::Now();
+					if (myTileHandleMap.Contains(sector))
+					{
+						myTileHandleMap[sector].myLastRequiredTimestamp = FDateTime::Now();
+					}
+					else //if (!myQueuedSectors.Contains(sector))
+					{
+						FCGTileHandle tileHandle;
+						tileHandle.myHandle = GetFreeTile();
+						tileHandle.myHandle->SetupTile(sector, &myTerrainConfig, FVector(0.f));
+						tileHandle.myHandle->RepositionAndHide(0);
+						myTileHandleMap.Add(sector, tileHandle);
+
+						FCGJob job;
+						job.myTileHandle = tileHandle;
+						job.mySector = sector;
+						job.LOD = 0;
+						job.IsInPlaceUpdate = false;
+
+						CreateTileRefreshJob(job);
+					}
 				}
-				else
-				{
-					FCGTileHandle tileHandle;
-					tileHandle.myHandle = GetFreeTile();
-					tileHandle.myHandle->SetupTile(sector, &myTerrainConfig, FVector(0.f));
-					tileHandle.myHandle->RepositionAndHide(10);
-					myTileHandleMap.Add(sector, tileHandle);
-
-					FCGJob job;
-					job.Tile = tileHandle.myHandle;
-					job.LOD = 0;
-					job.IsInPlaceUpdate = false;
-
-
-					CreateTileRefreshJob(job);
-				}
-
 			}
-
 		}
 
 		myTimeSinceLastSweep = 0.0f;
@@ -150,18 +153,14 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 
 	for (auto& elem : myTileHandleMap)
 	{
-		// The tile hasn't been required for 5 seconds, free it
-		if (elem.Value.myLastRequiredTimestamp + FTimespan(0, 0, 0, 5, 0) < FDateTime::Now())
+		// The tile hasn't been required  free it
+		if (elem.Value.myLastRequiredTimestamp + myTerrainConfig.TileReleaseDelay < FDateTime::Now())
 		{
 			FreeTile(elem.Value.myHandle);
 			myTileHandleMap.Remove(elem.Key);
 		}
 		
 	}
-
-
-
-
 }
 
 ACGTile* ACGTerrainManager::GetFreeTile()
@@ -171,16 +170,12 @@ ACGTile* ACGTerrainManager::GetFreeTile()
 	if (myFreeTiles.Num())
 	{
 		result = myFreeTiles.Pop();
-		//result->SetActorHiddenInGame(false);
 	}
 	
 	
 	if (!result)
 	{
-		//FCGTileHandle tileHandle;
 		result = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(), FVector(0.0f), FRotator(0.0f));
-		//tileHandle.myStatus = ETileStatus::SPAWNED;
-		//tileHandle.myLastRequiredTimestamp = FDateTime::Now();
 	}
 
 	return result;
@@ -188,7 +183,6 @@ ACGTile* ACGTerrainManager::GetFreeTile()
 
 void ACGTerrainManager::FreeTile(ACGTile* aTile)
 {
-	//aTile->SetActorHiddenInGame(true);
 	myFreeTiles.Push(aTile);
 }
 
@@ -201,8 +195,8 @@ void ACGTerrainManager::HandlePlayerSectorChange(const APawn* aPawn, const FIntV
 FIntVector2 ACGTerrainManager::GetSector(const FVector& aLocation)
 {
 	FIntVector2 sector;
-	sector.X = static_cast<int32>(aLocation.X) / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize);
-	sector.Y = static_cast<int32>(aLocation.Y) / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize);
+	sector.X = static_cast<int32>((aLocation.X + myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.5f) / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize));
+	sector.Y = static_cast<int32>((aLocation.Y + myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.5f) / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize));
 
 	return sector;
 }
@@ -258,10 +252,10 @@ void ACGTerrainManager::AddPawn(APawn* aPawn)
 
 			myTileHandleMap.Add(sector, tileHandle);
 
-			if (!myQueuedTiles.Contains(tileHandle.myHandle))
+			if (!myQueuedSectors.Contains(sector))
 			{
 				FCGJob job;
-				job.Tile = tileHandle.myHandle;
+				job.myTileHandle = tileHandle;
 				job.LOD = 0;
 				job.IsInPlaceUpdate = true;
 
@@ -284,7 +278,7 @@ void ACGTerrainManager::CreateTileRefreshJob(FCGJob aJob)
 	if (aJob.LOD != 10)
 	{
 		myPendingJobQueue.Enqueue(aJob);
-		myQueuedTiles.Add(aJob.Tile);
+		myQueuedSectors.Add(aJob.mySector);
 	}
 
 }

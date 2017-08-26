@@ -28,7 +28,7 @@ class ACGTerrainManager : public AActor
 	TQueue<FCGJob, EQueueMode::Spsc> myPendingJobQueue;
 	TArray<TQueue<FCGJob, EQueueMode::Spsc>> myGeometryJobQueues;
 
-	TSet<ACGTile*> myQueuedTiles;
+	TSet<FIntVector2> myQueuedSectors;
 	TArray<ACGTile*> myFreeTiles;
 
 	UPROPERTY()

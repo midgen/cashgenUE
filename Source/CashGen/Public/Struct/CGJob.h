@@ -1,6 +1,7 @@
 #pragma once
 #include "RuntimeMeshComponent.h"
 #include "Struct/IntVector2.h"
+#include "Struct/CGTileHandle.h"
 #include "CGJob.generated.h"
 
 class ACGTile;
@@ -11,10 +12,10 @@ struct FCGJob
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ACGTile* Tile;
 
 	FIntVector2 mySector;
+	
+	FCGTileHandle myTileHandle;
 
 	FCGMeshData* Data;
 
