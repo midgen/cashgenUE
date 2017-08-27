@@ -72,5 +72,5 @@ struct FCGTerrainConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | LODs")
 	TArray<FCGLODConfig> LODs;
 
-	FVector tileOffSet;
+	FVector TileOffset;
 };

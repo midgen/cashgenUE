@@ -34,7 +34,7 @@ uint8 ACGTile::GetCurrentLOD()
 /************************************************************************/
 void ACGTile::RepositionAndHide(uint8 aNewLOD)
 {
-	SetActorLocation(FVector((TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize * mySector.X) - WorldOffset.X, (TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize * mySector.Y) - WorldOffset.Y, 0.0f));
+	SetActorLocation(FVector((TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize * mySector.X) - TerrainConfigMaster->TileOffset.X, (TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize * mySector.Y) - TerrainConfigMaster->TileOffset.Y, 0.0f));
 
 	CurrentLOD = aNewLOD;
 

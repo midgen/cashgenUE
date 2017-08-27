@@ -207,8 +207,12 @@ void ACGTerrainManager::HandlePlayerSectorChange(const APawn* aPawn, const FIntV
 FIntVector2 ACGTerrainManager::GetSector(const FVector& aLocation)
 {
 	FIntVector2 sector;
-	sector.X = static_cast<int32>(aLocation.X / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize));
-	sector.Y = static_cast<int32>(aLocation.Y / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize));
+	//sector.X = static_cast<int32>(aLocation.X / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize));
+	//sector.Y = static_cast<int32>(aLocation.Y / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize));
+
+
+	sector.X = FMath::Round(aLocation.X / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize));
+	sector.Y = FMath::Round(aLocation.Y / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize));
 
 	return sector;
 }
@@ -219,16 +223,19 @@ TArray<FIntVector2> ACGTerrainManager::GetRelevantSectorsForActor(const APawn* a
 	TArray<FIntVector2> result;
 
 	FIntVector2 rootSector = GetSector(aPawn->GetActorLocation());
+	
+	// Always include the sector the pawn is in
+	result.Add(rootSector);
 
 	const int range2 = myTerrainConfig.LODs[0].SectorDistance * myTerrainConfig.LODs[0].SectorDistance;
 
-	for (int x = 0; x < myTerrainConfig.LODs[0].SectorDistance * 3; x++)
+	for (int x = 0; x < myTerrainConfig.LODs[0].SectorDistance * 2.5; x++)
 	{
-		for (int y = 0; y < myTerrainConfig.LODs[0].SectorDistance * 3; y++)
+		for (int y = 0; y < myTerrainConfig.LODs[0].SectorDistance * 2.5; y++)
 		{
-			FIntVector2 newSector = FIntVector2(rootSector.X - 5 + x, rootSector.Y - 5 + y);
+			FIntVector2 newSector = FIntVector2(rootSector.X - myTerrainConfig.LODs[0].SectorDistance + x, rootSector.Y -myTerrainConfig.LODs[0].SectorDistance + y);
 			FIntVector2 diff = newSector - rootSector;
-			if ((diff.X * diff.X + diff.Y * diff.Y) < range2)
+			if ((diff.X * diff.X + diff.Y * diff.Y) < range2 && !(newSector == rootSector))
 			{
 				result.Add(newSector);
 			}
@@ -243,7 +250,7 @@ void ACGTerrainManager::SetTerrainConfig(FCGTerrainConfig aTerrainConfig)
 {
 	myTerrainConfig = aTerrainConfig;
 
-	myTerrainConfig.tileOffSet = FVector(myTerrainConfig.UnitSize * myTerrainConfig.TileXUnits * 0.5f, myTerrainConfig.UnitSize * myTerrainConfig.TileYUnits * 0.5f, 0.0f);
+	myTerrainConfig.TileOffset = FVector(myTerrainConfig.UnitSize * myTerrainConfig.TileXUnits * 0.5f, myTerrainConfig.UnitSize * myTerrainConfig.TileYUnits * 0.5f, 0.0f);
 
 	AllocateAllMeshDataStructures();
 }
@@ -255,12 +262,15 @@ void ACGTerrainManager::AddPawn(APawn* aPawn)
 	myTrackedPawns.Add(aPawn);
 	FIntVector2 pawnSector = GetSector(aPawn->GetActorLocation());
 	myPawnLocationMap.Add(aPawn, pawnSector);
+
 	for (FIntVector2& sector : GetRelevantSectorsForActor(aPawn))
 	{
 			FCGTileHandle tileHandle;
+			FActorSpawnParameters spawnParameters;
+			spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			tileHandle.myHandle = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(),
-				FVector((myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * sector.X) ,
-				(myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * sector.Y), 0.0f), FRotator(0.0f));
+				FVector((myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * sector.X),
+				(myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * sector.Y), 0.0f), FRotator(0.0f), spawnParameters);
 			tileHandle.myStatus = ETileStatus::SPAWNED;
 			tileHandle.myLastRequiredTimestamp = FDateTime::Now();
 
