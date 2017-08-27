@@ -15,8 +15,8 @@ class ACGTerrainManager : public AActor
 {
 	GENERATED_BODY()
 
-	TArray<APawn*> myTrackedPawns;
-	TMap<APawn*, FIntVector2> myPawnLocationMap;
+	TArray<AActor*> myTrackedActors;
+	TMap<AActor*, FIntVector2> myActorLocationMap;
 
 	TArray<FRunnableThread*> myWorkerThreads;
 
@@ -52,7 +52,7 @@ class ACGTerrainManager : public AActor
 
 
 	FIntVector2 GetSector(const FVector& aLocation);
-	TArray<FIntVector2> GetRelevantSectorsForActor(const APawn* aPawn);
+	TArray<FIntVector2> GetRelevantSectorsForActor(const AActor* aActor);
 
 
 	float myTimeSinceLastSweep = 0.0f;
@@ -71,15 +71,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
 	void SetTerrainConfig(FCGTerrainConfig aTerrainConfig);
 
-	void HandlePlayerSectorChange(const APawn* aPawn, const FIntVector2& anOldSector, const FIntVector2& aNewSector);
+	void HandlePlayerSectorChange(const AActor* aActor, const FIntVector2& anOldSector, const FIntVector2& aNewSector);
 
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
-	void AddPawn(APawn* aPawn);
+	void AddPawn(AActor* aActor);
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	void BeginDestroy() override;
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void SpawnTerrain(APawn* aPawn);
+	void SpawnTerrain(AActor* aActor);
 };

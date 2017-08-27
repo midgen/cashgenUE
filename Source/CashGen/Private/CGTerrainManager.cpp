@@ -97,9 +97,9 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		}
 	}
 
-	for (APawn*& pawn : myTrackedPawns)
+	for (AActor*& actor : myTrackedActors)
 	{
-		GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, GetSector(pawn->GetActorLocation()).ToString());
+		GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, GetSector(actor->GetActorLocation()).ToString());
 	}
 
 	// New actor processing stuff here
@@ -109,18 +109,18 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 	if (myTimeSinceLastSweep > myTerrainConfig.TileSweepTime)
 	{
 		// Run through our tracked pawns
-		for (APawn*& pawn : myTrackedPawns)
+		for (AActor*& actor : myTrackedActors)
 		{
 			// Compare current location to previous
-			FIntVector2 oldSector = myPawnLocationMap[pawn];
-			FIntVector2 newSector = GetSector(pawn->GetActorLocation());
+			FIntVector2 oldSector = myActorLocationMap[actor];
+			FIntVector2 newSector = GetSector(actor->GetActorLocation());
 			if (oldSector != newSector)
 			{
 				// Take care of spawning new sectors if necessary
-				HandlePlayerSectorChange(pawn, oldSector, newSector);
+				HandlePlayerSectorChange(actor, oldSector, newSector);
 
 
-				for (FIntVector2& sector : GetRelevantSectorsForActor(pawn))
+				for (FIntVector2& sector : GetRelevantSectorsForActor(actor))
 				{
 					if (myTileHandleMap.Contains(sector))
 					{
@@ -147,7 +147,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			}
 			else
 			{
-				for (FIntVector2& sector : GetRelevantSectorsForActor(pawn))
+				for (FIntVector2& sector : GetRelevantSectorsForActor(actor))
 				{
 					if (myTileHandleMap.Contains(sector))
 					{
@@ -198,10 +198,10 @@ void ACGTerrainManager::FreeTile(ACGTile* aTile)
 	myFreeTiles.Push(aTile);
 }
 
-void ACGTerrainManager::HandlePlayerSectorChange(const APawn* aPawn, const FIntVector2& anOldSector, const FIntVector2& aNewSector)
+void ACGTerrainManager::HandlePlayerSectorChange(const AActor* aActor, const FIntVector2& anOldSector, const FIntVector2& aNewSector)
 {
 	GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, TEXT("Sector change "));
-	myPawnLocationMap[aPawn] = aNewSector;
+	myActorLocationMap[aActor] = aNewSector;
 }
 
 FIntVector2 ACGTerrainManager::GetSector(const FVector& aLocation)
@@ -215,11 +215,11 @@ FIntVector2 ACGTerrainManager::GetSector(const FVector& aLocation)
 }
 
 
-TArray<FIntVector2> ACGTerrainManager::GetRelevantSectorsForActor(const APawn* aPawn)
+TArray<FIntVector2> ACGTerrainManager::GetRelevantSectorsForActor(const AActor* aActor)
 {
 	TArray<FIntVector2> result;
 
-	FIntVector2 rootSector = GetSector(aPawn->GetActorLocation());
+	FIntVector2 rootSector = GetSector(aActor->GetActorLocation());
 	
 	// Always include the sector the pawn is in
 	result.Add(rootSector);
@@ -254,11 +254,11 @@ void ACGTerrainManager::SetTerrainConfig(FCGTerrainConfig aTerrainConfig)
 	isReady = true;
 }
 
-void ACGTerrainManager::AddPawn(APawn* aPawn)
+void ACGTerrainManager::AddPawn(AActor* aPawn)
 {
-	myTrackedPawns.Add(aPawn);
+	myTrackedActors.Add(aPawn);
 	FIntVector2 pawnSector = GetSector(aPawn->GetActorLocation());
-	myPawnLocationMap.Add(aPawn, pawnSector);
+	myActorLocationMap.Add(aPawn, pawnSector);
 
 	for (FIntVector2& sector : GetRelevantSectorsForActor(aPawn))
 	{
@@ -293,11 +293,11 @@ void ACGTerrainManager::AddPawn(APawn* aPawn)
 	}
 }
 
-bool ACGTerrainManager::SpawnTerrain_Validate(APawn* aPawn) { return true; }
+bool ACGTerrainManager::SpawnTerrain_Validate(AActor* aActor) { return true; }
 
-void ACGTerrainManager::SpawnTerrain_Implementation(APawn* aPawn)
+void ACGTerrainManager::SpawnTerrain_Implementation(AActor* aActor)
 {
-	AddPawn(aPawn);
+	AddPawn(aActor);
 }
 
 
