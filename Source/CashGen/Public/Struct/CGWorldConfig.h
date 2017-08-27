@@ -5,7 +5,7 @@
 
 
 /** Struct defines all applicable attributes for managing generation of a single world */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FCGWorldConfig
 {
 	GENERATED_USTRUCT_BODY()

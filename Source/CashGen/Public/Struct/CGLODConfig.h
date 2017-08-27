@@ -2,7 +2,7 @@
 #pragma once
 #include "CGLODConfig.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FCGLODConfig
 {
 	GENERATED_USTRUCT_BODY()

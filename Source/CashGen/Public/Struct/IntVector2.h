@@ -43,7 +43,7 @@ struct FIntVector2
 
 	friend FORCEINLINE uint32 GetTypeHash(const FIntVector2& point)
 	{
-		return FCrc::MemCrc_DEPRECATED(&point, sizeof(FIntVector2));
+		return FCrc::MemCrc32(&point, sizeof(FIntVector2));
 	}
 
 };

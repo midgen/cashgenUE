@@ -7,7 +7,7 @@
 class ACGTile;
 struct FCGMeshData;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FCGJob
 {
 	GENERATED_USTRUCT_BODY()

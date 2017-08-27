@@ -1,7 +1,7 @@
 #pragma once
 #include "CGLODMeshData.generated.h"
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FCGLODMeshData
 {
 	GENERATED_USTRUCT_BODY()

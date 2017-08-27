@@ -132,6 +132,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 						tileHandle.myHandle = GetFreeTile();
 						tileHandle.myHandle->SetupTile(sector, &myTerrainConfig, FVector(0.f));
 						tileHandle.myHandle->RepositionAndHide(0);
+						tileHandle.myLastRequiredTimestamp = FDateTime::Now();
 						myTileHandleMap.Add(sector, tileHandle);
 
 						FCGJob job;
@@ -141,6 +142,16 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 						job.IsInPlaceUpdate = false;
 
 						CreateTileRefreshJob(job);
+					}
+				}
+			}
+			else
+			{
+				for (FIntVector2& sector : GetRelevantSectorsForActor(pawn))
+				{
+					if (myTileHandleMap.Contains(sector))
+					{
+						myTileHandleMap[sector].myLastRequiredTimestamp = FDateTime::Now();
 					}
 				}
 			}
@@ -175,7 +186,7 @@ ACGTile* ACGTerrainManager::GetFreeTile()
 	
 	if (!result)
 	{
-		result = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(), FVector(0.0f), FRotator(0.0f));
+		result = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(), FVector(0.0f, 0.0f, -10000.0f), FRotator(0.0f));
 	}
 
 	return result;
@@ -183,6 +194,7 @@ ACGTile* ACGTerrainManager::GetFreeTile()
 
 void ACGTerrainManager::FreeTile(ACGTile* aTile)
 {
+	aTile->SetActorHiddenInGame(true);
 	myFreeTiles.Push(aTile);
 }
 
@@ -195,8 +207,8 @@ void ACGTerrainManager::HandlePlayerSectorChange(const APawn* aPawn, const FIntV
 FIntVector2 ACGTerrainManager::GetSector(const FVector& aLocation)
 {
 	FIntVector2 sector;
-	sector.X = static_cast<int32>((aLocation.X + myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.5f) / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize));
-	sector.Y = static_cast<int32>((aLocation.Y + myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.5f) / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize));
+	sector.X = static_cast<int32>(aLocation.X / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize));
+	sector.Y = static_cast<int32>(aLocation.Y / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize));
 
 	return sector;
 }
@@ -230,6 +242,8 @@ TArray<FIntVector2> ACGTerrainManager::GetRelevantSectorsForActor(const APawn* a
 void ACGTerrainManager::SetTerrainConfig(FCGTerrainConfig aTerrainConfig)
 {
 	myTerrainConfig = aTerrainConfig;
+
+	myTerrainConfig.tileOffSet = FVector(myTerrainConfig.UnitSize * myTerrainConfig.TileXUnits * 0.5f, myTerrainConfig.UnitSize * myTerrainConfig.TileYUnits * 0.5f, 0.0f);
 
 	AllocateAllMeshDataStructures();
 }
