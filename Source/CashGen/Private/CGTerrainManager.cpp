@@ -97,9 +97,11 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		}
 	}
 
+	int i = 0;
 	for (AActor*& actor : myTrackedActors)
 	{
-		GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, GetSector(actor->GetActorLocation()).ToString());
+		GEngine->AddOnScreenDebugMessage(i, 5.f, FColor::Red, GetSector(actor->GetActorLocation()).ToString());
+		i++;
 	}
 
 	// New actor processing stuff here
@@ -200,7 +202,7 @@ void ACGTerrainManager::FreeTile(ACGTile* aTile)
 
 void ACGTerrainManager::HandlePlayerSectorChange(const AActor* aActor, const FIntVector2& anOldSector, const FIntVector2& aNewSector)
 {
-	GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Green, TEXT("Sector change "));
+	GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Green, TEXT("Sector change "));
 	myActorLocationMap[aActor] = aNewSector;
 }
 
@@ -226,9 +228,9 @@ TArray<FIntVector2> ACGTerrainManager::GetRelevantSectorsForActor(const AActor* 
 
 	const int range2 = myTerrainConfig.LODs[0].SectorDistance * myTerrainConfig.LODs[0].SectorDistance;
 
-	for (int x = 0; x < myTerrainConfig.LODs[0].SectorDistance * 2.5; x++)
+	for (int x = 0; x < myTerrainConfig.LODs[0].SectorDistance * 3; x++)
 	{
-		for (int y = 0; y < myTerrainConfig.LODs[0].SectorDistance * 2.5; y++)
+		for (int y = 0; y < myTerrainConfig.LODs[0].SectorDistance * 3; y++)
 		{
 			FIntVector2 newSector = FIntVector2(rootSector.X - myTerrainConfig.LODs[0].SectorDistance + x, rootSector.Y -myTerrainConfig.LODs[0].SectorDistance + y);
 			FIntVector2 diff = newSector - rootSector;
