@@ -63,6 +63,9 @@ public:
 	ACGTerrainManager();
 	~ACGTerrainManager();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CashGen")
+	bool isReady = false;
+
 	TQueue<FCGJob, EQueueMode::Mpsc> myUpdateJobQueue;
 	
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
@@ -76,4 +79,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	void BeginDestroy() override;
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void SpawnTerrain(APawn* aPawn);
 };

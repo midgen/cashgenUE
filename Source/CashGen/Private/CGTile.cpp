@@ -14,9 +14,7 @@ ACGTile::ACGTile()
 
 	mySector = FIntVector2(0, 0);
 
-	//bAlwaysRelevant = true;
-	//bReplicateMovement = true;
-	bReplicates = true;
+	
 }
 
 ACGTile::~ACGTile()
@@ -37,17 +35,7 @@ void ACGTile::RepositionAndHide(uint8 aNewLOD)
 	SetActorLocation(FVector((TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize * mySector.X) - TerrainConfigMaster->TileOffset.X, (TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize * mySector.Y) - TerrainConfigMaster->TileOffset.Y, 0.0f));
 
 	CurrentLOD = aNewLOD;
-
-	for (auto& lod : LODStatus)
-	{
-		//MeshComponents[lod.Key]->SetVisibility(false);
-	}
 }
-
-//bool ACGTile::RepositionAndHide_Validate(uint8 aNewLOD)
-//{
-//	return true;
-//}
 
 void ACGTile::BeginPlay()
 {

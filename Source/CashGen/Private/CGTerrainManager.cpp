@@ -206,10 +206,7 @@ void ACGTerrainManager::HandlePlayerSectorChange(const APawn* aPawn, const FIntV
 
 FIntVector2 ACGTerrainManager::GetSector(const FVector& aLocation)
 {
-	FIntVector2 sector;
-	//sector.X = static_cast<int32>(aLocation.X / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize));
-	//sector.Y = static_cast<int32>(aLocation.Y / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize));
-
+	FIntVector2 sector;;
 
 	sector.X = FMath::Round(aLocation.X / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize));
 	sector.Y = FMath::Round(aLocation.Y / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize));
@@ -253,9 +250,9 @@ void ACGTerrainManager::SetTerrainConfig(FCGTerrainConfig aTerrainConfig)
 	myTerrainConfig.TileOffset = FVector(myTerrainConfig.UnitSize * myTerrainConfig.TileXUnits * 0.5f, myTerrainConfig.UnitSize * myTerrainConfig.TileYUnits * 0.5f, 0.0f);
 
 	AllocateAllMeshDataStructures();
+
+	isReady = true;
 }
-
-
 
 void ACGTerrainManager::AddPawn(APawn* aPawn)
 {
@@ -294,6 +291,13 @@ void ACGTerrainManager::AddPawn(APawn* aPawn)
 		
 
 	}
+}
+
+bool ACGTerrainManager::SpawnTerrain_Validate(APawn* aPawn) { return true; }
+
+void ACGTerrainManager::SpawnTerrain_Implementation(APawn* aPawn)
+{
+	AddPawn(aPawn);
 }
 
 
