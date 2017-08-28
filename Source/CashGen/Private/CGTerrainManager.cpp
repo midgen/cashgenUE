@@ -228,19 +228,21 @@ TArray<FIntVector2> ACGTerrainManager::GetRelevantSectorsForActor(const AActor* 
 
 	const int range2 = myTerrainConfig.LODs[0].SectorDistance * myTerrainConfig.LODs[0].SectorDistance;
 
-	for (int x = 0; x < myTerrainConfig.LODs[0].SectorDistance * 3; x++)
+	for (int x = 0; x < myTerrainConfig.LODs[0].SectorDistance * 2; x++)
 	{
-		for (int y = 0; y < myTerrainConfig.LODs[0].SectorDistance * 3; y++)
+		for (int y = 0; y < myTerrainConfig.LODs[0].SectorDistance * 2; y++)
 		{
 			FIntVector2 newSector = FIntVector2(rootSector.X - myTerrainConfig.LODs[0].SectorDistance + x, rootSector.Y -myTerrainConfig.LODs[0].SectorDistance + y);
 			FIntVector2 diff = newSector - rootSector;
-			if ((diff.X * diff.X + diff.Y * diff.Y) < range2 && !(newSector == rootSector))
+			if ((diff.X * diff.X + diff.Y * diff.Y) < range2 && (newSector != rootSector))
 			{
 				result.Add(newSector);
 			}
 			
 		}
 	}
+
+	
 
 	return result;
 }
@@ -278,6 +280,7 @@ void ACGTerrainManager::AddPawn(AActor* aPawn)
 			if (!myQueuedSectors.Contains(sector))
 			{
 				FCGJob job;
+				job.mySector = sector;
 				job.myTileHandle = tileHandle;
 				job.LOD = 0;
 				job.IsInPlaceUpdate = true;
@@ -286,6 +289,10 @@ void ACGTerrainManager::AddPawn(AActor* aPawn)
 				tileHandle.myHandle->RepositionAndHide(10);
 
 				CreateTileRefreshJob(job);
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Green, TEXT("Moooooooooo "));
 			}
 
 		

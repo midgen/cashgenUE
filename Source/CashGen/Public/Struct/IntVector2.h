@@ -21,19 +21,19 @@ struct FIntVector2
 		X = 0; Y = 0;
 	}
 
-	bool operator==(const FIntVector2& Src) const
+	FORCEINLINE bool operator==(const FIntVector2& Src) const
 	{
 		return (X == Src.X) && (Y == Src.Y);
+	}
+
+	FORCEINLINE bool operator!=(const FIntVector2& Src) const
+	{
+		return X != Src.X || Y != Src.Y;
 	}
 
 	FIntVector2 operator-(const FIntVector2& Src) const
 	{
 		return FIntVector2(X - Src.X, Y - Src.Y);
-	}
-
-	bool operator!=(const FIntVector2& Src) const
-	{
-		return (X != Src.X) || (Y != Src.Y);
 	}
 
 	FString ToString()
