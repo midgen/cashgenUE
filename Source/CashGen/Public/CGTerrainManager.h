@@ -44,12 +44,8 @@ class ACGTerrainManager : public AActor
 	ACGTile* GetFreeTile();
 	void FreeTile(ACGTile* aTile);
 
-
 	UPROPERTY()
 	FCGTerrainConfig myTerrainConfig;
-
-
-
 
 	FIntVector2 GetSector(const FVector& aLocation);
 	TArray<FIntVector2> GetRelevantSectorsForActor(const AActor* aActor);
@@ -80,6 +76,6 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	void BeginDestroy() override;
 
-	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void SpawnTerrain(AActor* aActor);
+	//UFUNCTION(NetMulticast, Reliable, WithValidation)
+	//void SpawnTerrain(AActor* aActor);
 };

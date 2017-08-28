@@ -97,16 +97,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		}
 	}
 
-	int i = 0;
-	for (AActor*& actor : myTrackedActors)
-	{
-		GEngine->AddOnScreenDebugMessage(i, 5.f, FColor::Red, GetSector(actor->GetActorLocation()).ToString());
-		i++;
-	}
-
-	// New actor processing stuff here
-	// Gonna be changed ALOT
-
+	// TODO:
 
 	if (myTimeSinceLastSweep > myTerrainConfig.TileSweepTime)
 	{
@@ -202,7 +193,6 @@ void ACGTerrainManager::FreeTile(ACGTile* aTile)
 
 void ACGTerrainManager::HandlePlayerSectorChange(const AActor* aActor, const FIntVector2& anOldSector, const FIntVector2& aNewSector)
 {
-	GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Green, TEXT("Sector change "));
 	myActorLocationMap[aActor] = aNewSector;
 }
 
@@ -210,8 +200,8 @@ FIntVector2 ACGTerrainManager::GetSector(const FVector& aLocation)
 {
 	FIntVector2 sector;;
 
-	sector.X = FMath::Round(aLocation.X / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize));
-	sector.Y = FMath::Round(aLocation.Y / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize));
+	sector.X = FMath::RoundToInt(aLocation.X / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize));
+	sector.Y = FMath::RoundToInt(aLocation.Y / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize));
 
 	return sector;
 }
@@ -290,10 +280,6 @@ void ACGTerrainManager::AddPawn(AActor* aPawn)
 
 				CreateTileRefreshJob(job);
 			}
-			else
-			{
-				GEngine->AddOnScreenDebugMessage(5, 5.f, FColor::Green, TEXT("Moooooooooo "));
-			}
 
 		
 
@@ -302,12 +288,12 @@ void ACGTerrainManager::AddPawn(AActor* aPawn)
 	}
 }
 
-bool ACGTerrainManager::SpawnTerrain_Validate(AActor* aActor) { return true; }
-
-void ACGTerrainManager::SpawnTerrain_Implementation(AActor* aActor)
-{
-	AddPawn(aActor);
-}
+//bool ACGTerrainManager::SpawnTerrain_Validate(AActor* aActor) { return true; }
+//
+//void ACGTerrainManager::SpawnTerrain_Implementation(AActor* aActor)
+//{
+//	AddPawn(aActor);
+//}
 
 
 void ACGTerrainManager::CreateTileRefreshJob(FCGJob aJob)
