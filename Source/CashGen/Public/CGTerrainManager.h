@@ -15,45 +15,50 @@ class ACGTerrainManager : public AActor
 {
 	GENERATED_BODY()
 
-	TArray<AActor*> myTrackedActors;
-	TMap<AActor*, FIntVector2> myActorLocationMap;
+	// Master config
+	UPROPERTY()
+	FCGTerrainConfig myTerrainConfig;
 
+	// Sweep tracking
+	float myTimeSinceLastSweep = 0.0f;
+	const float mySweepTime = 2.0f;
+	uint8 myActorIndex = 0;
+
+	// Threads
 	TArray<FRunnableThread*> myWorkerThreads;
 
+	// Geometry data storage
 	UPROPERTY()
 	TArray<FCGLODMeshData> myMeshData;
 	TArray<TSet<FCGMeshData*>> myFreeMeshData;
 	TArray<TSet<FCGMeshData*>> myInUseMeshData;
 
+	// Job tracking
 	TQueue<FCGJob, EQueueMode::Spsc> myPendingJobQueue;
 	TArray<TQueue<FCGJob, EQueueMode::Spsc>> myGeometryJobQueues;
 
-	TSet<FIntVector2> myQueuedSectors;
+	// Tile/Sector tracking
 	TArray<ACGTile*> myFreeTiles;
-
 	UPROPERTY()
 	TMap<FIntVector2, FCGTileHandle> myTileHandleMap;
+	TSet<FIntVector2> myQueuedSectors;
 
+	// Actor tracking
+	TArray<AActor*> myTrackedActors;
+	TMap<AActor*, FIntVector2> myActorLocationMap;
 
 	bool GetFreeMeshData(FCGJob& aJob);
 	void ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease);
 	void AllocateAllMeshDataStructures();
 	bool AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD);
+
 	void CreateTileRefreshJob(FCGJob aJob);
 
 	ACGTile* GetFreeTile();
 	void FreeTile(ACGTile* aTile);
 
-	UPROPERTY()
-	FCGTerrainConfig myTerrainConfig;
-
 	FIntVector2 GetSector(const FVector& aLocation);
 	TArray<FIntVector2> GetRelevantSectorsForActor(const AActor* aActor);
-
-
-	float myTimeSinceLastSweep = 0.0f;
-	const float mySweepTime = 2.0f;
-
 
 public:
 	ACGTerrainManager();
@@ -76,6 +81,4 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	void BeginDestroy() override;
 
-	//UFUNCTION(NetMulticast, Reliable, WithValidation)
-	//void SpawnTerrain(AActor* aActor);
 };

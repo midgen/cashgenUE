@@ -27,7 +27,7 @@ void ACGTerrainManager::BeginPlay()
 		myWorkerThreads.Add(FRunnableThread::Create
 		(new FCGTerrainGeneratorWorker(this, &myTerrainConfig, &myGeometryJobQueues[i]),
 			*threadName,
-			0, EThreadPriority::TPri_BelowNormal, FPlatformAffinity::GetNoAffinityMask()));
+			0, EThreadPriority::TPri_Normal, FPlatformAffinity::GetNoAffinityMask()));
 	}
 }
 
@@ -97,29 +97,24 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		}
 	}
 
-	// TODO:
-
 	if (myTimeSinceLastSweep > myTerrainConfig.TileSweepTime)
 	{
-		// Run through our tracked pawns
-		for (AActor*& actor : myTrackedActors)
-		{
 			// Compare current location to previous
-			FIntVector2 oldSector = myActorLocationMap[actor];
-			FIntVector2 newSector = GetSector(actor->GetActorLocation());
+			FIntVector2 oldSector = myActorLocationMap[myTrackedActors[myActorIndex]];
+			FIntVector2 newSector = GetSector(myTrackedActors[myActorIndex]->GetActorLocation());
 			if (oldSector != newSector)
 			{
 				// Take care of spawning new sectors if necessary
-				HandlePlayerSectorChange(actor, oldSector, newSector);
+				HandlePlayerSectorChange(myTrackedActors[myActorIndex], oldSector, newSector);
 
 
-				for (FIntVector2& sector : GetRelevantSectorsForActor(actor))
+				for (FIntVector2& sector : GetRelevantSectorsForActor(myTrackedActors[myActorIndex]))
 				{
 					if (myTileHandleMap.Contains(sector))
 					{
 						myTileHandleMap[sector].myLastRequiredTimestamp = FDateTime::Now();
 					}
-					else //if (!myQueuedSectors.Contains(sector))
+					else if (!myQueuedSectors.Contains(sector))
 					{
 						FCGTileHandle tileHandle;
 						tileHandle.myHandle = GetFreeTile();
@@ -140,7 +135,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			}
 			else
 			{
-				for (FIntVector2& sector : GetRelevantSectorsForActor(actor))
+				for (FIntVector2& sector : GetRelevantSectorsForActor(myTrackedActors[myActorIndex]))
 				{
 					if (myTileHandleMap.Contains(sector))
 					{
@@ -148,13 +143,20 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 					}
 				}
 			}
-		}
 
-		myTimeSinceLastSweep = 0.0f;
+			if (myActorIndex < myTrackedActors.Num() - 1)
+			{
+				myActorIndex++;
+			}
+			else
+			{ 
+				myActorIndex = 0;
+				myTimeSinceLastSweep = 0.0f;
+			}
 	}
 
 
-
+	// TODO: this sucks
 	for (auto& elem : myTileHandleMap)
 	{
 		// The tile hasn't been required  free it
@@ -163,7 +165,6 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			FreeTile(elem.Value.myHandle);
 			myTileHandleMap.Remove(elem.Key);
 		}
-		
 	}
 }
 
