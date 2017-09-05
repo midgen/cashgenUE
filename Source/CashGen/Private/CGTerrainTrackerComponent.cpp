@@ -41,7 +41,7 @@ void UCGTerrainTrackerComponent::TickComponent(float DeltaTime, ELevelTick TickT
 			ACGTerrainManager* thisTM = Cast<ACGTerrainManager>(result);
 			if (thisTM && thisTM->isReady)
 			{
-				thisTM->AddPawn(GetOwner());
+				thisTM->AddActorToTrack(GetOwner());
 				MyTerrainManager = thisTM;
 				isSetup = true;
 			}

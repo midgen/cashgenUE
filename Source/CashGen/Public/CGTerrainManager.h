@@ -75,12 +75,12 @@ public:
 	TQueue<FCGJob, EQueueMode::Mpsc> myUpdateJobQueue;
 	
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
-	void SetTerrainConfig(FCGTerrainConfig aTerrainConfig);
+	void SetupTerrainGenerator(FCGTerrainConfig aTerrainConfig);
 
 	void HandlePlayerSectorChange(const AActor* aActor, const FIntVector2& anOldSector, const FIntVector2& aNewSector);
 
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
-	void AddPawn(AActor* aActor);
+	void AddActorToTrack(AActor* aActor);
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;

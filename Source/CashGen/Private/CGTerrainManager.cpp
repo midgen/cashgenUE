@@ -233,7 +233,7 @@ int ACGTerrainManager::GetLODForRange(const int32 aRange)
 }
 
 
-void ACGTerrainManager::SetTerrainConfig(FCGTerrainConfig aTerrainConfig)
+void ACGTerrainManager::SetupTerrainGenerator(FCGTerrainConfig aTerrainConfig)
 {
 	myTerrainConfig = aTerrainConfig;
 
@@ -244,7 +244,7 @@ void ACGTerrainManager::SetTerrainConfig(FCGTerrainConfig aTerrainConfig)
 	isReady = true;
 }
 
-void ACGTerrainManager::AddPawn(AActor* aPawn)
+void ACGTerrainManager::AddActorToTrack(AActor* aPawn)
 {
 	myTrackedActors.Add(aPawn);
 	FIntVector2 pawnSector = GetSector(aPawn->GetActorLocation());
@@ -307,7 +307,7 @@ void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
 			job.IsInPlaceUpdate = isExistsAtLowerLOD;
 
 			// TODO: this method needs renaming
-			tileHandle.myHandle->SetupTile(sector.mySector, &myTerrainConfig, FVector(0.f));
+			tileHandle.myHandle->UpdateSettings(sector.mySector, &myTerrainConfig, FVector(0.f));
 
 			if(!isExistsAtLowerLOD) {
 				tileHandle.myHandle->RepositionAndHide(10);

@@ -83,7 +83,7 @@ void ACGTile::Tick(float DeltaSeconds)
 /************************************************************************/
 /*  Initial setup of the tile, creates components and material instance
 /************************************************************************/
-void ACGTile::SetupTile(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset)
+void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset)
 {
 	mySector.X = aOffset.X;
 	mySector.Y = aOffset.Y;
