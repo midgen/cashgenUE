@@ -28,6 +28,8 @@ class ACGTile : public AActor
 
 	USphereComponent* SphereComponent;
 
+	bool IsInitalized = false;
+
 
 public:
 	ACGTile();

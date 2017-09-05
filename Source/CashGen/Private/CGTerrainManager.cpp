@@ -13,7 +13,6 @@ ACGTerrainManager::~ACGTerrainManager()
 }
 
 
-
 void ACGTerrainManager::BeginPlay()
 {
 	Super::BeginPlay();
@@ -97,7 +96,8 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		}
 	}
 
-	if (myTimeSinceLastSweep > myTerrainConfig.TileSweepTime)
+	// Time based sweep of actors to see if any have moved sectors
+	if (myTimeSinceLastSweep > myTerrainConfig.TileSweepTime && myTrackedActors.Num() > 0)
 	{
 			// Compare current location to previous
 			FIntVector2 oldSector = myActorLocationMap[myTrackedActors[myActorIndex]];
@@ -106,40 +106,17 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			{
 				// Take care of spawning new sectors if necessary
 				HandlePlayerSectorChange(myTrackedActors[myActorIndex], oldSector, newSector);
-
-
-				for (FIntVector2& sector : GetRelevantSectorsForActor(myTrackedActors[myActorIndex]))
-				{
-					if (myTileHandleMap.Contains(sector))
-					{
-						myTileHandleMap[sector].myLastRequiredTimestamp = FDateTime::Now();
-					}
-					else if (!myQueuedSectors.Contains(sector))
-					{
-						FCGTileHandle tileHandle;
-						tileHandle.myHandle = GetFreeTile();
-						tileHandle.myHandle->SetupTile(sector, &myTerrainConfig, FVector(0.f));
-						tileHandle.myHandle->RepositionAndHide(0);
-						tileHandle.myLastRequiredTimestamp = FDateTime::Now();
-						myTileHandleMap.Add(sector, tileHandle);
-
-						FCGJob job;
-						job.myTileHandle = tileHandle;
-						job.mySector = sector;
-						job.LOD = 0;
-						job.IsInPlaceUpdate = false;
-
-						CreateTileRefreshJob(job);
-					}
-				}
+				
+				ProcessTilesForActor(myTrackedActors[myActorIndex]);
 			}
 			else
 			{
-				for (FIntVector2& sector : GetRelevantSectorsForActor(myTrackedActors[myActorIndex]))
+				// TODO: This is crap too, must be a better way.....
+				for (FCGSector& sector : GetRelevantSectorsForActor(myTrackedActors[myActorIndex]))
 				{
-					if (myTileHandleMap.Contains(sector))
+					if (myTileHandleMap.Contains(sector.mySector))
 					{
-						myTileHandleMap[sector].myLastRequiredTimestamp = FDateTime::Now();
+						myTileHandleMap[sector.mySector].myLastRequiredTimestamp = FDateTime::Now();
 					}
 				}
 			}
@@ -153,19 +130,19 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 				myActorIndex = 0;
 				myTimeSinceLastSweep = 0.0f;
 			}
+
+			// TODO: this sucks, don't wanna be iterating over a big map like this
+			for (auto& elem : myTileHandleMap)
+			{
+				// The tile hasn't been required  free it
+				if (elem.Value.myLastRequiredTimestamp + myTerrainConfig.TileReleaseDelay < FDateTime::Now())
+				{
+					FreeTile(elem.Value.myHandle);
+					myTileHandleMap.Remove(elem.Key);
+				}
+			}
 	}
 
-
-	// TODO: this sucks
-	for (auto& elem : myTileHandleMap)
-	{
-		// The tile hasn't been required  free it
-		if (elem.Value.myLastRequiredTimestamp + myTerrainConfig.TileReleaseDelay < FDateTime::Now())
-		{
-			FreeTile(elem.Value.myHandle);
-			myTileHandleMap.Remove(elem.Key);
-		}
-	}
 }
 
 ACGTile* ACGTerrainManager::GetFreeTile()
@@ -208,35 +185,53 @@ FIntVector2 ACGTerrainManager::GetSector(const FVector& aLocation)
 }
 
 
-TArray<FIntVector2> ACGTerrainManager::GetRelevantSectorsForActor(const AActor* aActor)
+TArray<FCGSector> ACGTerrainManager::GetRelevantSectorsForActor(const AActor* aActor)
 {
-	TArray<FIntVector2> result;
+	TArray<FCGSector> result;
 
 	FIntVector2 rootSector = GetSector(aActor->GetActorLocation());
 	
 	// Always include the sector the pawn is in
 	result.Add(rootSector);
 
-	const int range2 = myTerrainConfig.LODs[0].SectorDistance * myTerrainConfig.LODs[0].SectorDistance;
+	const int sweepRange = myTerrainConfig.LODs[myTerrainConfig.LODs.Num() - 1].SectorDistance;
+	const int sweepRange2 = sweepRange * sweepRange;
 
-	for (int x = 0; x < myTerrainConfig.LODs[0].SectorDistance * 2; x++)
+
+	for (int x = 0; x < sweepRange * 2; x++)
 	{
-		for (int y = 0; y < myTerrainConfig.LODs[0].SectorDistance * 2; y++)
+		for (int y = 0; y < sweepRange * 2; y++)
 		{
-			FIntVector2 newSector = FIntVector2(rootSector.X - myTerrainConfig.LODs[0].SectorDistance + x, rootSector.Y -myTerrainConfig.LODs[0].SectorDistance + y);
-			FIntVector2 diff = newSector - rootSector;
-			if ((diff.X * diff.X + diff.Y * diff.Y) < range2 && (newSector != rootSector))
+			FCGSector newSector = FCGSector(rootSector.X - sweepRange + x, rootSector.Y - sweepRange + y, 0);
+			FIntVector2 diff = newSector.mySector - rootSector;
+			int thisRange = (diff.X * diff.X + diff.Y * diff.Y);
+			int lod = GetLODForRange(thisRange);
+			if (newSector != rootSector && lod > -1)
 			{
+				newSector.myLOD = lod;
 				result.Add(newSector);
 			}
-			
+
 		}
 	}
 
-	
-
 	return result;
 }
+
+int ACGTerrainManager::GetLODForRange(const int32 aRange)
+{
+	int lowestLOD = 999;
+	for (int i = myTerrainConfig.LODs.Num() - 1; i >= 0; i--)
+	{
+		if (aRange < (myTerrainConfig.LODs[i].SectorDistance * myTerrainConfig.LODs[i].SectorDistance) && lowestLOD > i)
+		{
+			lowestLOD = i;
+		}
+	}
+
+	return lowestLOD != 999 ? lowestLOD : -1;
+}
+
 
 void ACGTerrainManager::SetTerrainConfig(FCGTerrainConfig aTerrainConfig)
 {
@@ -255,46 +250,10 @@ void ACGTerrainManager::AddPawn(AActor* aPawn)
 	FIntVector2 pawnSector = GetSector(aPawn->GetActorLocation());
 	myActorLocationMap.Add(aPawn, pawnSector);
 
-	for (FIntVector2& sector : GetRelevantSectorsForActor(aPawn))
-	{
-			FCGTileHandle tileHandle;
-			FActorSpawnParameters spawnParameters;
-			spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			tileHandle.myHandle = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(),
-				FVector((myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * sector.X),
-				(myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * sector.Y), 0.0f), FRotator(0.0f), spawnParameters);
-			tileHandle.myStatus = ETileStatus::SPAWNED;
-			tileHandle.myLastRequiredTimestamp = FDateTime::Now();
+	ProcessTilesForActor(aPawn);
 
-			myTileHandleMap.Add(sector, tileHandle);
-
-			if (!myQueuedSectors.Contains(sector))
-			{
-				FCGJob job;
-				job.mySector = sector;
-				job.myTileHandle = tileHandle;
-				job.LOD = 0;
-				job.IsInPlaceUpdate = true;
-
-				tileHandle.myHandle->SetupTile(sector, &myTerrainConfig, FVector(0.f));
-				tileHandle.myHandle->RepositionAndHide(10);
-
-				CreateTileRefreshJob(job);
-			}
-
-		
-
-		
-
-	}
 }
 
-//bool ACGTerrainManager::SpawnTerrain_Validate(AActor* aActor) { return true; }
-//
-//void ACGTerrainManager::SpawnTerrain_Implementation(AActor* aActor)
-//{
-//	AddPawn(aActor);
-//}
 
 
 void ACGTerrainManager::CreateTileRefreshJob(FCGJob aJob)
@@ -305,6 +264,58 @@ void ACGTerrainManager::CreateTileRefreshJob(FCGJob aJob)
 		myQueuedSectors.Add(aJob.mySector);
 	}
 
+}
+
+void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
+{
+	for (FCGSector& sector : GetRelevantSectorsForActor(anActor))
+	{
+		bool isExistsAtLowerLOD = myTileHandleMap.Contains(sector.mySector) && myTileHandleMap[sector.mySector].myLOD > sector.myLOD;
+		// If the sector doesn't have a tile already, or the tile that does exist is a higher LOD
+		if (!myTileHandleMap.Contains(sector.mySector) || isExistsAtLowerLOD)
+		{
+
+			FCGTileHandle tileHandle;
+			// We have to create the tile for this sector
+			if (!isExistsAtLowerLOD)
+			{
+				FActorSpawnParameters spawnParameters;
+				spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+				tileHandle.myHandle = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(),
+					FVector((myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * sector.mySector.X),
+					(myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * sector.mySector.Y), 0.0f), FRotator(0.0f), spawnParameters);
+
+				tileHandle.myStatus = ETileStatus::SPAWNED;
+				tileHandle.myLOD = sector.myLOD;
+				tileHandle.myLastRequiredTimestamp = FDateTime::Now();
+
+				// Add it to our sector map
+				myTileHandleMap.Add(sector.mySector, tileHandle);
+			}
+			else
+			{
+				myTileHandleMap[sector.mySector].myLOD = sector.myLOD;
+				tileHandle = myTileHandleMap[sector.mySector];
+			}
+
+			// Create the job to generate the new geometry and update the terrain tile
+			FCGJob job;
+			job.mySector = sector.mySector;
+			job.myTileHandle = tileHandle;
+			job.LOD = sector.myLOD;
+			job.IsInPlaceUpdate = isExistsAtLowerLOD;
+
+			// TODO: this method needs renaming
+			tileHandle.myHandle->SetupTile(sector.mySector, &myTerrainConfig, FVector(0.f));
+
+			if(!isExistsAtLowerLOD) {
+				tileHandle.myHandle->RepositionAndHide(10);
+			}
+
+			CreateTileRefreshJob(job);
+		}
+	}
 }
 
 bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
@@ -404,7 +415,7 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	}
 
 	// Heightmap needs to be larger than the mesh
-	// Using vectors here is a bit wasteful, but it does make normal/tangent or any other
+	// Using vectors here is a lot wasteful, but it does make normal/tangent or any other
 	// Geometric calculations based on the heightmap a bit easier. Easy enough to change to floats
 
 	aData->HeightMap.Reserve((numXVerts + 2) * (numYVerts + 2));
@@ -476,3 +487,4 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	return true;
 
 }
+

@@ -5,6 +5,7 @@
 #include "Struct/CGMeshData.h"
 #include "Struct/CGTileHandle.h"
 #include "Struct/IntVector2.h"
+#include "Struct/CGSector.h"
 #include "Struct/CGLODMeshData.h"
 #include "CGTerrainManager.generated.h"
 
@@ -52,13 +53,17 @@ class ACGTerrainManager : public AActor
 	void AllocateAllMeshDataStructures();
 	bool AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD);
 
+	int GetLODForRange(const int32 aRange);
+
 	void CreateTileRefreshJob(FCGJob aJob);
+
+	void ProcessTilesForActor(const AActor* anActor);
 
 	ACGTile* GetFreeTile();
 	void FreeTile(ACGTile* aTile);
 
 	FIntVector2 GetSector(const FVector& aLocation);
-	TArray<FIntVector2> GetRelevantSectorsForActor(const AActor* aActor);
+	TArray<FCGSector> GetRelevantSectorsForActor(const AActor* aActor);
 
 public:
 	ACGTerrainManager();

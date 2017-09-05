@@ -17,6 +17,7 @@ struct FCGTileHandle
 	GENERATED_USTRUCT_BODY()
 	// Current rendering status of the sector
 	ETileStatus myStatus;
+	uint8 myLOD;
 	// Handle to the tile actor
 	UPROPERTY()
 	ACGTile* myHandle;

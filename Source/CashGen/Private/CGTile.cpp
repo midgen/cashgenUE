@@ -34,6 +34,8 @@ void ACGTile::RepositionAndHide(uint8 aNewLOD)
 {
 	SetActorLocation(FVector((TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize * mySector.X) - TerrainConfigMaster->TileOffset.X, (TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize * mySector.Y) - TerrainConfigMaster->TileOffset.Y, 0.0f));
 
+	SetActorHiddenInGame(true);
+
 	CurrentLOD = aNewLOD;
 }
 
@@ -86,53 +88,58 @@ void ACGTile::SetupTile(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, F
 	mySector.X = aOffset.X;
 	mySector.Y = aOffset.Y;
 
-	WorldOffset = aWorldOffset;
-	TerrainConfigMaster = aTerrainConfig;
-
-	// Disable tick if we're not doing lod transitions
-
-	SetActorTickEnabled(TerrainConfigMaster->DitheringLODTransitions && aTerrainConfig->LODs.Num() > 1);
-
-	for (int32 i = 0; i < aTerrainConfig->LODs.Num(); ++i)
+	if (!IsInitalized)
 	{
+		WorldOffset = aWorldOffset;
+		TerrainConfigMaster = aTerrainConfig;
 
-		FString compName = "RMC" + FString::FromInt(i);
-		MeshComponents.Add(i, NewObject<URuntimeMeshComponent>(this, URuntimeMeshComponent::StaticClass(),*compName));
+		// Disable tick if we're not doing lod transitions
 
-		MeshComponents[i]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+		SetActorTickEnabled(TerrainConfigMaster->DitheringLODTransitions && aTerrainConfig->LODs.Num() > 1);
 
-		MeshComponents[i]->BodyInstance.SetResponseToAllChannels(ECR_Block);
-		MeshComponents[i]->BodyInstance.SetResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
-		MeshComponents[i]->bShouldSerializeMeshData = false;
-
-		MeshComponents[i]->RegisterComponent();
-
-		LODStatus.Add(i, ELODStatus::NOT_CREATED);
-
-		// Use dynamic material instances and do LOD dithering
-		if (TerrainConfigMaster->TerrainMaterial != nullptr && TerrainConfigMaster->DitheringLODTransitions && aTerrainConfig->LODs.Num() > 1)
+		for (int32 i = 0; i < aTerrainConfig->LODs.Num(); ++i)
 		{
-			MaterialInstances.Add(i, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterial, this));
-			MeshComponents[i]->SetMaterial(0, MaterialInstances[i]);
+
+			FString compName = "RMC" + FString::FromInt(i);
+			MeshComponents.Add(i, NewObject<URuntimeMeshComponent>(this, URuntimeMeshComponent::StaticClass(), *compName));
+
+			MeshComponents[i]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
+			MeshComponents[i]->BodyInstance.SetResponseToAllChannels(ECR_Block);
+			MeshComponents[i]->BodyInstance.SetResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+			MeshComponents[i]->bShouldSerializeMeshData = false;
+
+			MeshComponents[i]->RegisterComponent();
+
+			LODStatus.Add(i, ELODStatus::NOT_CREATED);
+
+			// Use dynamic material instances and do LOD dithering
+			if (TerrainConfigMaster->TerrainMaterial != nullptr && TerrainConfigMaster->DitheringLODTransitions && aTerrainConfig->LODs.Num() > 1)
+			{
+				MaterialInstances.Add(i, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterial, this));
+				MeshComponents[i]->SetMaterial(0, MaterialInstances[i]);
+			}
+			// Just use a static material
+			else if (TerrainConfigMaster->TerrainMaterial)
+			{
+				Material = TerrainConfigMaster->TerrainMaterial;
+				MeshComponents[i]->SetMaterial(0, Material);
+			}
+			// Or just a static material instance
+			else if (TerrainConfigMaster->TerrainMaterialInstance && !TerrainConfigMaster->MakeDynamicMaterialInstance)
+			{
+				MaterialInstance = TerrainConfigMaster->TerrainMaterialInstance;
+				MeshComponents[i]->SetMaterial(0, MaterialInstance);
+			}
+			else if (TerrainConfigMaster->TerrainMaterialInstance && TerrainConfigMaster->MakeDynamicMaterialInstance)
+			{
+				MaterialInstances.Add(i, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterialInstance, this));
+				MeshComponents[i]->SetMaterial(0, MaterialInstances[i]);
+			}
+
 		}
-		// Just use a static material
-		else if (TerrainConfigMaster->TerrainMaterial)
-		{
-			Material = TerrainConfigMaster->TerrainMaterial;
-			MeshComponents[i]->SetMaterial(0, Material);
-		}
-		// Or just a static material instance
-		else if (TerrainConfigMaster->TerrainMaterialInstance && !TerrainConfigMaster->MakeDynamicMaterialInstance)
-		{
-			MaterialInstance = TerrainConfigMaster->TerrainMaterialInstance;
-			MeshComponents[i]->SetMaterial(0, MaterialInstance);
-		}
-		else if (TerrainConfigMaster->TerrainMaterialInstance && TerrainConfigMaster->MakeDynamicMaterialInstance)
-		{
-			MaterialInstances.Add(i, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterialInstance, this));
-			MeshComponents[i]->SetMaterial(0, MaterialInstances[i]);
-		}
-		
+
+		IsInitalized = true;
 	}
 
 }
@@ -146,6 +153,8 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVe
 	TArray<FColor>*		aVertexColors,
 	TArray<FRuntimeMeshTangent>* aTangents)
 {
+	SetActorHiddenInGame(false);
+
 	PreviousLOD = CurrentLOD;
 	CurrentLOD = aLOD;
 	LODTransitionOpacity = 1.0f;
@@ -165,7 +174,7 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVe
 
 			MeshComponents[i]->SetVisibility(true);
 		}
-		else if (!aIsInPlaceUpdate)
+		else //if (!aIsInPlaceUpdate)
 		{
 			MeshComponents[i]->SetVisibility(false);
 		}
