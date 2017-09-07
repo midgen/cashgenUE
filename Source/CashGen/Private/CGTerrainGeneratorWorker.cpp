@@ -35,22 +35,6 @@ uint32 FCGTerrainGeneratorWorker::Run()
 		{
 			pMeshData = workJob.Data;
 
-			//pVertexData = &workJob.Data->MyVertexData;
-			//pVertices = workJob.Vertices;
-			//pTriangles = &workJob.Data->MyTriangles;
-			//pNormals = workJob.Normals;
-			//pUV0 = workJob.UV0;
-			//pVertexColors = workJob.VertexColors;
-			//pTangents = workJob.Tangents;
-			//pHeightMap = &workJob.Data->HeightMap;
-			//pDepositionMap = workJob.DespositionMap;
-
-			// (pMeshData->MyVertexData.)
-			//{
-				// Something has gone horribly wrong
-				//return -1;
-			//}
-
 			workLOD = workJob.LOD;
 
 			milliseconds startMs = duration_cast<milliseconds>(

@@ -339,16 +339,6 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 		// Remove from the Free set
 		myFreeMeshData[aJob.LOD].Remove(dataToUse);
 
-		//aJob.Data->MyVertexData = &dataToUse->MyVertexData;
-		//aJob.Data->MyTriangles = &dataToUse->MyTriangles;
-
-		//aJob.Vertices = &dataToUse->Vertices;
-		//aJob.Triangles = &dataToUse->MyTriangles;
-		//aJob.Normals = &dataToUse->Normals;
-		//aJob.UV0 = &dataToUse->UV0;
-		//aJob.VertexColors = &dataToUse->VertexColors;
-		//aJob.Tangents = &dataToUse->Tangents;
-		//aJob.Data->HeightMap = &dataToUse->HeightMap;
 		aJob.Data = dataToUse;
 		return true;
 	}
@@ -403,21 +393,10 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 
 	aData->MyVertexData.Reserve(numTotalVertices);
 
-	//aData->Vertices.Reserve(numTotalVertices);
-	//aData->Normals.Reserve(numTotalVertices);
-	//aData->UV0.Reserve(numTotalVertices);
-	//aData->VertexColors.Reserve(numTotalVertices);
-	//aData->Tangents.Reserve(numTotalVertices);
-
 	// Generate the per vertex data sets
 	for (int32 i = 0; i < (numTotalVertices); ++i)
 	{
 		aData->MyVertexData.Emplace();
-		/*aData->Vertices.Emplace(0.0f);
-		aData->Normals.Emplace(0.0f, 0.0f, 1.0f);
-		aData->UV0.Emplace(0.0f, 0.0f);
-		aData->VertexColors.Emplace(FColor::Black);
-		aData->Tangents.Emplace(0.0f, 0.0f, 0.0f);*/
 	}
 
 	// Heightmap needs to be larger than the mesh
