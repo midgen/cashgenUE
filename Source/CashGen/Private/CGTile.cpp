@@ -146,12 +146,8 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
  /************************************************************************/
  /*  Updates the mesh for a given LOD and starts the transition effects  
  /************************************************************************/
-void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVertices,
-	TArray<int32>*	aTriangles,
-	TArray<FVector>*	aNormals,
-	TArray<FVector2D>*	aUV0,
-	TArray<FColor>*		aVertexColors,
-	TArray<FRuntimeMeshTangent>* aTangents)
+void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshVertexSimple>*	aVertices,
+	TArray<int32>*	aTriangles)
 {
 	SetActorHiddenInGame(false);
 
@@ -163,12 +159,12 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVe
 	{
 		if (i == aLOD) {
 			if (LODStatus[i] == ELODStatus::NOT_CREATED) {
-				MeshComponents[i]->CreateMeshSection(0, *aVertices, *aTriangles, *aNormals, *aUV0, *aVertexColors, *aTangents, TerrainConfigMaster->LODs[aLOD].isCollisionEnabled , EUpdateFrequency::Infrequent, TerrainConfigMaster->LODs[aLOD].isTesselationEnabled ? ESectionUpdateFlags::CalculateTessellationIndices | ESectionUpdateFlags::MoveArrays : ESectionUpdateFlags::MoveArrays);
+				MeshComponents[i]->CreateMeshSection(0, *aVertices, *aTriangles, TerrainConfigMaster->LODs[aLOD].isCollisionEnabled , EUpdateFrequency::Infrequent, TerrainConfigMaster->LODs[aLOD].isTesselationEnabled ? ESectionUpdateFlags::CalculateTessellationIndices : ESectionUpdateFlags::None);
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}
 			else {
 				TArray<FVector> dummyUV1;
-				MeshComponents[i]->UpdateMeshSection(0, *aVertices, *aTriangles, *aNormals, *aUV0, *aVertexColors, *aTangents, TerrainConfigMaster->LODs[aLOD].isTesselationEnabled ? ESectionUpdateFlags::CalculateTessellationIndices | ESectionUpdateFlags::MoveArrays : ESectionUpdateFlags::MoveArrays);
+				MeshComponents[i]->UpdateMeshSection(0, *aVertices, *aTriangles, TerrainConfigMaster->LODs[aLOD].isTesselationEnabled ? ESectionUpdateFlags::CalculateTessellationIndices : ESectionUpdateFlags::None);
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}
 

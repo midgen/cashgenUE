@@ -76,7 +76,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 				system_clock::now().time_since_epoch()
 				);
 
-			updateJob.myTileHandle.myHandle->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, updateJob.Vertices, updateJob.Triangles, updateJob.Normals, updateJob.UV0, updateJob.VertexColors, updateJob.Tangents);
+			updateJob.myTileHandle.myHandle->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, &updateJob.Data->MyVertexData, &updateJob.Data->MyTriangles );
 
 			updateJob.myTileHandle.myHandle->SetActorHiddenInGame(false);
 			int32 updateMS = (duration_cast<milliseconds>(
@@ -339,13 +339,16 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 		// Remove from the Free set
 		myFreeMeshData[aJob.LOD].Remove(dataToUse);
 
-		aJob.Vertices = &dataToUse->Vertices;
-		aJob.Triangles = &dataToUse->Triangles;
-		aJob.Normals = &dataToUse->Normals;
-		aJob.UV0 = &dataToUse->UV0;
-		aJob.VertexColors = &dataToUse->VertexColors;
-		aJob.Tangents = &dataToUse->Tangents;
-		aJob.HeightMap = &dataToUse->HeightMap;
+		//aJob.Data->MyVertexData = &dataToUse->MyVertexData;
+		//aJob.Data->MyTriangles = &dataToUse->MyTriangles;
+
+		//aJob.Vertices = &dataToUse->Vertices;
+		//aJob.Triangles = &dataToUse->MyTriangles;
+		//aJob.Normals = &dataToUse->Normals;
+		//aJob.UV0 = &dataToUse->UV0;
+		//aJob.VertexColors = &dataToUse->VertexColors;
+		//aJob.Tangents = &dataToUse->Tangents;
+		//aJob.Data->HeightMap = &dataToUse->HeightMap;
 		aJob.Data = dataToUse;
 		return true;
 	}
@@ -398,20 +401,23 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 
 	int32 numTotalVertices = numXVerts * numYVerts + (aConfig->TileXUnits * 2) + (aConfig->TileYUnits * 2) + 4;
 
-	aData->Vertices.Reserve(numTotalVertices);
-	aData->Normals.Reserve(numTotalVertices);
-	aData->UV0.Reserve(numTotalVertices);
-	aData->VertexColors.Reserve(numTotalVertices);
-	aData->Tangents.Reserve(numTotalVertices);
+	aData->MyVertexData.Reserve(numTotalVertices);
+
+	//aData->Vertices.Reserve(numTotalVertices);
+	//aData->Normals.Reserve(numTotalVertices);
+	//aData->UV0.Reserve(numTotalVertices);
+	//aData->VertexColors.Reserve(numTotalVertices);
+	//aData->Tangents.Reserve(numTotalVertices);
 
 	// Generate the per vertex data sets
 	for (int32 i = 0; i < (numTotalVertices); ++i)
 	{
-		aData->Vertices.Emplace(0.0f);
+		aData->MyVertexData.Emplace();
+		/*aData->Vertices.Emplace(0.0f);
 		aData->Normals.Emplace(0.0f, 0.0f, 1.0f);
 		aData->UV0.Emplace(0.0f, 0.0f);
 		aData->VertexColors.Emplace(FColor::Black);
-		aData->Tangents.Emplace(0.0f, 0.0f, 0.0f);
+		aData->Tangents.Emplace(0.0f, 0.0f, 0.0f);*/
 	}
 
 	// Heightmap needs to be larger than the mesh
@@ -428,10 +434,10 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	int32 terrainTris = ((numXVerts - 1) * (numYVerts - 1) * 6);
 	int32 skirtTris = (((numXVerts - 1) * 2) + ((numYVerts - 1) * 2)) * 6;
 	int32 numTris = terrainTris + skirtTris;
-	aData->Triangles.Reserve(numTris);
+	aData->MyTriangles.Reserve(numTris);
 	for (int32 i = 0; i < numTris; ++i)
 	{
-		aData->Triangles.Add(i);
+		aData->MyTriangles.Add(i);
 	}
 
 	// Now calculate triangles and UVs
@@ -453,33 +459,33 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 			thisX = x;
 			thisY = y;
 			//TR
-			aData->Triangles[triCounter] = thisX + ((thisY + 1) * (rowLength));
+			aData->MyTriangles[triCounter] = thisX + ((thisY + 1) * (rowLength));
 			triCounter++;
 			//BL
-			aData->Triangles[triCounter] = (thisX + 1) + (thisY * (rowLength));
+			aData->MyTriangles[triCounter] = (thisX + 1) + (thisY * (rowLength));
 			triCounter++;
 			//BR
-			aData->Triangles[triCounter] = thisX + (thisY * (rowLength));
+			aData->MyTriangles[triCounter] = thisX + (thisY * (rowLength));
 			triCounter++;
 
 			//BL
-			aData->Triangles[triCounter] = (thisX + 1) + (thisY * (rowLength));
+			aData->MyTriangles[triCounter] = (thisX + 1) + (thisY * (rowLength));
 			triCounter++;
 			//TR
-			aData->Triangles[triCounter] = thisX + ((thisY + 1) * (rowLength));
+			aData->MyTriangles[triCounter] = thisX + ((thisY + 1) * (rowLength));
 			triCounter++;
 			// TL
-			aData->Triangles[triCounter] = (thisX + 1) + ((thisY + 1) * (rowLength));
+			aData->MyTriangles[triCounter] = (thisX + 1) + ((thisY + 1) * (rowLength));
 			triCounter++;
 
 			//TR
-			aData->UV0[thisX + ((thisY + 1) * (rowLength))] = FVector2D(thisX * maxUV, (thisY + 1.0f) * maxUV);
+			aData->MyVertexData[thisX + ((thisY + 1) * (rowLength))].UV0 = FVector2D(thisX * maxUV, (thisY + 1.0f) * maxUV);
 			//BR
-			aData->UV0[thisX + (thisY * (rowLength))] = FVector2D(thisX * maxUV, thisY * maxUV);
+			aData->MyVertexData[thisX + (thisY * (rowLength))].UV0 = FVector2D(thisX * maxUV, thisY * maxUV);
 			//BL
-			aData->UV0[(thisX + 1) + (thisY * (rowLength))] = FVector2D((thisX + 1.0f) * maxUV, thisY * maxUV);
+			aData->MyVertexData[(thisX + 1) + (thisY * (rowLength))].UV0 = FVector2D((thisX + 1.0f) * maxUV, thisY * maxUV);
 			//TL
-			aData->UV0[(thisX + 1) + ((thisY + 1) * (rowLength))] = FVector2D((thisX + 1.0f)* maxUV, (thisY + 1.0f) * maxUV);
+			aData->MyVertexData[(thisX + 1) + ((thisY + 1) * (rowLength))].UV0 = FVector2D((thisX + 1.0f)* maxUV, (thisY + 1.0f) * maxUV);
 
 		}
 	}

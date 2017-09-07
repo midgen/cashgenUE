@@ -51,12 +51,8 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	void UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
-	void UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>*	aVertices,
-		TArray<int32>*		aTriangles,
-		TArray<FVector>*	aNormals,
-		TArray<FVector2D>*	aUV0,
-		TArray<FColor>*		aVertexColors,
-		TArray<FRuntimeMeshTangent>* aTangents);
+	void UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshVertexSimple>*	aVertices,
+		TArray<int32>*		aTriangles);
 
 	FVector GetCentrePos();
 

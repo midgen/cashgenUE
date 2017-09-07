@@ -9,19 +9,22 @@ USTRUCT(BlueprintType)
 struct FCGMeshData
 {
 	GENERATED_USTRUCT_BODY()
-		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
-		TArray<FVector> Vertices;
+		//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
+		//TArray<FVector> Vertices;
+	TArray<FRuntimeMeshVertexSimple> MyVertexData;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
-		TArray<int32> Triangles;
+	TArray<int32> MyTriangles;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
+	//	TArray<FVector> Normals;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
+	//	TArray<FVector2D> UV0;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
+	//	TArray<FColor> VertexColors;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
+	//	TArray<FRuntimeMeshTangent> Tangents;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
-		TArray<FVector> Normals;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
-		TArray<FVector2D> UV0;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
-		TArray<FColor> VertexColors;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
-		TArray<FRuntimeMeshTangent> Tangents;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
-		TArray<FVector> HeightMap;
+	TArray<FVector> HeightMap;
 
+	//UPROPERTY()
+	
 };

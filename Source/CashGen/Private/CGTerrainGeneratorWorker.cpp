@@ -1,6 +1,7 @@
 #include "cashgen.h"
 #include "UFNNoiseGenerator.h"
 #include "CGTile.h"
+#include "RuntimeMeshGenericVertex.h"
 #include "CGTerrainGeneratorWorker.h"
 #include <chrono>
 
@@ -32,14 +33,23 @@ uint32 FCGTerrainGeneratorWorker::Run()
 	{
 		if (inputQueue->Dequeue(workJob))
 		{
-			pVertices = workJob.Vertices;
-			pTriangles = workJob.Triangles;
-			pNormals = workJob.Normals;
-			pUV0 = workJob.UV0;
-			pVertexColors = workJob.VertexColors;
-			pTangents = workJob.Tangents;
-			pHeightMap = workJob.HeightMap;
-			pDepositionMap = workJob.DespositionMap;
+			pMeshData = workJob.Data;
+
+			//pVertexData = &workJob.Data->MyVertexData;
+			//pVertices = workJob.Vertices;
+			//pTriangles = &workJob.Data->MyTriangles;
+			//pNormals = workJob.Normals;
+			//pUV0 = workJob.UV0;
+			//pVertexColors = workJob.VertexColors;
+			//pTangents = workJob.Tangents;
+			//pHeightMap = &workJob.Data->HeightMap;
+			//pDepositionMap = workJob.DespositionMap;
+
+			// (pMeshData->MyVertexData.)
+			//{
+				// Something has gone horribly wrong
+				//return -1;
+			//}
 
 			workLOD = workJob.LOD;
 
@@ -99,12 +109,12 @@ void FCGTerrainGeneratorWorker::Exit()
 
 void FCGTerrainGeneratorWorker::prepMaps()
 {
-	for (int32 i = 0; i < pVertexColors->Num(); ++i)
+	for (int32 i = 0; i < pMeshData->MyVertexData.Num(); ++i)
 	{
-		(*pVertexColors)[i].R = 0;
-		(*pVertexColors)[i].G = 0;
-		(*pVertexColors)[i].B = 0;
-		(*pVertexColors)[i].A = 0;
+		pMeshData->MyVertexData[i].Color.R = 0;
+		pMeshData->MyVertexData[i].Color.G = 0;
+		pMeshData->MyVertexData[i].Color.B = 0;
+		pMeshData->MyVertexData[i].Color.A = 0;
 	}
 }
 
@@ -124,7 +134,7 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 			int32 worldX = (((workJob.myTileHandle.myHandle->mySector.X * (exX - 3)) + x) * exUnitSize);
 			int32 worldY = (((workJob.myTileHandle.myHandle->mySector.Y * (exX - 3)) + y) * exUnitSize);
 
-			(*pHeightMap)[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
+			pMeshData->HeightMap[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
 
 		}
 	}
@@ -141,7 +151,7 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 				int32 worldY = (((workJob.myTileHandle.myHandle->mySector.Y * (exX - 1)) + y) * exUnitSize);
 				float val = pTerrainConfig->BiomeBlendGenerator->GetNoise2D(worldX, worldY);
 
-				(*pVertexColors)[x + (exX*y)].G = FMath::Clamp(FMath::FloorToInt(((val + 1.0f) / 2.0f) * 128), 0, 255);
+				pMeshData->MyVertexData[x + (exX*y)].Color.G = FMath::Clamp(FMath::FloorToInt(((val + 1.0f) / 2.0f) * 128), 0, 255);
 			}
 		}
 	}
@@ -151,9 +161,9 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 void FCGTerrainGeneratorWorker::AddDepositionToHeightMap()
 {
 	int32 index = 0;
-	for (FVector& heightPoint : (*pHeightMap))
+	for (FVector& heightPoint : pMeshData->HeightMap)
 	{
-		heightPoint.Z += (*pDepositionMap)[index];
+		//heightPoint.Z += (*pDepositionMap)[index];
 		++index;
 	}
 }
@@ -165,26 +175,26 @@ void FCGTerrainGeneratorWorker::erodeHeightMapAtIndex(int32 aX, int32 aY, float 
 	float mod1 = 0.5f;
 	float mod2 = 0.4f;
 
-	(*pHeightMap)[aX + (XUnits * aY)].Z -= aAmount;
-	(*pHeightMap)[aX + (XUnits * (aY + 1))].Z		-= aAmount * mod1;
-	(*pHeightMap)[aX + (XUnits * (aY - 1))].Z		-= aAmount * mod1;
-	(*pHeightMap)[aX + 1 + (XUnits * (aY))].Z		-= aAmount * mod1;
-	(*pHeightMap)[aX - 1 + (XUnits * (aY))].Z		-= aAmount * mod1;
+	pMeshData->HeightMap[aX + (XUnits * aY)].Z -= aAmount;
+	pMeshData->HeightMap[aX + (XUnits * (aY + 1))].Z		-= aAmount * mod1;
+	pMeshData->HeightMap[aX + (XUnits * (aY - 1))].Z		-= aAmount * mod1;
+	pMeshData->HeightMap[aX + 1 + (XUnits * (aY))].Z		-= aAmount * mod1;
+	pMeshData->HeightMap[aX - 1 + (XUnits * (aY))].Z		-= aAmount * mod1;
 
-	(*pHeightMap)[aX + 1 + (XUnits * (aY + 1))].Z	-= aAmount * mod1;
-	(*pHeightMap)[aX + 1 + (XUnits * (aY - 1))].Z	-= aAmount * mod1;
-	(*pHeightMap)[aX - 1 + (XUnits * (aY + 1))].Z	-= aAmount * mod1;
-	(*pHeightMap)[aX - 1 + (XUnits * (aY - 1))].Z	-= aAmount * mod1;
+	pMeshData->HeightMap[aX + 1 + (XUnits * (aY + 1))].Z	-= aAmount * mod1;
+	pMeshData->HeightMap[aX + 1 + (XUnits * (aY - 1))].Z	-= aAmount * mod1;
+	pMeshData->HeightMap[aX - 1 + (XUnits * (aY + 1))].Z	-= aAmount * mod1;
+	pMeshData->HeightMap[aX - 1 + (XUnits * (aY - 1))].Z	-= aAmount * mod1;
 
 	// Add to the Red channel for deposition
 	if (aAmount > 0.0f)
 	{
-		(*pVertexColors)[aX - 1 + ((XUnits - 2) * (aY - 1))].R = FMath::Clamp((*pVertexColors)[aX - 1 + ((XUnits - 2) * (aY - 1))].R + FMath::RoundToInt(aAmount), 0, 255);
+		pMeshData->MyVertexData[aX - 1 + ((XUnits - 2) * (aY - 1))].Color.R = FMath::Clamp(pMeshData->MyVertexData[aX - 1 + ((XUnits - 2) * (aY - 1))].Color.R + FMath::RoundToInt(aAmount), 0, 255);
 	}
 	// Add to the blue channel for erosion
 	if (aAmount <= 0.0f)
 	{
-		(*pVertexColors)[aX - 1 + ((XUnits - 2) * (aY - 1))].B = FMath::Clamp((*pVertexColors)[aX - 1 + ((XUnits - 2) * (aY - 1))].B + FMath::RoundToInt(aAmount * 0.01f), 0, 255);
+		pMeshData->MyVertexData[aX - 1 + ((XUnits - 2) * (aY - 1))].Color.B = FMath::Clamp(pMeshData->MyVertexData[aX - 1 + ((XUnits - 2) * (aY - 1))].Color.B + FMath::RoundToInt(aAmount * 0.01f), 0, 255);
 	}
 
 }
@@ -205,21 +215,21 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 
 	while (waterAmount > 0.0f && cX > 0 && cX < XUnits - 1 && cY > 0 && cY < YUnits - 1)
 	{
-		FVector origin = (*pHeightMap)[cX + (XUnits * cY)];
+		FVector origin = pMeshData->HeightMap[cX + (XUnits * cY)];
 		if (origin.Z < pTerrainConfig->DropletErosionFloor)
 		{
 			// Don't care about underwater erosion
 			break;
 		}
-		FVector up = ((*pHeightMap)[cX + (XUnits * (cY + 1))] - origin).GetSafeNormal();
-		FVector down = ((*pHeightMap)[cX + (XUnits * (cY - 1))] - origin).GetSafeNormal();
-		FVector left = ((*pHeightMap)[cX + 1 + (XUnits * (cY))] - origin).GetSafeNormal();
-		FVector right = ((*pHeightMap)[cX - 1 + (XUnits * (cY))] - origin).GetSafeNormal();
+		FVector up = (pMeshData->HeightMap[cX + (XUnits * (cY + 1))] - origin).GetSafeNormal();
+		FVector down = (pMeshData->HeightMap[cX + (XUnits * (cY - 1))] - origin).GetSafeNormal();
+		FVector left = (pMeshData->HeightMap[cX + 1 + (XUnits * (cY))] - origin).GetSafeNormal();
+		FVector right = (pMeshData->HeightMap[cX - 1 + (XUnits * (cY))] - origin).GetSafeNormal();
 
-		FVector upleft = ((*pHeightMap)[cX + 1 + (XUnits * (cY + 1))] - origin).GetSafeNormal();
-		FVector downleft = ((*pHeightMap)[cX + 1 + (XUnits * (cY - 1))] - origin).GetSafeNormal();
-		FVector upright = ((*pHeightMap)[cX - 1 + (XUnits * (cY + 1))] - origin).GetSafeNormal();
-		FVector downright = ((*pHeightMap)[cX - 1 + (XUnits * (cY - 1))] - origin).GetSafeNormal();
+		FVector upleft = (pMeshData->HeightMap[cX + 1 + (XUnits * (cY + 1))] - origin).GetSafeNormal();
+		FVector downleft = (pMeshData->HeightMap[cX + 1 + (XUnits * (cY - 1))] - origin).GetSafeNormal();
+		FVector upright = (pMeshData->HeightMap[cX - 1 + (XUnits * (cY + 1))] - origin).GetSafeNormal();
+		FVector downright = (pMeshData->HeightMap[cX - 1 + (XUnits * (cY - 1))] - origin).GetSafeNormal();
 
 		FVector lowestRoute = FVector(0.0f);
 
@@ -256,7 +266,6 @@ void FCGTerrainGeneratorWorker::ProcessSingleDropletErosion()
 
 		velocity = lowestRoute;
 
-		//(*pHeightMap)[cX + (XUnits * cY)].Z -= sedimentUptake + (sedimentDeposit * -1.0f);
 		erodeHeightMapAtIndex(cX, cY, (sedimentUptake + (sedimentDeposit * -1.0f)));
 
 		waterAmount -= pTerrainConfig->DropletEvaporationRate;
@@ -297,7 +306,7 @@ void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 	{
 		for (int32 x = 0; x < xUnits + 1; ++x)
 		{
-			(*pNormals)[x + (y * rowLength)] = GetNormalFromHeightMapForVertex(x, y);
+			pMeshData->MyVertexData[x + (y * rowLength)].Normal = GetNormalFromHeightMapForVertex(x, y);
 		}
 	}
 }
@@ -318,22 +327,22 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 	// Bottom Edge verts
 	for (int i = 0; i < numXVerts; ++i)
 	{
-		(*pVertices)[startIndex + i].X = (*pVertices)[i].X;
-		(*pVertices)[startIndex + i].Y = (*pVertices)[i].Y;
-		(*pVertices)[startIndex + i].Z = -30000.0f;
+		pMeshData->MyVertexData[startIndex + i].Position.X = pMeshData->MyVertexData[i].Position.X;
+		pMeshData->MyVertexData[startIndex + i].Position.Y = pMeshData->MyVertexData[i].Position.Y;
+		pMeshData->MyVertexData[startIndex + i].Position.Z = -30000.0f;
 
-		(*pNormals)[startIndex + i] = (*pNormals)[i];
+		pMeshData->MyVertexData[startIndex + i].Normal = pMeshData->MyVertexData[i].Normal;
 	}
 	// bottom edge triangles
 	for (int i = 0; i < ((numXVerts - 1)); ++i)
 	{
-		(*pTriangles)[triStartIndex + (i*6)]		= i;
-		(*pTriangles)[triStartIndex + (i*6) + 1]	= startIndex + i + 1;
-		(*pTriangles)[triStartIndex + (i*6) + 2]	= startIndex + i;
+		pMeshData->MyTriangles[triStartIndex + (i*6)]		= i;
+		pMeshData->MyTriangles[triStartIndex + (i*6) + 1]	= startIndex + i + 1;
+		pMeshData->MyTriangles[triStartIndex + (i*6) + 2]	= startIndex + i;
 
-		(*pTriangles)[triStartIndex + (i*6) + 3]	= i + 1;
-		(*pTriangles)[triStartIndex + (i*6) + 4]	= startIndex + i + 1;
-		(*pTriangles)[triStartIndex + (i*6) + 5]	= i;
+		pMeshData->MyTriangles[triStartIndex + (i*6) + 3]	= i + 1;
+		pMeshData->MyTriangles[triStartIndex + (i*6) + 4]	= startIndex + i + 1;
+		pMeshData->MyTriangles[triStartIndex + (i*6) + 5]	= i;
 	}
 	triStartIndex += ((numXVerts - 1) * 6);
 
@@ -341,23 +350,23 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 	// Top Edge verts
 	for (int i = 0; i < numXVerts; ++i)
 	{
-		(*pVertices)[startIndex + i].X = (*pVertices)[i + startIndex - (numXVerts * 2)].X;
-		(*pVertices)[startIndex + i].Y = (*pVertices)[i + startIndex - (numXVerts * 2)].Y;
-		(*pVertices)[startIndex + i].Z = -30000.0f;
+		pMeshData->MyVertexData[startIndex + i].Position.X = pMeshData->MyVertexData[i + startIndex - (numXVerts * 2)].Position.X;
+		pMeshData->MyVertexData[startIndex + i].Position.Y = pMeshData->MyVertexData[i + startIndex - (numXVerts * 2)].Position.Y;
+		pMeshData->MyVertexData[startIndex + i].Position.Z = -30000.0f;
 
-		(*pNormals)[startIndex + i] = (*pNormals)[i + startIndex - (numXVerts * 2)];
+		pMeshData->MyVertexData[startIndex + i].Normal = pMeshData->MyVertexData[i + startIndex - (numXVerts * 2)].Normal;
 	}
 	// top edge triangles
 	
 	for (int i = 0; i < ((numXVerts - 1)); ++i)
 	{
-		(*pTriangles)[triStartIndex + (i * 6)]		= i + startIndex - (numXVerts * 2);
-		(*pTriangles)[triStartIndex + (i * 6) + 1]	= startIndex + i;
-		(*pTriangles)[triStartIndex + (i * 6) + 2]	= i + startIndex - (numXVerts * 2) + 1;
+		pMeshData->MyTriangles[triStartIndex + (i * 6)]		= i + startIndex - (numXVerts * 2);
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 1]	= startIndex + i;
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 2]	= i + startIndex - (numXVerts * 2) + 1;
 
-		(*pTriangles)[triStartIndex + (i * 6) + 3]	= i + startIndex - (numXVerts * 2) + 1;
-		(*pTriangles)[triStartIndex + (i * 6) + 4]	= startIndex + i;
-		(*pTriangles)[triStartIndex + (i * 6) + 5]	= startIndex + i + 1;
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 3]	= i + startIndex - (numXVerts * 2) + 1;
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 4]	= startIndex + i;
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 5]	= startIndex + i + 1;
 	}
 	triStartIndex += ((numXVerts - 1) * 6);
 
@@ -365,33 +374,33 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 	// Right edge - bit different
 	for (int i = 0; i < numYVerts - 2; ++i)
 	{
-		(*pVertices)[startIndex + i].X = (*pVertices)[(i + 1) * numXVerts].X;
-		(*pVertices)[startIndex + i].Y = (*pVertices)[(i + 1) * numXVerts].Y;
-		(*pVertices)[startIndex + i].Z = -30000.0f;
+		pMeshData->MyVertexData[startIndex + i].Position.X = pMeshData->MyVertexData[(i + 1) * numXVerts].Position.X;
+		pMeshData->MyVertexData[startIndex + i].Position.Y = pMeshData->MyVertexData[(i + 1) * numXVerts].Position.Y;
+		pMeshData->MyVertexData[startIndex + i].Position.Z = -30000.0f;
 
-		(*pNormals)[startIndex + i] = (*pNormals)[(i + 1) * numXVerts];
+		pMeshData->MyVertexData[startIndex + i].Normal = pMeshData->MyVertexData[(i + 1) * numXVerts].Normal;
 	}
 	// Bottom right corner
 	
 
-	(*pTriangles)[triStartIndex]		= 0;
-	(*pTriangles)[triStartIndex + 1]	= numXVerts * numYVerts;
-	(*pTriangles)[triStartIndex + 2]	= numXVerts;
+	pMeshData->MyTriangles[triStartIndex]		= 0;
+	pMeshData->MyTriangles[triStartIndex + 1]	= numXVerts * numYVerts;
+	pMeshData->MyTriangles[triStartIndex + 2]	= numXVerts;
 
-	(*pTriangles)[triStartIndex + 3]	= numXVerts;
-	(*pTriangles)[triStartIndex + 4]	= numXVerts * numYVerts;
-	(*pTriangles)[triStartIndex + 5]	= numXVerts * (numYVerts + 2);
+	pMeshData->MyTriangles[triStartIndex + 3]	= numXVerts;
+	pMeshData->MyTriangles[triStartIndex + 4]	= numXVerts * numYVerts;
+	pMeshData->MyTriangles[triStartIndex + 5]	= numXVerts * (numYVerts + 2);
 
 	// Top right corner
 	triStartIndex += 6;
 
-	(*pTriangles)[triStartIndex]		= numXVerts * (numYVerts - 1);
-	(*pTriangles)[triStartIndex + 1]	= (numXVerts * (numYVerts + 2)) + numYVerts - 3;
-	(*pTriangles)[triStartIndex + 2]	= numXVerts * (numYVerts + 1);
+	pMeshData->MyTriangles[triStartIndex]		= numXVerts * (numYVerts - 1);
+	pMeshData->MyTriangles[triStartIndex + 1]	= (numXVerts * (numYVerts + 2)) + numYVerts - 3;
+	pMeshData->MyTriangles[triStartIndex + 2]	= numXVerts * (numYVerts + 1);
 
-	(*pTriangles)[triStartIndex + 3]	= numXVerts * (numYVerts - 1);
-	(*pTriangles)[triStartIndex + 4]	= numXVerts * (numYVerts - 2);
-	(*pTriangles)[triStartIndex + 5]	= (numXVerts * (numYVerts + 2)) + numYVerts - 3;
+	pMeshData->MyTriangles[triStartIndex + 3]	= numXVerts * (numYVerts - 1);
+	pMeshData->MyTriangles[triStartIndex + 4]	= numXVerts * (numYVerts - 2);
+	pMeshData->MyTriangles[triStartIndex + 5]	= (numXVerts * (numYVerts + 2)) + numYVerts - 3;
 
 	// Middle right part!
 	startIndex = numXVerts * (numYVerts + 2);
@@ -399,13 +408,13 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 
 	for (int i = 0; i < numYVerts - 3; ++i)
 	{
-		(*pTriangles)[triStartIndex + (i*6)]		= numXVerts * (i + 1);
-		(*pTriangles)[triStartIndex + (i * 6) + 1]	= startIndex + i;
-		(*pTriangles)[triStartIndex + (i * 6) + 2]	= numXVerts * (i + 2);
+		pMeshData->MyTriangles[triStartIndex + (i*6)]		= numXVerts * (i + 1);
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 1]	= startIndex + i;
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 2]	= numXVerts * (i + 2);
 
-		(*pTriangles)[triStartIndex + (i * 6) + 3]	= numXVerts * (i + 2);
-		(*pTriangles)[triStartIndex + (i * 6) + 4]	= startIndex + i;
-		(*pTriangles)[triStartIndex + (i * 6) + 5]	= startIndex + i + 1;
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 3]	= numXVerts * (i + 2);
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 4]	= startIndex + i;
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 5]	= startIndex + i + 1;
 	}
 	triStartIndex += ((numYVerts - 3) * 6);
 
@@ -414,33 +423,33 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 	// Left edge - bit different
 	for (int i = 0; i < numYVerts - 2; ++i)
 	{
-		(*pVertices)[startIndex + i].X = (*pVertices)[((i + 1) * numXVerts) + numXVerts - 1].X;
-		(*pVertices)[startIndex + i].Y = (*pVertices)[((i + 1) * numXVerts) + numXVerts - 1].Y;
-		(*pVertices)[startIndex + i].Z = -30000.0f;
+		pMeshData->MyVertexData[startIndex + i].Position.X = pMeshData->MyVertexData[((i + 1) * numXVerts) + numXVerts - 1].Position.X;
+		pMeshData->MyVertexData[startIndex + i].Position.Y = pMeshData->MyVertexData[((i + 1) * numXVerts) + numXVerts - 1].Position.Y;
+		pMeshData->MyVertexData[startIndex + i].Position.Z = -30000.0f;
 
-		(*pNormals)[startIndex + i] = (*pNormals)[((i + 1) * numXVerts) + numXVerts - 1];
+		pMeshData->MyVertexData[startIndex + i].Normal = pMeshData->MyVertexData[((i + 1) * numXVerts) + numXVerts - 1].Normal;
 	}
 	// Bottom left corner
 
 
-	(*pTriangles)[triStartIndex]		= numXVerts - 1;
-	(*pTriangles)[triStartIndex + 1]	= (numXVerts*2) - 1;
-	(*pTriangles)[triStartIndex + 2]	= startIndex;
+	pMeshData->MyTriangles[triStartIndex]		= numXVerts - 1;
+	pMeshData->MyTriangles[triStartIndex + 1]	= (numXVerts*2) - 1;
+	pMeshData->MyTriangles[triStartIndex + 2]	= startIndex;
 
-	(*pTriangles)[triStartIndex + 3]	= startIndex;
-	(*pTriangles)[triStartIndex + 4]	= (numXVerts * numYVerts) + numXVerts - 1;
-	(*pTriangles)[triStartIndex + 5]	= numXVerts - 1;
+	pMeshData->MyTriangles[triStartIndex + 3]	= startIndex;
+	pMeshData->MyTriangles[triStartIndex + 4]	= (numXVerts * numYVerts) + numXVerts - 1;
+	pMeshData->MyTriangles[triStartIndex + 5]	= numXVerts - 1;
 
 	// Top left corner
 	triStartIndex += 6;
 
-	(*pTriangles)[triStartIndex]		= (numXVerts * numYVerts) - 1;
-	(*pTriangles)[triStartIndex + 1]	= (numXVerts * (numYVerts + 2)) - 1;
-	(*pTriangles)[triStartIndex + 2]	= (numXVerts * (numYVerts + 2)) + ((numYVerts - 2) * 2) - 1;
+	pMeshData->MyTriangles[triStartIndex]		= (numXVerts * numYVerts) - 1;
+	pMeshData->MyTriangles[triStartIndex + 1]	= (numXVerts * (numYVerts + 2)) - 1;
+	pMeshData->MyTriangles[triStartIndex + 2]	= (numXVerts * (numYVerts + 2)) + ((numYVerts - 2) * 2) - 1;
 
-	(*pTriangles)[triStartIndex + 3]	= (numXVerts * numYVerts) - 1;
-	(*pTriangles)[triStartIndex + 4]	= (numXVerts * (numYVerts + 2)) + ((numYVerts - 2) * 2) - 1;
-	(*pTriangles)[triStartIndex + 5]	= (numXVerts * (numYVerts - 2)) + numXVerts - 1;
+	pMeshData->MyTriangles[triStartIndex + 3]	= (numXVerts * numYVerts) - 1;
+	pMeshData->MyTriangles[triStartIndex + 4]	= (numXVerts * (numYVerts + 2)) + ((numYVerts - 2) * 2) - 1;
+	pMeshData->MyTriangles[triStartIndex + 5]	= (numXVerts * (numYVerts - 2)) + numXVerts - 1;
 
 	// Middle left part!
 	
@@ -448,13 +457,13 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 
 	for (int i = 0; i < numYVerts - 3; ++i)
 	{
-		(*pTriangles)[triStartIndex + (i * 6)]		= (numXVerts * (i + 1)) + numXVerts - 1;
-		(*pTriangles)[triStartIndex + (i * 6) + 1]	= (numXVerts * (i + 2)) + numXVerts - 1;
-		(*pTriangles)[triStartIndex + (i * 6) + 2]	= startIndex + i + 1;
+		pMeshData->MyTriangles[triStartIndex + (i * 6)]		= (numXVerts * (i + 1)) + numXVerts - 1;
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 1]	= (numXVerts * (i + 2)) + numXVerts - 1;
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 2]	= startIndex + i + 1;
 
-		(*pTriangles)[triStartIndex + (i * 6) + 3]	= (numXVerts * (i + 1)) + numXVerts - 1;
-		(*pTriangles)[triStartIndex + (i * 6) + 4]	= startIndex + i + 1;
-		(*pTriangles)[triStartIndex + (i * 6) + 5]	= startIndex + i;
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 3]	= (numXVerts * (i + 1)) + numXVerts - 1;
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 4]	= startIndex + i + 1;
+		pMeshData->MyTriangles[triStartIndex + (i * 6) + 5]	= startIndex + i;
 	}
 
 
@@ -473,10 +482,10 @@ FVector FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 v
 	// Get the 4 neighbouring points
 	FVector up, down, left, right, upleft, upright, downleft, downright;
 
-	up = (*pHeightMap)[heightMapIndex + heightMapRowLength] - (*pHeightMap)[heightMapIndex];
-	down = (*pHeightMap)[heightMapIndex - heightMapRowLength] - (*pHeightMap)[heightMapIndex];
-	left = (*pHeightMap)[heightMapIndex + 1] - (*pHeightMap)[heightMapIndex];
-	right = (*pHeightMap)[heightMapIndex - 1] - (*pHeightMap)[heightMapIndex];
+	up = pMeshData->HeightMap[heightMapIndex + heightMapRowLength] - pMeshData->HeightMap[heightMapIndex];
+	down = pMeshData->HeightMap[heightMapIndex - heightMapRowLength] - pMeshData->HeightMap[heightMapIndex];
+	left = pMeshData->HeightMap[heightMapIndex + 1] - pMeshData->HeightMap[heightMapIndex];
+	right = pMeshData->HeightMap[heightMapIndex - 1] - pMeshData->HeightMap[heightMapIndex];
 
 	FVector n1, n2, n3, n4;
 
@@ -528,13 +537,13 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int a
 	FVector heightMapToWorldOffset = FVector(exUnitSize, exUnitSize, 0.0f);
 
 	// BR
-	(*pVertices)[thisX + (thisY * rowLength)] = (*pHeightMap)[heightMapX + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
+	pMeshData->MyVertexData[thisX + (thisY * rowLength)].Position = pMeshData->HeightMap[heightMapX + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
 	// TR
-	(*pVertices)[thisX + ((thisY + 1) * rowLength)] = (*pHeightMap)[heightMapX + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
+	pMeshData->MyVertexData[thisX + ((thisY + 1) * rowLength)].Position = pMeshData->HeightMap[heightMapX + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
 	// BL
-	(*pVertices)[(thisX + 1) + (thisY * rowLength)] = (*pHeightMap)[(heightMapX + 1) + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
+	pMeshData->MyVertexData[(thisX + 1) + (thisY * rowLength)].Position = pMeshData->HeightMap[(heightMapX + 1) + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
 	// BR
-	(*pVertices)[(thisX + 1) + ((thisY + 1) * rowLength)] = (*pHeightMap)[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
+	pMeshData->MyVertexData[(thisX + 1) + ((thisY + 1) * rowLength)].Position = pMeshData->HeightMap[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
 }
 
 int32 FCGTerrainGeneratorWorker::GetNumberOfNoiseSamplePoints()
