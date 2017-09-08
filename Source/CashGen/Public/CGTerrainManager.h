@@ -16,6 +16,38 @@ class ACGTerrainManager : public AActor
 {
 	GENERATED_BODY()
 
+public:
+	ACGTerrainManager();
+	~ACGTerrainManager();
+
+	DECLARE_EVENT(ACGTerrainManager, FTerrainCompleteEvent)
+	FTerrainCompleteEvent& OnTerrainComplete() { return TerrainCompleteEvent; }
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CashGen")
+		bool isReady = false;
+
+	TQueue<FCGJob, EQueueMode::Mpsc> myUpdateJobQueue;
+
+	UFUNCTION(BlueprintCallable, Category = "CashGen")
+		void SetupTerrainGenerator(FCGTerrainConfig aTerrainConfig);
+
+	void HandlePlayerSectorChange(const AActor* aActor, const FIntVector2& anOldSector, const FIntVector2& aNewSector);
+
+	UFUNCTION(BlueprintCallable, Category = "CashGen")
+		void AddActorToTrack(AActor* aActor);
+
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
+	void BeginDestroy() override;
+
+protected:
+	void BroadcastTerrainComplete()
+	{
+		TerrainCompleteEvent.Broadcast();
+	}
+
+private:
+
 	// Master config
 	UPROPERTY()
 	FCGTerrainConfig myTerrainConfig;
@@ -48,6 +80,8 @@ class ACGTerrainManager : public AActor
 	TArray<AActor*> myTrackedActors;
 	TMap<AActor*, FIntVector2> myActorLocationMap;
 
+	bool myIsTerrainComplete = false;
+
 	bool GetFreeMeshData(FCGJob& aJob);
 	void ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease);
 	void AllocateAllMeshDataStructures();
@@ -65,25 +99,9 @@ class ACGTerrainManager : public AActor
 	FIntVector2 GetSector(const FVector& aLocation);
 	TArray<FCGSector> GetRelevantSectorsForActor(const AActor* aActor);
 
-public:
-	ACGTerrainManager();
-	~ACGTerrainManager();
+	FTerrainCompleteEvent TerrainCompleteEvent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CashGen")
-	bool isReady = false;
 
-	TQueue<FCGJob, EQueueMode::Mpsc> myUpdateJobQueue;
-	
-	UFUNCTION(BlueprintCallable, Category = "CashGen")
-	void SetupTerrainGenerator(FCGTerrainConfig aTerrainConfig);
 
-	void HandlePlayerSectorChange(const AActor* aActor, const FIntVector2& anOldSector, const FIntVector2& aNewSector);
-
-	UFUNCTION(BlueprintCallable, Category = "CashGen")
-	void AddActorToTrack(AActor* aActor);
-
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaSeconds) override;
-	void BeginDestroy() override;
 
 };

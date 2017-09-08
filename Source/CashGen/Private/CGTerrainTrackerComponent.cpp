@@ -1,7 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "CashGen.h"
+#include "CGTerrainManager.h"
+#include "GameFramework/Character.h"
 #include "CGTerrainTrackerComponent.h"
+
 
 
 // Sets default values for this component's properties
@@ -14,6 +17,23 @@ UCGTerrainTrackerComponent::UCGTerrainTrackerComponent()
 	// ...
 }
 
+
+void UCGTerrainTrackerComponent::OnTerrainComplete()
+{
+	if (HideActorUntilTerrainComplete)
+	{
+		GetOwner()->SetActorHiddenInGame(false);
+	}
+
+	if (DisableCharacterGravityUntilComplete)
+	{
+		ACharacter* character = Cast<ACharacter>(GetOwner());
+		if (character)
+		{
+			character->GetCharacterMovement()->GravityScale = 1.0f;
+		}
+	}
+}
 
 // Called when the game starts
 void UCGTerrainTrackerComponent::BeginPlay()
@@ -44,6 +64,23 @@ void UCGTerrainTrackerComponent::TickComponent(float DeltaTime, ELevelTick TickT
 				thisTM->AddActorToTrack(GetOwner());
 				MyTerrainManager = thisTM;
 				isSetup = true;
+				MyTerrainManager->OnTerrainComplete().AddUObject(this, &UCGTerrainTrackerComponent::OnTerrainComplete);
+				if (HideActorUntilTerrainComplete)
+				{
+					GetOwner()->SetActorHiddenInGame(true);
+				}
+
+				if (DisableCharacterGravityUntilComplete)
+				{
+					ACharacter* character = Cast<ACharacter>(GetOwner());
+					if (character)
+					{
+						character->GetCharacterMovement()->GravityScale = 0.0f;
+					}
+				}
+				mySpawnLocation = GetOwner()->GetActorLocation();
+				
+				
 			}
 			break;
 

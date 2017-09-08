@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "CGTerrainManager.h"
 #include "CGTerrainTrackerComponent.generated.h"
 
 
@@ -18,6 +19,18 @@ public:
 	UCGTerrainTrackerComponent();
 
 	ACGTerrainManager* MyTerrainManager;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cashgen")
+	bool HideActorUntilTerrainComplete;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cashgen")
+	bool DisableCharacterGravityUntilComplete;
+
+	//FTerrainCompleteEvent OnTerrainCompleteEvent;
+
+	void OnTerrainComplete();
+
+	FVector mySpawnLocation;
 
 protected:
 	// Called when the game starts

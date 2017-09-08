@@ -143,6 +143,14 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			}
 	}
 
+	if (!myIsTerrainComplete &&
+			myTrackedActors.Num() > 0 &&
+		    myPendingJobQueue.IsEmpty() &&
+			myUpdateJobQueue.IsEmpty())
+	{
+		BroadcastTerrainComplete();
+		myIsTerrainComplete;
+	}
 }
 
 ACGTile* ACGTerrainManager::GetFreeTile()
