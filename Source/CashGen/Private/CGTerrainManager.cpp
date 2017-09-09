@@ -5,7 +5,7 @@
 #include "CGJob.h"
 
 
-DECLARE_CYCLE_STAT(TEXT("CashGen ~ SectorSweeps"), STAT_SectorSweeps, STATGROUP_CashGen);
+DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ SectorSweeps"), STAT_SectorSweeps, STATGROUP_CashGenStat);
 
 ACGTerrainManager::ACGTerrainManager()
 {
@@ -142,6 +142,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 
 	// TODO: this sucks, don't wanna be iterating over a big map like this
 	// But the cost is negligible compared to the mesh updates/collision cooking we're doing sooooooo
+	// Better than all the tiles ticking themselves
 	for (auto& elem : myTileHandleMap)
 	{
 		// The tile hasn't been required  free it
@@ -150,7 +151,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			FreeTile(elem.Value.myHandle);
 			myTileHandleMap.Remove(elem.Key);
 		}
-		else
+		else if (myTerrainConfig.DitheringLODTransitions)
 		{
 			elem.Value.myHandle->TickTransition(DeltaSeconds);
 		}

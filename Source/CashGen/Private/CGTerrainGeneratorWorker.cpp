@@ -7,9 +7,9 @@
 
 using namespace std::chrono;
 
-DECLARE_CYCLE_STAT(TEXT("CashGen ~ HeightMap"), STAT_HeightMap, STATGROUP_CashGen);
-DECLARE_CYCLE_STAT(TEXT("CashGen ~ Normals"), STAT_Normals, STATGROUP_CashGen);
-DECLARE_CYCLE_STAT(TEXT("CashGen ~ Erosion"), STAT_Erosion, STATGROUP_CashGen);
+DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ HeightMap"), STAT_HeightMap, STATGROUP_CashGenStat);
+DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ Normals"), STAT_Normals, STATGROUP_CashGenStat);
+DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ Erosion"), STAT_Erosion, STATGROUP_CashGenStat);
 
 
 FCGTerrainGeneratorWorker::FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager, FCGTerrainConfig* aTerrainConfig, TQueue<FCGJob, EQueueMode::Spsc>* anInputQueue)

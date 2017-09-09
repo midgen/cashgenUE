@@ -2,11 +2,11 @@
 #include "cashgen.h"
 #include "CGTile.h"
 
-DECLARE_CYCLE_STAT(TEXT("CashGen ~ RMCUpdate"), STAT_RMCUpdate, STATGROUP_CashGen);
+DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ RMCUpdate"), STAT_RMCUpdate, STATGROUP_CashGenStat);
 
 ACGTile::ACGTile()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RootComponent"));
 	RootComponent = SphereComponent;
@@ -76,9 +76,6 @@ void ACGTile::BeginPlay()
 	Super::BeginPlay();
 }
 
-/************************************************************************/
-/*  Tick just handles LOD transitions
-/************************************************************************/
 void ACGTile::Tick(float DeltaSeconds)
 {
 

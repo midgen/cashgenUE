@@ -12,7 +12,7 @@
 #define Msg(Text) if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Green, TEXT(Text));
 
 
-DECLARE_STATS_GROUP(TEXT("CashGen"), STATGROUP_CashGen, STATCAT_Advanced);
+DECLARE_STATS_GROUP(TEXT("CashGen"), STATGROUP_CashGenStat, STATCAT_Advanced);
 
 class FCashGen : public IModuleInterface
 {
