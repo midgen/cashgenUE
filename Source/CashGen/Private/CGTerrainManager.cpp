@@ -2,6 +2,9 @@
 #include "CGTerrainManager.h"
 #include "CGJob.h"
 
+
+DECLARE_CYCLE_STAT(TEXT("CashGen ~ SectorSweeps"), STAT_SectorSweeps, STATGROUP_CashGen);
+
 ACGTerrainManager::ACGTerrainManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -99,6 +102,8 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 	// Time based sweep of actors to see if any have moved sectors
 	if (myTimeSinceLastSweep > myTerrainConfig.TileSweepTime && myTrackedActors.Num() > 0)
 	{
+			SCOPE_CYCLE_COUNTER(STAT_SectorSweeps);
+
 			// Compare current location to previous
 			FIntVector2 oldSector = myActorLocationMap[myTrackedActors[myActorIndex]];
 			FIntVector2 newSector = GetSector(myTrackedActors[myActorIndex]->GetActorLocation());
@@ -111,7 +116,6 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			}
 			else
 			{
-				// TODO: This is crap too, must be a better way.....
 				for (FCGSector& sector : GetRelevantSectorsForActor(myTrackedActors[myActorIndex]))
 				{
 					if (myTileHandleMap.Contains(sector.mySector))

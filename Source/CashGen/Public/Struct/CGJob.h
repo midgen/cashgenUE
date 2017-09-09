@@ -19,17 +19,6 @@ struct FCGJob
 
 	FCGMeshData* Data;
 
-	//TArray<FRuntimeMeshVertexSimple>* MyVertexData;
-
-	//TArray<FVector>*	Vertices;
-	//TArray<int32>*		MyTriangles;
-	//TArray<FVector>*	Normals;
-	//TArray<FVector2D>*	UV0;
-	//TArray<FColor>*	VertexColors;
-	//TArray<FRuntimeMeshTangent>* Tangents;
-	//TArray<FVector>* HeightMap;
-	//TArray<float>* DespositionMap;
-
 	int32 HeightmapGenerationDuration;
 	int32 ErosionGenerationDuration;
 

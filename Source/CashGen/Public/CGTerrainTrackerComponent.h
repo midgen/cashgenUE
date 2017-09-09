@@ -20,16 +20,17 @@ public:
 
 	ACGTerrainManager* MyTerrainManager;
 
+	/* Sets actor invisible until inital terrain generation is complete */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cashgen")
 	bool HideActorUntilTerrainComplete = false;
 
+	/* Attempts to disable gravity on character until terrain generation is complete */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cashgen")
 	bool DisableCharacterGravityUntilComplete = false;
 
+	/* Attempts to teleport character to terrain surface when terrain generation is complete */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cashgen")
 	bool TeleportToSurfaceOnTerrainComplete  = false;
-
-	//FTerrainCompleteEvent OnTerrainCompleteEvent;
 
 	void OnTerrainComplete();
 

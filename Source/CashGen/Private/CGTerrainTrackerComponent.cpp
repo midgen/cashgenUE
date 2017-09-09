@@ -10,11 +10,9 @@
 // Sets default values for this component's properties
 UCGTerrainTrackerComponent::UCGTerrainTrackerComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
+
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
 }
 
 
@@ -45,20 +43,9 @@ void UCGTerrainTrackerComponent::OnTerrainComplete()
 
 		FHitResult hitResult;
 
-		const FName TraceTag("MyTraceTag");
-
-		GetWorld()->DebugDrawTraceTag = TraceTag;
-
-			
-		traceParams.TraceTag = TraceTag;
-
-		//  do the line trace
 		if (GetWorld()->LineTraceSingleByChannel(hitResult, traceStart, traceEnd, ECC_Pawn, traceParams))
 		{
-			
-			
-				GetOwner()->SetActorLocation(hitResult.Location + FVector(0.0f, 0.0f, 10.0f));
-			
+			GetOwner()->SetActorLocation(hitResult.Location + FVector(0.0f, 0.0f, 10.0f));
 		}
 
 	}

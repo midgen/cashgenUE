@@ -20,22 +20,27 @@ public:
 	ACGTerrainManager();
 	~ACGTerrainManager();
 
+	/* Event called when initial terrain generation is complete */
 	DECLARE_EVENT(ACGTerrainManager, FTerrainCompleteEvent)
 	FTerrainCompleteEvent& OnTerrainComplete() { return TerrainCompleteEvent; }
 
+	/* Returns true once terrain has been configured */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CashGen")
-		bool isReady = false;
+	bool isReady = false;
 
+
+	/* Main entry point for starting terrain generation */
+	UFUNCTION(BlueprintCallable, Category = "CashGen")
+	void SetupTerrainGenerator(FCGTerrainConfig aTerrainConfig);
+
+	/* Add a new actor to track and generate terrain tiles around */
+	UFUNCTION(BlueprintCallable, Category = "CashGen")
+	void AddActorToTrack(AActor* aActor);
+
+	// Update queue, jobs get sent here from the worker thread
 	TQueue<FCGJob, EQueueMode::Mpsc> myUpdateJobQueue;
 
-	UFUNCTION(BlueprintCallable, Category = "CashGen")
-		void SetupTerrainGenerator(FCGTerrainConfig aTerrainConfig);
-
-	void HandlePlayerSectorChange(const AActor* aActor, const FIntVector2& anOldSector, const FIntVector2& aNewSector);
-
-	UFUNCTION(BlueprintCallable, Category = "CashGen")
-		void AddActorToTrack(AActor* aActor);
-
+	
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	void BeginDestroy() override;
@@ -47,6 +52,8 @@ protected:
 	}
 
 private:
+
+	void HandlePlayerSectorChange(const AActor* aActor, const FIntVector2& anOldSector, const FIntVector2& aNewSector);
 
 	// Master config
 	UPROPERTY()
