@@ -1,5 +1,7 @@
 #include "CashGen.h"
 #include "CGTerrainManager.h"
+#include "CGTile.h"
+#include "CGTileHandle.h"
 #include "CGJob.h"
 
 
@@ -135,16 +137,23 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 				myTimeSinceLastSweep = 0.0f;
 			}
 
-			// TODO: this sucks, don't wanna be iterating over a big map like this
-			for (auto& elem : myTileHandleMap)
-			{
-				// The tile hasn't been required  free it
-				if (elem.Value.myLastRequiredTimestamp + myTerrainConfig.TileReleaseDelay < FDateTime::Now())
-				{
-					FreeTile(elem.Value.myHandle);
-					myTileHandleMap.Remove(elem.Key);
-				}
-			}
+
+	}
+
+	// TODO: this sucks, don't wanna be iterating over a big map like this
+	// But the cost is negligible compared to the mesh updates/collision cooking we're doing sooooooo
+	for (auto& elem : myTileHandleMap)
+	{
+		// The tile hasn't been required  free it
+		if (elem.Value.myLastRequiredTimestamp + myTerrainConfig.TileReleaseDelay < FDateTime::Now())
+		{
+			FreeTile(elem.Value.myHandle);
+			myTileHandleMap.Remove(elem.Key);
+		}
+		else
+		{
+			elem.Value.myHandle->TickTransition(DeltaSeconds);
+		}
 	}
 
 	if (!myIsTerrainComplete &&

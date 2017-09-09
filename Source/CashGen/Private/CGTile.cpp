@@ -24,9 +24,39 @@ ACGTile::~ACGTile()
 
 }
 
-uint8 ACGTile::GetCurrentLOD()
+bool ACGTile::TickTransition(float DeltaSeconds)
 {
-	return CurrentLOD;
+	for (auto& lod : LODStatus)
+	{
+		if (lod.Value == ELODStatus::TRANSITION && MaterialInstances.Num() > 0)
+		{
+			if (LODTransitionOpacity >= -1.0f)
+			{
+				LODTransitionOpacity -= DeltaSeconds;
+
+				if (LODTransitionOpacity > 0.0f)
+				{
+					MaterialInstances[lod.Key]->SetScalarParameterValue(FName("TerrainOpacity"), 1.0f - LODTransitionOpacity);
+				}
+				else if (PreviousLOD != 10 && PreviousLOD != CurrentLOD)
+				{
+					MaterialInstances[PreviousLOD]->SetScalarParameterValue(FName("TerrainOpacity"), LODTransitionOpacity + 1.0f);
+				}
+			}
+			else
+			{
+				if (PreviousLOD != 10 && PreviousLOD != CurrentLOD) {
+					MeshComponents[PreviousLOD]->SetVisibility(false);
+				}
+
+				LODTransitionOpacity = 1.0f;
+				lod.Value = ELODStatus::CREATED;
+				return true;
+			}
+
+		}
+	}
+	return false;
 }
 
 /************************************************************************/
@@ -51,35 +81,7 @@ void ACGTile::BeginPlay()
 /************************************************************************/
 void ACGTile::Tick(float DeltaSeconds)
 {
-	for (auto& lod : LODStatus)
-	{
-		if (lod.Value == ELODStatus::TRANSITION && MaterialInstances.Num() > 0)
-		{
-			if (LODTransitionOpacity >= -1.0f)
-			{
-				LODTransitionOpacity -= DeltaSeconds;
 
-				if (LODTransitionOpacity > 0.0f)
-				{
-					MaterialInstances[lod.Key]->SetScalarParameterValue(FName("TerrainOpacity"), 1.0f - LODTransitionOpacity);
-				}
-				else if (PreviousLOD != 10 && PreviousLOD != CurrentLOD)
-				{
-					MaterialInstances[PreviousLOD]->SetScalarParameterValue(FName("TerrainOpacity"), LODTransitionOpacity + 1.0f);
-				}
-			}
-			else
-			{
-				if (PreviousLOD != 10 && PreviousLOD != CurrentLOD) {
-					MeshComponents[PreviousLOD]->SetVisibility(false);
-				}
-				
-				LODTransitionOpacity = 1.0f;
-				lod.Value = ELODStatus::CREATED;
-			}
-
-		}
-	}
 }
 
 /************************************************************************/
@@ -172,7 +174,7 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshV
 
 			MeshComponents[i]->SetVisibility(true);
 		}
-		else //if (!aIsInPlaceUpdate)
+		else if (!aIsInPlaceUpdate)
 		{
 			MeshComponents[i]->SetVisibility(false);
 		}
@@ -181,14 +183,6 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshV
 
 
 
-}
-
-/************************************************************************/
-/*  Gets te position of the center of the tile, used for LODs
-/************************************************************************/
-FVector ACGTile::GetCentrePos()
-{
-	return  FVector(((mySector.X + 0.5f) * TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize) - WorldOffset.X, ((mySector.Y + 0.5f) * TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize) - WorldOffset.Y, 0.0f);
 }
 
 UMaterialInstanceDynamic* ACGTile::GetMaterialInstanceDynamic(const uint8 aLOD)

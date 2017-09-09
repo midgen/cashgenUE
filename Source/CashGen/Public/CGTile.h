@@ -30,6 +30,11 @@ class ACGTile : public AActor
 
 	bool IsInitalized = false;
 
+	FIntVector2 mySector;
+
+	FVector WorldOffset;
+	FCGTerrainConfig* TerrainConfigMaster;
+
 
 public:
 	ACGTile();
@@ -37,24 +42,14 @@ public:
 
 public:
 
-	FIntVector2 mySector;
-	
-
-	FVector WorldOffset;
-	FCGTerrainConfig* TerrainConfigMaster;
-
-	uint8 GetCurrentLOD();
-
-	void RepositionAndHide(uint8 aNewLOD);
+	bool TickTransition(float DeltaSeconds);
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
 	void UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
-	void UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshVertexSimple>*	aVertices,
-		TArray<int32>*		aTriangles);
-
-	FVector GetCentrePos();
+	void UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshVertexSimple>* aVertices, TArray<int32>* aTriangles);
+	void RepositionAndHide(uint8 aNewLOD);
 
 	UMaterialInstanceDynamic* GetMaterialInstanceDynamic(const uint8 aLOD);
 
