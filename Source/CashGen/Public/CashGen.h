@@ -3,7 +3,6 @@
 #pragma once
 
 #include "Engine.h"
-#define ECC_Terrain        ECC_GameTraceChannel1
 
 #pragma once
 
@@ -11,6 +10,9 @@
 #include "ModuleManager.h"
 
 #define Msg(Text) if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Green, TEXT(Text));
+
+
+DECLARE_STATS_GROUP(TEXT("CashGen"), STATGROUP_CashGen, STATCAT_Advanced);
 
 class FCashGen : public IModuleInterface
 {

@@ -7,6 +7,10 @@
 
 using namespace std::chrono;
 
+DECLARE_CYCLE_STAT(TEXT("CashGen ~ HeightMap"), STAT_HeightMap, STATGROUP_CashGen);
+DECLARE_CYCLE_STAT(TEXT("CashGen ~ Normals"), STAT_Normals, STATGROUP_CashGen);
+DECLARE_CYCLE_STAT(TEXT("CashGen ~ Erosion"), STAT_Erosion, STATGROUP_CashGen);
+
 
 FCGTerrainGeneratorWorker::FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager, FCGTerrainConfig* aTerrainConfig, TQueue<FCGJob, EQueueMode::Spsc>* anInputQueue)
 {
@@ -54,9 +58,13 @@ uint32 FCGTerrainGeneratorWorker::Run()
 
 			if (workLOD == 0)
 			{
-				for (int32 i = 0; i < pTerrainConfig->DropletAmount; ++i)
 				{
-					ProcessSingleDropletErosion();
+					SCOPE_CYCLE_COUNTER(STAT_Erosion);
+
+					for (int32 i = 0; i < pTerrainConfig->DropletAmount; ++i)
+					{
+						ProcessSingleDropletErosion();
+					}
 				}
 			}
 
@@ -104,6 +112,7 @@ void FCGTerrainGeneratorWorker::prepMaps()
 
 void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 {
+	SCOPE_CYCLE_COUNTER(STAT_HeightMap);
 	// Size of the noise sampling (larger than the actual mesh so we can have seamless normals)
 	int32 exX = GetNumberOfNoiseSamplePoints();
 	int32 exY = exX;
@@ -281,6 +290,7 @@ void FCGTerrainGeneratorWorker::ProcessPerBlockGeometry()
 
 void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 {
+	SCOPE_CYCLE_COUNTER(STAT_Normals);
 	int32 xUnits = workLOD == 0 ? pTerrainConfig->TileXUnits : (pTerrainConfig->TileXUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
 	int32 yUnits = workLOD == 0 ? pTerrainConfig->TileYUnits : (pTerrainConfig->TileYUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
 
@@ -478,14 +488,25 @@ void FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 vert
 	left = pMeshData->HeightMap[heightMapIndex + 1] - pMeshData->HeightMap[heightMapIndex];
 	right = pMeshData->HeightMap[heightMapIndex - 1] - pMeshData->HeightMap[heightMapIndex];
 
-	FVector n1, n2, n3, n4;
+	upleft = pMeshData->HeightMap[heightMapIndex + heightMapRowLength + 1] - pMeshData->HeightMap[heightMapIndex];
+	upright = pMeshData->HeightMap[heightMapIndex + heightMapRowLength - 1] - pMeshData->HeightMap[heightMapIndex];
+	downleft = pMeshData->HeightMap[heightMapIndex - heightMapRowLength + 1] - pMeshData->HeightMap[heightMapIndex];
+	downright = pMeshData->HeightMap[heightMapIndex - heightMapRowLength - 1] - pMeshData->HeightMap[heightMapIndex];
 
-	n1 = FVector::CrossProduct(left, up);
-	n2 = FVector::CrossProduct(up, right);
-	n3 = FVector::CrossProduct(right, down);
-	n4 = FVector::CrossProduct(down, left);
 
-	result = n1 + n2 + n3 + n4;
+	FVector n1, n2, n3, n4, n5, n6, n7, n8;
+
+	n1 = FVector::CrossProduct(left, upleft);
+	n2 = FVector::CrossProduct(upleft, up);
+	n3 = FVector::CrossProduct(up, upright);
+	n4 = FVector::CrossProduct(upright, right);
+	n5 = FVector::CrossProduct(right, downright);
+	n6 = FVector::CrossProduct(downright, down);
+	n7 = FVector::CrossProduct(down, downleft);
+	n8 = FVector::CrossProduct(downleft, left);
+
+
+	result = n1 + n2 + n3 + n4 + n5 + n6 + n7 + n8;
 
 	aOutNormal = result.GetSafeNormal();
 

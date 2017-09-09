@@ -2,6 +2,8 @@
 #include "cashgen.h"
 #include "CGTile.h"
 
+DECLARE_CYCLE_STAT(TEXT("CashGen ~ RMCUpdate"), STAT_RMCUpdate, STATGROUP_CashGen);
+
 ACGTile::ACGTile()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -149,6 +151,7 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshVertexSimple>*	aVertices,
 	TArray<int32>*	aTriangles)
 {
+	SCOPE_CYCLE_COUNTER(STAT_RMCUpdate);
 	SetActorHiddenInGame(false);
 
 	PreviousLOD = CurrentLOD;
