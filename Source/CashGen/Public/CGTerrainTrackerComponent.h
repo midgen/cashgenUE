@@ -21,10 +21,13 @@ public:
 	ACGTerrainManager* MyTerrainManager;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cashgen")
-	bool HideActorUntilTerrainComplete;
+	bool HideActorUntilTerrainComplete = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cashgen")
-	bool DisableCharacterGravityUntilComplete;
+	bool DisableCharacterGravityUntilComplete = false;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cashgen")
+	bool TeleportToSurfaceOnTerrainComplete  = false;
 
 	//FTerrainCompleteEvent OnTerrainCompleteEvent;
 

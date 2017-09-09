@@ -290,7 +290,12 @@ void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 	{
 		for (int32 x = 0; x < xUnits + 1; ++x)
 		{
-			pMeshData->MyVertexData[x + (y * rowLength)].Normal = GetNormalFromHeightMapForVertex(x, y);
+			FVector normal;
+			FRuntimeMeshTangent tangent;
+
+			GetNormalFromHeightMapForVertex(x, y, normal, tangent);
+
+			pMeshData->MyVertexData[x + (y * rowLength)].SetNormalAndTangent(normal, tangent);
 		}
 	}
 }
@@ -453,9 +458,11 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 
 }
 
-FVector FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY)
+void FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY, FVector& aOutNormal, FRuntimeMeshTangent& aOutTangent)
 {
 	FVector result;
+
+	FVector tangentVec, bitangentVec;
 
 	int32 rowLength = workLOD == 0 ? pTerrainConfig->TileXUnits + 1 : (pTerrainConfig->TileXUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
 	int32 heightMapRowLength = rowLength + 2;
@@ -480,31 +487,12 @@ FVector FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 v
 
 	result = n1 + n2 + n3 + n4;
 
-	return result.GetSafeNormal();
+	aOutNormal = result.GetSafeNormal();
+
+	// We can mega cheap out here as we're dealing with a simple flat grid
+	aOutTangent = FRuntimeMeshTangent(left.GetSafeNormal(), false);
 }
 
-FRuntimeMeshTangent FCGTerrainGeneratorWorker::GetTangentFromNormal(const FVector aNormal)
-{
-	FVector tangentVec, bitangentVec;
-	FVector c1, c2;
-
-	c1 = FVector::CrossProduct(aNormal, FVector(0.0f, 0.0f, 1.0f));
-	c2 = FVector::CrossProduct(aNormal, FVector(0.0f, 1.0f, 0.0f));
-
-	if (c1.Size() > c2.Size())
-	{
-		tangentVec = c1;
-	}
-	else
-	{
-		tangentVec = c2;
-	}
-
-	tangentVec = tangentVec.GetSafeNormal();
-	bitangentVec = FVector::CrossProduct(aNormal, tangentVec);
-
-	return FRuntimeMeshTangent(bitangentVec, false);
-}
 
 void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int aY, int32& aVertCounter, int32& triCounter)
 {

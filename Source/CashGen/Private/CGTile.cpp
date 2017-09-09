@@ -163,7 +163,6 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshV
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}
 			else {
-				TArray<FVector> dummyUV1;
 				MeshComponents[i]->UpdateMeshSection(0, *aVertices, *aTriangles, TerrainConfigMaster->LODs[aLOD].isTesselationEnabled ? ESectionUpdateFlags::CalculateTessellationIndices : ESectionUpdateFlags::None);
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}

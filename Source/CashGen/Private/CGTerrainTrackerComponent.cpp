@@ -33,6 +33,35 @@ void UCGTerrainTrackerComponent::OnTerrainComplete()
 			character->GetCharacterMovement()->GravityScale = 1.0f;
 		}
 	}
+	if (TeleportToSurfaceOnTerrainComplete)
+	{
+		FVector traceStart = mySpawnLocation + FVector(0.f, 0.f, -100.0f);
+		FVector traceEnd = traceStart + FVector(0.f, 0.f, -20000.f);
+		FCollisionQueryParams traceParams;
+
+		traceParams.bTraceComplex = true;
+		traceParams.bTraceAsyncScene = true;
+		traceParams.bReturnPhysicalMaterial = true;
+
+		FHitResult hitResult;
+
+		const FName TraceTag("MyTraceTag");
+
+		GetWorld()->DebugDrawTraceTag = TraceTag;
+
+			
+		traceParams.TraceTag = TraceTag;
+
+		//  do the line trace
+		if (GetWorld()->LineTraceSingleByChannel(hitResult, traceStart, traceEnd, ECC_Pawn, traceParams))
+		{
+			
+			
+				GetOwner()->SetActorLocation(hitResult.Location + FVector(0.0f, 0.0f, 10.0f));
+			
+		}
+
+	}
 }
 
 // Called when the game starts
@@ -78,7 +107,11 @@ void UCGTerrainTrackerComponent::TickComponent(float DeltaTime, ELevelTick TickT
 						character->GetCharacterMovement()->GravityScale = 0.0f;
 					}
 				}
-				mySpawnLocation = GetOwner()->GetActorLocation();
+				if (TeleportToSurfaceOnTerrainComplete)
+				{
+					mySpawnLocation = GetOwner()->GetActorLocation();
+				}
+				
 				
 				
 			}

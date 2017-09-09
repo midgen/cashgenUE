@@ -149,7 +149,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			myUpdateJobQueue.IsEmpty())
 	{
 		BroadcastTerrainComplete();
-		myIsTerrainComplete;
+		myIsTerrainComplete = true;
 	}
 }
 
