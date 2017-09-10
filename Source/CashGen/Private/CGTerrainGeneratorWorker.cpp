@@ -144,7 +144,7 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 				int32 worldY = (((workJob.mySector.Y * (exX - 1)) + y) * exUnitSize);
 				float val = pTerrainConfig->BiomeBlendGenerator->GetNoise2D(worldX, worldY);
 
-				pMeshData->MyVertexData[x + (exX*y)].Color.G = FMath::Clamp(FMath::FloorToInt(((val + 1.0f) / 2.0f) * 128), 0, 255);
+				pMeshData->MyVertexData[x + (exX*y)].Color.G = FMath::Clamp(FMath::RoundToInt(((val + 1.0f) / 2.0f) * 256), 0, 255);
 			}
 		}
 	}
