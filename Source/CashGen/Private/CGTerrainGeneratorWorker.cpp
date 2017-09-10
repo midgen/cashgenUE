@@ -182,12 +182,12 @@ void FCGTerrainGeneratorWorker::erodeHeightMapAtIndex(int32 aX, int32 aY, float 
 	// Add to the Red channel for deposition
 	if (aAmount > 0.0f)
 	{
-		pMeshData->MyVertexData[aX - 1 + ((XUnits - 2) * (aY - 1))].Color.R = FMath::Clamp(pMeshData->MyVertexData[aX - 1 + ((XUnits - 2) * (aY - 1))].Color.R + FMath::RoundToInt(aAmount), 0, 255);
+		//pMeshData->MyVertexData[aX - 1 + ((XUnits - 2) * (aY - 1))].Color.R = FMath::Clamp(pMeshData->MyVertexData[aX - 1 + ((XUnits - 2) * (aY - 1))].Color.R + FMath::RoundToInt(aAmount), 0, 255);
 	}
 	// Add to the blue channel for erosion
 	if (aAmount <= 0.0f)
 	{
-		pMeshData->MyVertexData[aX - 1 + ((XUnits - 2) * (aY - 1))].Color.B = FMath::Clamp(pMeshData->MyVertexData[aX - 1 + ((XUnits - 2) * (aY - 1))].Color.B + FMath::RoundToInt(aAmount * 0.01f), 0, 255);
+		//pMeshData->MyVertexData[aX - 1 + ((XUnits - 2) * (aY - 1))].Color.B = FMath::Clamp(pMeshData->MyVertexData[aX - 1 + ((XUnits - 2) * (aY - 1))].Color.B + FMath::RoundToInt(aAmount * 0.01f), 0, 255);
 	}
 
 }
@@ -303,8 +303,12 @@ void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 			FVector normal;
 			FRuntimeMeshTangent tangent;
 
+
+
 			GetNormalFromHeightMapForVertex(x, y, normal, tangent);
 
+			uint8 slopeChan = FMath::RoundToInt((1.0f - FMath::Abs(FVector::DotProduct(normal, FVector::UpVector))) * 256) ;
+			pMeshData->MyVertexData[x + (y * rowLength)].Color.R = slopeChan;
 			pMeshData->MyVertexData[x + (y * rowLength)].SetNormalAndTangent(normal, tangent);
 		}
 	}
