@@ -26,5 +26,7 @@ PublicDependencyModuleNames.AddRange(new string[] { "CashGen", "UnrealFastNoiseP
 5. Open the project. Create a new Blueprint based on CGTerrainManager
 6. OnBeginPlay in the blueprint, call SetupTerrain() and fill out all required parameters
 7. Add a CGTerrainTrackerComponent to any actors you wish to have terrain formed around
+8. You can optionally tell the tracker component to hide/disable gravity on the spawned actors until terrain generation is complete
+9. Vertex Colours - Red = slope. Green = the biome mask specified in terrain config
 
 
