@@ -18,6 +18,7 @@ struct FCGTileHandle
 	// Current rendering status of the sector
 	ETileStatus myStatus;
 	uint8 myLOD;
+	int32 myWaterISMIndex;
 	// Handle to the tile actor
 	UPROPERTY()
 	ACGTile* myHandle;

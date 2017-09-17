@@ -10,6 +10,9 @@ DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ SectorSweeps"), STAT_SectorSweeps, STATGR
 ACGTerrainManager::ACGTerrainManager()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	MyWaterMeshComponent = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("MyWaterComponent"));
+	MyWaterMeshComponent->SetupAttachment(RootComponent);
 }
 
 ACGTerrainManager::~ACGTerrainManager()
@@ -148,7 +151,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		// The tile hasn't been required  free it
 		if (elem.Value.myLastRequiredTimestamp + myTerrainConfig.TileReleaseDelay < FDateTime::Now())
 		{
-			FreeTile(elem.Value.myHandle);
+			FreeTile(elem.Value.myHandle, elem.Value.myWaterISMIndex);
 			myTileHandleMap.Remove(elem.Key);
 		}
 		else if (myTerrainConfig.DitheringLODTransitions)
@@ -185,8 +188,10 @@ ACGTile* ACGTerrainManager::GetFreeTile()
 	return result;
 }
 
-void ACGTerrainManager::FreeTile(ACGTile* aTile)
+void ACGTerrainManager::FreeTile(ACGTile* aTile, int32 waterMeshIndex)
 {
+	MyWaterMeshComponent->UpdateInstanceTransform(waterMeshIndex, FTransform(FRotator(0.0f), FVector(0.0f, 0.0f, -100000.0f), FVector(0.1f)), true, true, true);
+	myFreeWaterMeshIndices.Push(waterMeshIndex);
 	aTile->SetActorHiddenInGame(true);
 	myFreeTiles.Push(aTile);
 }
@@ -311,6 +316,8 @@ void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
 				tileHandle.myStatus = ETileStatus::SPAWNED;
 				tileHandle.myLOD = sector.myLOD;
 				tileHandle.myLastRequiredTimestamp = FDateTime::Now();
+				FTransform waterTransform = FTransform(FRotator(0.0f), tileHandle.myHandle->GetActorLocation(), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f));
+				tileHandle.myWaterISMIndex = MyWaterMeshComponent->AddInstance(waterTransform);
 
 				// Add it to our sector map
 				myTileHandleMap.Add(sector.mySector, tileHandle);
@@ -319,6 +326,7 @@ void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
 			{
 				myTileHandleMap[sector.mySector].myLOD = sector.myLOD;
 				tileHandle = myTileHandleMap[sector.mySector];
+				tileHandle.myWaterISMIndex = myFreeWaterMeshIndices.Pop();
 			}
 
 			// Create the job to generate the new geometry and update the terrain tile
@@ -333,6 +341,7 @@ void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
 
 			if(!isExistsAtLowerLOD) {
 				tileHandle.myHandle->RepositionAndHide(10);
+				MyWaterMeshComponent->UpdateInstanceTransform(tileHandle.myWaterISMIndex, FTransform(FRotator(0.0f), tileHandle.myHandle->GetActorLocation(), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f)), true, true, true);
 			}
 
 			CreateTileRefreshJob(job);

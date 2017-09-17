@@ -35,7 +35,6 @@ class ACGTile : public AActor
 	FVector WorldOffset;
 	FCGTerrainConfig* TerrainConfigMaster;
 
-
 public:
 	ACGTile();
 	~ACGTile();
@@ -50,6 +49,8 @@ public:
 	void UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
 	void UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshVertexSimple>* aVertices, TArray<int32>* aTriangles);
 	void RepositionAndHide(uint8 aNewLOD);
+
+	
 
 	UMaterialInstanceDynamic* GetMaterialInstanceDynamic(const uint8 aLOD);
 

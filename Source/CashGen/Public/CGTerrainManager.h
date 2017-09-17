@@ -7,6 +7,7 @@
 #include "Struct/IntVector2.h"
 #include "Struct/CGSector.h"
 #include "Struct/CGLODMeshData.h"
+#include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "CGTerrainManager.generated.h"
 
 class ACGTile;
@@ -45,6 +46,10 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	void BeginDestroy() override;
 
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UHierarchicalInstancedStaticMeshComponent* MyWaterMeshComponent;
+
 protected:
 	void BroadcastTerrainComplete()
 	{
@@ -58,6 +63,7 @@ private:
 	// Master config
 	UPROPERTY()
 	FCGTerrainConfig myTerrainConfig;
+
 
 	// Sweep tracking
 	float myTimeSinceLastSweep = 0.0f;
@@ -79,6 +85,7 @@ private:
 
 	// Tile/Sector tracking
 	TArray<ACGTile*> myFreeTiles;
+	TArray<int32> myFreeWaterMeshIndices;
 	UPROPERTY()
 	TMap<FIntVector2, FCGTileHandle> myTileHandleMap;
 	TSet<FIntVector2> myQueuedSectors;
@@ -101,7 +108,7 @@ private:
 	void ProcessTilesForActor(const AActor* anActor);
 
 	ACGTile* GetFreeTile();
-	void FreeTile(ACGTile* aTile);
+	void FreeTile(ACGTile* aTile, int32 aWaterMeshIndex);
 
 	FIntVector2 GetSector(const FVector& aLocation);
 	TArray<FCGSector> GetRelevantSectorsForActor(const AActor* aActor);

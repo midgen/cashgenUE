@@ -69,6 +69,8 @@ struct FCGTerrainConfig
 	/** Make a dynamic material instance */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Materials")
 	bool MakeDynamicMaterialInstance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Materials")
+	bool CastShadows = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | LODs")
 	TArray<FCGLODConfig> LODs;
 

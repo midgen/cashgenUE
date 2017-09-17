@@ -1,8 +1,10 @@
 
 #include "cashgen.h"
 #include "CGTile.h"
+#include "RuntimeMeshGenericVertex.h"
 
 DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ RMCUpdate"), STAT_RMCUpdate, STATGROUP_CashGenStat);
+
 
 ACGTile::ACGTile()
 {
@@ -109,6 +111,8 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 			MeshComponents[i]->BodyInstance.SetResponseToAllChannels(ECR_Block);
 			MeshComponents[i]->BodyInstance.SetResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
 			MeshComponents[i]->bShouldSerializeMeshData = false;
+			MeshComponents[i]->bCastDynamicShadow = TerrainConfigMaster->CastShadows;
+			MeshComponents[i]->bCastStaticShadow = TerrainConfigMaster->CastShadows;
 
 			MeshComponents[i]->RegisterComponent();
 
