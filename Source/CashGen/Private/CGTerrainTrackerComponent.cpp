@@ -110,3 +110,12 @@ void UCGTerrainTrackerComponent::TickComponent(float DeltaTime, ELevelTick TickT
 	}
 }
 
+void UCGTerrainTrackerComponent::OnUnregister()
+{
+	if (MyTerrainManager)
+	{
+		MyTerrainManager->RemoveActorToTrack(GetOwner());
+	}
+	Super::OnUnregister();
+}
+

@@ -38,6 +38,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
 	void AddActorToTrack(AActor* aActor);
 
+	/* Add a new actor to track and generate terrain tiles around */
+	UFUNCTION(BlueprintCallable, Category = "CashGen")
+	void RemoveActorToTrack(AActor* aActor);
+
 	// Update queue, jobs get sent here from the worker thread
 	TQueue<FCGJob, EQueueMode::Mpsc> myUpdateJobQueue;
 

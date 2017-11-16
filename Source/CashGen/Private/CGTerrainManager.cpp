@@ -289,6 +289,14 @@ void ACGTerrainManager::AddActorToTrack(AActor* aPawn)
 
 }
 
+void ACGTerrainManager::RemoveActorToTrack(AActor* aPawn)
+{
+	myTrackedActors.Remove(aPawn);
+	
+	myActorLocationMap.Remove(aPawn);
+
+}
+
 
 
 void ACGTerrainManager::CreateTileRefreshJob(FCGJob aJob)
