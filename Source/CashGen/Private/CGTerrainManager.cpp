@@ -104,6 +104,11 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		}
 	}
 
+	if (myActorIndex >= myTrackedActors.Num())
+	{
+		myActorIndex = FMath::Min(0, myTrackedActors.Num() - 1);
+	}
+
 	// Time based sweep of actors to see if any have moved sectors
 	if (myTimeSinceLastSweep > myTerrainConfig.TileSweepTime && myTrackedActors.Num() > 0)
 	{
