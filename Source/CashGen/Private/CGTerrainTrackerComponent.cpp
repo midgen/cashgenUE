@@ -77,9 +77,10 @@ void UCGTerrainTrackerComponent::TickComponent(float DeltaTime, ELevelTick TickT
 			ACGTerrainManager* thisTM = Cast<ACGTerrainManager>(result);
 			if (thisTM && thisTM->isReady)
 			{
+				isSetup = true;
 				thisTM->AddActorToTrack(GetOwner());
 				MyTerrainManager = thisTM;
-				isSetup = true;
+				
 				MyTerrainManager->OnTerrainComplete().AddUObject(this, &UCGTerrainTrackerComponent::OnTerrainComplete);
 				if (HideActorUntilTerrainComplete)
 				{

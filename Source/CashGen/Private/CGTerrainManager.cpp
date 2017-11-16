@@ -146,18 +146,26 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 	// TODO: this sucks, don't wanna be iterating over a big map like this
 	// But the cost is negligible compared to the mesh updates/collision cooking we're doing sooooooo
 	// Better than all the tiles ticking themselves
+
+	TArray<FIntVector2> TilesToDelete;
+
 	for (auto& elem : myTileHandleMap)
 	{
 		// The tile hasn't been required  free it
 		if (elem.Value.myLastRequiredTimestamp + myTerrainConfig.TileReleaseDelay < FDateTime::Now())
 		{
 			FreeTile(elem.Value.myHandle, elem.Value.myWaterISMIndex);
-			myTileHandleMap.Remove(elem.Key);
+			TilesToDelete.Push(elem.Key);
 		}
 		else if (myTerrainConfig.DitheringLODTransitions)
 		{
 			elem.Value.myHandle->TickTransition(DeltaSeconds);
 		}
+	}
+
+	for (auto& key : TilesToDelete)
+	{
+		myTileHandleMap.Remove(key);
 	}
 
 	if (!myIsTerrainComplete &&
@@ -326,7 +334,7 @@ void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
 			{
 				myTileHandleMap[sector.mySector].myLOD = sector.myLOD;
 				tileHandle = myTileHandleMap[sector.mySector];
-				tileHandle.myWaterISMIndex = myFreeWaterMeshIndices.Pop();
+				//tileHandle.myWaterISMIndex = myFreeWaterMeshIndices.Pop();
 			}
 
 			// Create the job to generate the new geometry and update the terrain tile
