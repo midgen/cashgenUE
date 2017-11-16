@@ -1,5 +1,5 @@
 # cashgenUE
-Procedural Terrain Generator for UnrealEngine 4.17
+Procedural Terrain Generator for UnrealEngine 4.18
 
 This plugin generates heightmap-based terrain tiles in realtime, and move the tiles around to track a player pawn. 
 
@@ -30,8 +30,8 @@ PublicDependencyModuleNames.AddRange(new string[] { "CashGen", "UnrealFastNoiseP
 9. You can optionally tell the tracker component to hide/disable gravity on the spawned actors until terrain generation is complete
 10. Vertex Colours - Red = slope. Green = the biome mask specified in terrain config
 
-There are sample levels and blueprints in the plugin content folder. In View Options in the content browser ensure 'Show Plugin Content' is checked. You should now see 'CashGen Content' in the content browser.
+For samples, please check :
 
-Lvl_MP_Sample contains a sample scene. 
+https://github.com/midgen/CashDemo
 
 
