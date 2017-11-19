@@ -1,4 +1,5 @@
 #pragma once
+#include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Struct/CGJob.h"
 #include "Struct/CGTerrainConfig.h"

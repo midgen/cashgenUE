@@ -1,6 +1,5 @@
 #pragma once
-
-#include "cashgen.h"
+#include "CoreMinimal.h"
 #include "IntVector2.h"
 #include "RuntimeMeshComponent.h"
 #include "CGTile.generated.h"

@@ -1,7 +1,6 @@
-#include "cashgen.h"
+#include "CGWorldGeneratorWorker.h"
 #include "UFNNoiseGenerator.h"
 #include "CGWorldFace.h"
-#include "CGWorldGeneratorWorker.h"
 #include "CGWorldFaceJob.h"
 #include <chrono>
 

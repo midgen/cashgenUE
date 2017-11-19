@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
+#include "CGTerrainTrackerComponent.h"
 #include "CashGen.h"
 #include "CGTerrainManager.h"
 #include "GameFramework/Character.h"
-#include "CGTerrainTrackerComponent.h"
+
 
 
 

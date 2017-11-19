@@ -1,5 +1,5 @@
 #pragma once
-#include "cashgen.h"
+#include "CoreMinimal.h"
 #include "CGWorldConfig.h"
 #include "CGWorldMeshData.h"
 #include "CGWorld.generated.h"

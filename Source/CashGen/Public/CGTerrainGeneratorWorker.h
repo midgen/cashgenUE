@@ -1,5 +1,5 @@
 #pragma once
-#include "cashgen.h"
+#include "CoreMinimal.h"
 #include "CGTerrainManager.h"
 #include "CGTerrainConfig.h"
 #include "CGMeshData.h"
