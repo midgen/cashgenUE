@@ -5,7 +5,8 @@
 #include "CGJob.h"
 
 
-DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ SectorSweeps"), STAT_SectorSweeps, STATGROUP_CashGenStat);
+DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ ActorSectorSweeps"), STAT_ActorSectorSweeps, STATGROUP_CashGenStat);
+DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ SectorExpirySweeps"), STAT_SectorExpirySweeps, STATGROUP_CashGenStat);
 
 ACGTerrainManager::ACGTerrainManager()
 {
@@ -118,7 +119,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 	// Time based sweep of actors to see if any have moved sectors
 	if (myTimeSinceLastSweep > myTerrainConfig.TileSweepTime && myTrackedActors.Num() > 0)
 	{
-			SCOPE_CYCLE_COUNTER(STAT_SectorSweeps);
+			SCOPE_CYCLE_COUNTER(STAT_ActorSectorSweeps);
 
 			// Compare current location to previous
 			FIntVector2 oldSector = myActorLocationMap[myTrackedActors[myActorIndex]];
@@ -160,25 +161,28 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 
 	TArray<FIntVector2> TilesToDelete;
 
-	for (auto& elem : myTileHandleMap)
 	{
-		// The tile hasn't been required  free it
-		if (elem.Value.myLastRequiredTimestamp + myTerrainConfig.TileReleaseDelay < FDateTime::Now())
+		SCOPE_CYCLE_COUNTER(STAT_SectorExpirySweeps);
+
+		for (auto& elem : myTileHandleMap)
 		{
-			FreeTile(elem.Value.myHandle, elem.Value.myWaterISMIndex);
-			TilesToDelete.Push(elem.Key);
+			// The tile hasn't been required  free it
+			if (elem.Value.myLastRequiredTimestamp + myTerrainConfig.TileReleaseDelay < FDateTime::Now())
+			{
+				FreeTile(elem.Value.myHandle, elem.Value.myWaterISMIndex);
+				TilesToDelete.Push(elem.Key);
+			}
+			else if (myTerrainConfig.DitheringLODTransitions)
+			{
+				elem.Value.myHandle->TickTransition(DeltaSeconds);
+			}
 		}
-		else if (myTerrainConfig.DitheringLODTransitions)
+
+		for (auto& key : TilesToDelete)
 		{
-			elem.Value.myHandle->TickTransition(DeltaSeconds);
+			myTileHandleMap.Remove(key);
 		}
 	}
-
-	for (auto& key : TilesToDelete)
-	{
-		myTileHandleMap.Remove(key);
-	}
-
 	if (!myIsTerrainComplete &&
 			myTrackedActors.Num() > 0 &&
 		    myPendingJobQueue.IsEmpty() &&
