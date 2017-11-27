@@ -111,6 +111,7 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 			MeshComponents[i]->bShouldSerializeMeshData = false;
 			MeshComponents[i]->bCastDynamicShadow = TerrainConfigMaster->CastShadows;
 			MeshComponents[i]->bCastStaticShadow = TerrainConfigMaster->CastShadows;
+			MeshComponents[i]->bUseAsyncCooking = TerrainConfigMaster->UseAsyncCollision;
 
 			MeshComponents[i]->RegisterComponent();
 

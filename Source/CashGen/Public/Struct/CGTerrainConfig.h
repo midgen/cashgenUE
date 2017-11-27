@@ -16,6 +16,9 @@ struct FCGTerrainConfig
 		UUFNNoiseGenerator* NoiseGenerator;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
 		UUFNNoiseGenerator* BiomeBlendGenerator;
+	/** Use ASync collision cooking for terrain mesh (Recommended) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
+	bool UseAsyncCollision = true;
 	/** Number of blocks along a zone's X axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen | Main")
 		int32 TileXUnits = 32;
