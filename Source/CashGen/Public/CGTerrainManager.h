@@ -112,7 +112,7 @@ private:
 
 	void ProcessTilesForActor(const AActor* anActor);
 
-	ACGTile* GetFreeTile();
+	TPair<ACGTile*, int32> GetAvailableTile();
 	void FreeTile(ACGTile* aTile, int32 aWaterMeshIndex);
 
 	FIntVector2 GetSector(const FVector& aLocation);

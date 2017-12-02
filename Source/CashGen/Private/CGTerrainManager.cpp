@@ -193,19 +193,21 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 	}
 }
 
-ACGTile* ACGTerrainManager::GetFreeTile()
+TPair<ACGTile*, int32> ACGTerrainManager::GetAvailableTile()
 {
-	ACGTile* result = nullptr;
+	TPair<ACGTile*, int32> result;
 
 	if (myFreeTiles.Num())
 	{
-		result = myFreeTiles.Pop();
+		result.Key = myFreeTiles.Pop();
+		result.Value = myFreeWaterMeshIndices.Pop();
 	}
 	
 	
-	if (!result)
+	if (!result.Key)
 	{
-		result = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(), FVector(0.0f, 0.0f, -10000.0f), FRotator(0.0f));
+		result.Key = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(), FVector(0.0f, 0.0f, -10000.0f), FRotator(0.0f));
+		result.Value = MyWaterMeshComponent->AddInstance(FTransform());
 	}
 
 	return result;
@@ -244,7 +246,7 @@ TArray<FCGSector> ACGTerrainManager::GetRelevantSectorsForActor(const AActor* aA
 	// Always include the sector the pawn is in
 	result.Add(rootSector);
 
-	const int sweepRange = myTerrainConfig.LODs[myTerrainConfig.LODs.Num() - 1].SectorDistance;
+	const int sweepRange = myTerrainConfig.LODs[myTerrainConfig.LODs.Num() - 1].SectorRadius;
 	const int sweepRange2 = sweepRange * sweepRange;
 
 
@@ -273,7 +275,7 @@ int ACGTerrainManager::GetLODForRange(const int32 aRange)
 	int lowestLOD = 999;
 	for (int i = myTerrainConfig.LODs.Num() - 1; i >= 0; i--)
 	{
-		if (aRange < (myTerrainConfig.LODs[i].SectorDistance * myTerrainConfig.LODs[i].SectorDistance) && lowestLOD > i)
+		if (aRange < (myTerrainConfig.LODs[i].SectorRadius * myTerrainConfig.LODs[i].SectorRadius) && lowestLOD > i)
 		{
 			lowestLOD = i;
 		}
@@ -337,19 +339,19 @@ void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
 			// We have to create the tile for this sector
 			if (!isExistsAtLowerLOD)
 			{
-				FActorSpawnParameters spawnParameters;
-				spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				TPair<ACGTile*, int32> tile = GetAvailableTile();
+				tileHandle.myHandle = tile.Key;
+				tileHandle.myHandle->SetActorLocation(FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * sector.mySector.X, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * sector.mySector.Y, 0.0f));
 
-				tileHandle.myHandle = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(),
-					FVector((myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * sector.mySector.X),
-					(myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * sector.mySector.Y), 0.0f), FRotator(0.0f), spawnParameters);
+
+				FTransform waterTransform = FTransform(FRotator(0.0f), tileHandle.myHandle->GetActorLocation(), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f));
+				MyWaterMeshComponent->UpdateInstanceTransform(tile.Value, waterTransform, true);
+
 
 				tileHandle.myStatus = ETileStatus::SPAWNED;
 				tileHandle.myLOD = sector.myLOD;
 				tileHandle.myLastRequiredTimestamp = FDateTime::Now();
-				FTransform waterTransform = FTransform(FRotator(0.0f), tileHandle.myHandle->GetActorLocation(), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f));
-				tileHandle.myWaterISMIndex = MyWaterMeshComponent->AddInstance(waterTransform);
-
+				
 				// Add it to our sector map
 				myTileHandleMap.Add(sector.mySector, tileHandle);
 			}
@@ -357,7 +359,7 @@ void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
 			{
 				myTileHandleMap[sector.mySector].myLOD = sector.myLOD;
 				tileHandle = myTileHandleMap[sector.mySector];
-				//tileHandle.myWaterISMIndex = myFreeWaterMeshIndices.Pop();
+				
 			}
 
 			// Create the job to generate the new geometry and update the terrain tile
