@@ -30,7 +30,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CashGen")
 	bool isReady = false;
 
-
 	/* Main entry point for starting terrain generation */
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
 	void SetupTerrainGenerator(FCGTerrainConfig aTerrainConfig);
@@ -63,7 +62,7 @@ protected:
 
 private:
 
-	void HandlePlayerSectorChange(const AActor* aActor, const FIntVector2& anOldSector, const FIntVector2& aNewSector);
+	void SetActorSector(const AActor* aActor, const FIntVector2& aNewSector);
 
 	// Master config
 	UPROPERTY()
@@ -80,17 +79,17 @@ private:
 
 	// Geometry data storage
 	UPROPERTY()
-	TArray<FCGLODMeshData> myMeshData;
-	TArray<TSet<FCGMeshData*>> myFreeMeshData;
-	TArray<TSet<FCGMeshData*>> myInUseMeshData;
+	TArray<FCGLODMeshData>		myMeshData;
+	TArray<TSet<FCGMeshData*>>	myFreeMeshData;
+	TArray<TSet<FCGMeshData*>>	myInUseMeshData;
 
 	// Job tracking
-	TQueue<FCGJob, EQueueMode::Spsc> myPendingJobQueue;
-	TArray<TQueue<FCGJob, EQueueMode::Spsc>> myGeometryJobQueues;
+	TQueue<FCGJob, EQueueMode::Spsc>			myPendingJobQueue;
+	TArray<TQueue<FCGJob, EQueueMode::Spsc>>	myGeometryJobQueues;
 
 	// Tile/Sector tracking
-	TArray<ACGTile*> myFreeTiles;
-	TArray<int32> myFreeWaterMeshIndices;
+	TArray<ACGTile*>	myFreeTiles;
+	TArray<int32>		myFreeWaterMeshIndices;
 	UPROPERTY()
 	TMap<FIntVector2, FCGTileHandle> myTileHandleMap;
 	TSet<FIntVector2> myQueuedSectors;
@@ -113,7 +112,7 @@ private:
 	void ProcessTilesForActor(const AActor* anActor);
 
 	TPair<ACGTile*, int32> GetAvailableTile();
-	void FreeTile(ACGTile* aTile, int32 aWaterMeshIndex);
+	void FreeTile(ACGTile* aTile, const int32& aWaterMeshIndex);
 
 	FIntVector2 GetSector(const FVector& aLocation);
 	TArray<FCGSector> GetRelevantSectorsForActor(const AActor* aActor);

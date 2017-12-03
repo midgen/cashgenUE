@@ -58,6 +58,11 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 
 	myTimeSinceLastSweep += DeltaSeconds;
 
+	// Make sure there's no daft number of threads. Unlikely you'll want more than one anyway.
+	if (myTerrainConfig.NumberOfThreads > FPlatformMisc::NumberOfCores())
+	{
+		myTerrainConfig.NumberOfThreads = FPlatformMisc::NumberOfCores();
+	}
 
 	// Check for pending jobs
 	for (int i = 0; i < myTerrainConfig.NumberOfThreads; i++)
@@ -85,7 +90,13 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 				system_clock::now().time_since_epoch()
 				);
 
-			updateJob.myTileHandle.myHandle->UpdateMesh(updateJob.LOD, updateJob.IsInPlaceUpdate, &updateJob.Data->MyVertexData, &updateJob.Data->MyTriangles );
+			updateJob.myTileHandle.myHandle->UpdateMesh(updateJob.LOD,
+				updateJob.IsInPlaceUpdate,
+				&updateJob.Data->MyVertexData,
+				&updateJob.Data->MyTriangles);
+
+			FTransform waterTransform = FTransform(FRotator(0.0f), updateJob.myTileHandle.myHandle->GetActorLocation() + FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.5f, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.5f, 0.0f), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f));
+			MyWaterMeshComponent->UpdateInstanceTransform(updateJob.myTileHandle.myWaterISMIndex, waterTransform, true, true, true);
 
 			updateJob.myTileHandle.myHandle->SetActorHiddenInGame(false);
 			int32 updateMS = (duration_cast<milliseconds>(
@@ -127,7 +138,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			if (oldSector != newSector)
 			{
 				// Take care of spawning new sectors if necessary
-				HandlePlayerSectorChange(myTrackedActors[myActorIndex], oldSector, newSector);
+				SetActorSector(myTrackedActors[myActorIndex], newSector);
 				
 				ProcessTilesForActor(myTrackedActors[myActorIndex]);
 			}
@@ -207,13 +218,13 @@ TPair<ACGTile*, int32> ACGTerrainManager::GetAvailableTile()
 	if (!result.Key)
 	{
 		result.Key = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(), FVector(0.0f, 0.0f, -10000.0f), FRotator(0.0f));
-		result.Value = MyWaterMeshComponent->AddInstance(FTransform());
+		result.Value = MyWaterMeshComponent->AddInstance(FTransform(FRotator(0.0f), FVector(0.0f, 0.0f, -10000.0f), FVector::OneVector));
 	}
 
 	return result;
 }
 
-void ACGTerrainManager::FreeTile(ACGTile* aTile, int32 waterMeshIndex)
+void ACGTerrainManager::FreeTile(ACGTile* aTile, const int32& waterMeshIndex)
 {
 	MyWaterMeshComponent->UpdateInstanceTransform(waterMeshIndex, FTransform(FRotator(0.0f), FVector(0.0f, 0.0f, -100000.0f), FVector(0.1f)), true, true, true);
 	myFreeWaterMeshIndices.Push(waterMeshIndex);
@@ -221,7 +232,7 @@ void ACGTerrainManager::FreeTile(ACGTile* aTile, int32 waterMeshIndex)
 	myFreeTiles.Push(aTile);
 }
 
-void ACGTerrainManager::HandlePlayerSectorChange(const AActor* aActor, const FIntVector2& anOldSector, const FIntVector2& aNewSector)
+void ACGTerrainManager::SetActorSector(const AActor* aActor,  const FIntVector2& aNewSector)
 {
 	myActorLocationMap[aActor] = aNewSector;
 }
@@ -341,13 +352,13 @@ void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
 			{
 				TPair<ACGTile*, int32> tile = GetAvailableTile();
 				tileHandle.myHandle = tile.Key;
-				tileHandle.myHandle->SetActorLocation(FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * sector.mySector.X, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * sector.mySector.Y, 0.0f));
+				//tileHandle.myHandle->SetActorLocation(FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * sector.mySector.X, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * sector.mySector.Y, 0.0f));
 
 
-				FTransform waterTransform = FTransform(FRotator(0.0f), tileHandle.myHandle->GetActorLocation(), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f));
-				MyWaterMeshComponent->UpdateInstanceTransform(tile.Value, waterTransform, true);
+				FTransform waterTransform = FTransform(FRotator(0.0f), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * (sector.mySector.X - 0.5f), myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * (sector.mySector.Y - 0.5f), 0.0f), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f));
+				MyWaterMeshComponent->UpdateInstanceTransform(tile.Value, waterTransform, true, true, true);
 
-
+				tileHandle.myWaterISMIndex = tile.Value;
 				tileHandle.myStatus = ETileStatus::SPAWNED;
 				tileHandle.myLOD = sector.myLOD;
 				tileHandle.myLastRequiredTimestamp = FDateTime::Now();
@@ -374,7 +385,7 @@ void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
 
 			if(!isExistsAtLowerLOD) {
 				tileHandle.myHandle->RepositionAndHide(10);
-				MyWaterMeshComponent->UpdateInstanceTransform(tileHandle.myWaterISMIndex, FTransform(FRotator(0.0f), tileHandle.myHandle->GetActorLocation(), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f)), true, true, true);
+				MyWaterMeshComponent->UpdateInstanceTransform(tileHandle.myWaterISMIndex, FTransform(FRotator(0.0f), tileHandle.myHandle->GetActorLocation(), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f)), true, true, true);
 			}
 
 			CreateTileRefreshJob(job);
