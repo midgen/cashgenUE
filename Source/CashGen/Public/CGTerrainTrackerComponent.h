@@ -36,11 +36,20 @@ public:
 
 	FVector mySpawnLocation;
 
+
+
+	/* Attempts to teleport character to terrain surface when terrain generation is complete */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Cashgen")
+	int32 SpawnRayCastsPerFrame = 10;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 	virtual void OnUnregister() override;
+
+	bool isTerrainComplete = false;
+	bool isSpawnPointFound = false;
 
 public:	
 	// Called every frame

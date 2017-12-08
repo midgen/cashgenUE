@@ -18,12 +18,12 @@ UCGTerrainTrackerComponent::UCGTerrainTrackerComponent()
 
 void UCGTerrainTrackerComponent::OnTerrainComplete()
 {
-	if (HideActorUntilTerrainComplete)
+	if (HideActorUntilTerrainComplete && !TeleportToSurfaceOnTerrainComplete)
 	{
 		GetOwner()->SetActorHiddenInGame(false);
 	}
 
-	if (DisableCharacterGravityUntilComplete)
+	if (DisableCharacterGravityUntilComplete && !TeleportToSurfaceOnTerrainComplete)
 	{
 		ACharacter* character = Cast<ACharacter>(GetOwner());
 		if (character)
@@ -31,24 +31,9 @@ void UCGTerrainTrackerComponent::OnTerrainComplete()
 			character->GetCharacterMovement()->GravityScale = 1.0f;
 		}
 	}
-	if (TeleportToSurfaceOnTerrainComplete)
-	{
-		FVector traceStart = mySpawnLocation + FVector(0.f, 0.f, -100.0f);
-		FVector traceEnd = traceStart + FVector(0.f, 0.f, -20000.f);
-		FCollisionQueryParams traceParams;
 
-		traceParams.bTraceComplex = true;
-		traceParams.bTraceAsyncScene = true;
-		traceParams.bReturnPhysicalMaterial = true;
+	isTerrainComplete = true;
 
-		FHitResult hitResult;
-
-		if (GetWorld()->LineTraceSingleByChannel(hitResult, traceStart, traceEnd, ECC_Pawn, traceParams))
-		{
-			GetOwner()->SetActorLocation(hitResult.Location + FVector(0.0f, 0.0f, 10.0f));
-		}
-
-	}
 }
 
 // Called when the game starts
@@ -108,6 +93,54 @@ void UCGTerrainTrackerComponent::TickComponent(float DeltaTime, ELevelTick TickT
 		}
 		
 	}
+
+	if (!isSpawnPointFound && isTerrainComplete && TeleportToSurfaceOnTerrainComplete)
+	{
+		int32 raycastsRemainingThisFrame = SpawnRayCastsPerFrame;
+
+		while (raycastsRemainingThisFrame > 0)
+		{
+
+
+			FVector traceStart = mySpawnLocation + FVector(FMath::RandRange(-10000.0f, 10000.0f), FMath::RandRange(-100000.0f, 100000.0f), 5000.0f);
+			FVector traceEnd = traceStart + FVector(0.f, 0.f, -20000.f);
+			FCollisionQueryParams traceParams;
+
+			traceParams.bTraceComplex = true;
+			traceParams.bTraceAsyncScene = true;
+			traceParams.bReturnPhysicalMaterial = true;
+
+			//const FName TraceTag("SpawnTraceTag");
+
+			//GetWorld()->DebugDrawTraceTag = TraceTag;
+
+			//traceParams.TraceTag = TraceTag;
+
+			FHitResult hitResult;
+
+			if (GetWorld()->LineTraceSingleByChannel(hitResult, traceStart, traceEnd, ECC_GameTraceChannel1, traceParams)
+				&& hitResult.Location.Z > 10.0f)
+			{
+
+				GetOwner()->SetActorLocation(hitResult.Location + FVector(0.0f, 0.0f, 10.0f));
+				ACharacter* character = Cast<ACharacter>(GetOwner());
+				if (character)
+				{
+					character->GetCharacterMovement()->GravityScale = 1.0f;
+				}
+				GetOwner()->SetActorHiddenInGame(false);
+				isSpawnPointFound = true;
+				break;
+			}
+
+			raycastsRemainingThisFrame--;
+		}
+
+	}
+
+
+
+	
 }
 
 void UCGTerrainTrackerComponent::OnUnregister()

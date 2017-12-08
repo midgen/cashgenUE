@@ -471,7 +471,7 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 
 }
 
-void FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 vertexX, const int32 vertexY, FVector& aOutNormal, FRuntimeMeshTangent& aOutTangent)
+void FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32& vertexX, const int32& vertexY, FVector& aOutNormal, FRuntimeMeshTangent& aOutTangent)
 {
 	FVector result;
 
@@ -518,7 +518,7 @@ void FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32 vert
 }
 
 
-void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int aX, const int aY, int32& aVertCounter, int32& triCounter)
+void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int32& aX, const int32& aY, int32& aVertCounter, int32& triCounter)
 {
 	int32 thisX = aX;
 	int32 thisY = aY;
