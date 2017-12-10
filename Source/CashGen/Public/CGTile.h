@@ -34,6 +34,12 @@ class ACGTile : public AActor
 	FVector WorldOffset;
 	FCGTerrainConfig* TerrainConfigMaster;
 
+	UPROPERTY()
+	UTexture2D* myTexture;
+
+	FUpdateTextureRegion2D* myRegion;
+
+
 public:
 	ACGTile();
 	~ACGTile();
@@ -46,7 +52,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	void UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
-	void UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshVertexSimple>* aVertices, TArray<int32>* aTriangles);
+	void UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshVertexSimple>* aVertices, TArray<int32>* aTriangles, TArray<FColor>& aTextureData);
 	void RepositionAndHide(uint8 aNewLOD);
 
 	

@@ -16,12 +16,17 @@ ACGTile::ACGTile()
 
 	mySector = FIntVector2(0, 0);
 
+
 	
 }
 
 ACGTile::~ACGTile()
 {
-
+	if (myRegion)
+	{
+		delete myRegion;
+		myRegion = nullptr;
+	}
 }
 
 bool ACGTile::TickTransition(float DeltaSeconds)
@@ -143,6 +148,19 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 
 		}
 
+		if (TerrainConfigMaster->GenerateSplatMap)
+		{
+			myTexture = UTexture2D::CreateTransient(TerrainConfigMaster->TileXUnits, TerrainConfigMaster->TileYUnits);
+
+			myRegion = new FUpdateTextureRegion2D();
+			myRegion->Height = TerrainConfigMaster->TileYUnits;
+			myRegion->Width = TerrainConfigMaster->TileXUnits;
+			myRegion->SrcX = 0;
+			myRegion->SrcY = 0;
+			myRegion->DestX = 0;
+			myRegion->DestY = 0;
+		}
+
 		IsInitalized = true;
 	}
 
@@ -151,7 +169,7 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
  /*  Updates the mesh for a given LOD and starts the transition effects  
  /************************************************************************/
 void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshVertexSimple>*	aVertices,
-	TArray<int32>*	aTriangles)
+	TArray<int32>*	aTriangles, TArray<FColor>& aTextureData)
 {
 	SCOPE_CYCLE_COUNTER(STAT_RMCUpdate);
 	SetActorHiddenInGame(false);
@@ -172,6 +190,7 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshV
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}
 
+
 			MeshComponents[i]->SetVisibility(true);
 		}
 		else if (!aIsInPlaceUpdate)
@@ -180,9 +199,13 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshV
 		}
 	}
 
-
-
-
+	if (aLOD == 0 && TerrainConfigMaster->GenerateSplatMap)
+	{
+		myTexture->UpdateResource();
+		myTexture->UpdateTextureRegions(0, 1, myRegion, 4* TerrainConfigMaster->TileYUnits, 4, (uint8*)aTextureData.GetData());
+		
+		MaterialInstances[0]->SetTextureParameterValue("SplatMap", myTexture);
+	}
 }
 
 UMaterialInstanceDynamic* ACGTile::GetMaterialInstanceDynamic(const uint8 aLOD)

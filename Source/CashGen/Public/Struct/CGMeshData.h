@@ -14,5 +14,6 @@ struct FCGMeshData
 	TArray<int32> MyTriangles;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
 	TArray<FVector> HeightMap;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Mesh Data Struct")
+	TArray<FColor> myTextureData;
 };

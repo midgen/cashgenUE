@@ -130,6 +130,24 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 
 		}
 	}
+	// Put heightmap into Red channel
+
+	if (pTerrainConfig->GenerateSplatMap)
+	{
+		int i = 0;
+		for (int x = 1; x < exX - 2; ++x)
+		{
+			for (int y = 1; y < exY - 2; ++y)
+			{
+				int32 worldX = (((workJob.mySector.X * (exX - 3)) + x) * exUnitSize);
+				int32 worldY = (((workJob.mySector.Y * (exX - 3)) + y) * exUnitSize);
+
+				pMeshData->myTextureData[i].R = (uint8)FMath::GetMappedRangeValueClamped(FVector2D(-1.0f, 1.0f), FVector2D(0.0f, 255.0f), pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY));
+				i++;
+			}
+		}
+	}
+
 	// Then put the biome map into the Green vertex colour channel
 	if (pTerrainConfig->BiomeBlendGenerator)
 	{
