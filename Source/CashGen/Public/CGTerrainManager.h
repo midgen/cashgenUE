@@ -27,12 +27,11 @@ public:
 	FTerrainCompleteEvent& OnTerrainComplete() { return TerrainCompleteEvent; }
 
 	/* Returns true once terrain has been configured */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CashGen")
 	bool isReady = false;
 
 	/* Main entry point for starting terrain generation */
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
-	void SetupTerrainGenerator(FCGTerrainConfig aTerrainConfig);
+	void SetupTerrainGenerator(UUFNNoiseGenerator* aHeightmapGenerator, UUFNNoiseGenerator* aBiomeGenerator/*FCGTerrainConfig aTerrainConfig*/);
 
 	/* Add a new actor to track and generate terrain tiles around */
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
@@ -54,6 +53,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	UHierarchicalInstancedStaticMeshComponent* MyWaterMeshComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "CashGen")
+	FCGTerrainConfig myTerrainConfig;
+
 protected:
 	void BroadcastTerrainComplete()
 	{
@@ -65,8 +67,7 @@ private:
 	void SetActorSector(const AActor* aActor, const FIntVector2& aNewSector);
 
 	// Master config
-	UPROPERTY()
-	FCGTerrainConfig myTerrainConfig;
+
 
 
 	// Sweep tracking

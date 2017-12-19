@@ -96,9 +96,12 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 				&updateJob.Data->MyTriangles,
 				updateJob.Data->myTextureData);
 
-			FTransform waterTransform = FTransform(FRotator(0.0f), updateJob.myTileHandle.myHandle->GetActorLocation() + FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.5f, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.5f, 0.0f), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f));
-			MyWaterMeshComponent->UpdateInstanceTransform(updateJob.myTileHandle.myWaterISMIndex, waterTransform, true, true, true);
-
+			if (myTerrainConfig.UseInstancedWaterMesh)
+			{
+				FTransform waterTransform = FTransform(FRotator(0.0f), updateJob.myTileHandle.myHandle->GetActorLocation() + FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.5f, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.5f, 0.0f), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f));
+				MyWaterMeshComponent->UpdateInstanceTransform(updateJob.myTileHandle.myWaterISMIndex, waterTransform, true, true, true);
+			}
+			
 			updateJob.myTileHandle.myHandle->SetActorHiddenInGame(false);
 			int32 updateMS = (duration_cast<milliseconds>(
 				system_clock::now().time_since_epoch()
@@ -212,14 +215,18 @@ TPair<ACGTile*, int32> ACGTerrainManager::GetAvailableTile()
 	if (myFreeTiles.Num())
 	{
 		result.Key = myFreeTiles.Pop();
-		result.Value = myFreeWaterMeshIndices.Pop();
+		if (myTerrainConfig.UseInstancedWaterMesh) {
+			result.Value = myFreeWaterMeshIndices.Pop();
+		}
 	}
 	
 	
 	if (!result.Key)
 	{
 		result.Key = GetWorld()->SpawnActor<ACGTile>(ACGTile::StaticClass(), FVector(0.0f, 0.0f, -10000.0f), FRotator(0.0f));
-		result.Value = MyWaterMeshComponent->AddInstance(FTransform(FRotator(0.0f), FVector(0.0f, 0.0f, -10000.0f), FVector::OneVector));
+		if (myTerrainConfig.UseInstancedWaterMesh) {
+			result.Value = MyWaterMeshComponent->AddInstance(FTransform(FRotator(0.0f), FVector(0.0f, 0.0f, -10000.0f), FVector::OneVector));
+		}
 	}
 
 	return result;
@@ -227,8 +234,11 @@ TPair<ACGTile*, int32> ACGTerrainManager::GetAvailableTile()
 
 void ACGTerrainManager::FreeTile(ACGTile* aTile, const int32& waterMeshIndex)
 {
-	MyWaterMeshComponent->UpdateInstanceTransform(waterMeshIndex, FTransform(FRotator(0.0f), FVector(0.0f, 0.0f, -100000.0f), FVector(0.1f)), true, true, true);
-	myFreeWaterMeshIndices.Push(waterMeshIndex);
+	if (myTerrainConfig.UseInstancedWaterMesh)
+	{
+		MyWaterMeshComponent->UpdateInstanceTransform(waterMeshIndex, FTransform(FRotator(0.0f), FVector(0.0f, 0.0f, -100000.0f), FVector(0.1f)), true, true, true);
+		myFreeWaterMeshIndices.Push(waterMeshIndex);
+	}
 	aTile->SetActorHiddenInGame(true);
 	myFreeTiles.Push(aTile);
 }
@@ -254,6 +264,10 @@ TArray<FCGSector> ACGTerrainManager::GetRelevantSectorsForActor(const AActor* aA
 	TArray<FCGSector> result;
 
 	FIntVector2 rootSector = GetSector(aActor->GetActorLocation());
+
+	if (myTerrainConfig.LODs.Num() < 1) {
+		return result;
+	}
 	
 	// Always include the sector the pawn is in
 	result.Add(rootSector);
@@ -297,9 +311,12 @@ int ACGTerrainManager::GetLODForRange(const int32 aRange)
 }
 
 
-void ACGTerrainManager::SetupTerrainGenerator(FCGTerrainConfig aTerrainConfig)
+void ACGTerrainManager::SetupTerrainGenerator(UUFNNoiseGenerator* aHeightmapGenerator, UUFNNoiseGenerator* aBiomeGenerator)
 {
-	myTerrainConfig = aTerrainConfig;
+//	myTerrainConfig = aTerrainConfig;
+
+	myTerrainConfig.NoiseGenerator = aHeightmapGenerator;
+	myTerrainConfig.BiomeBlendGenerator = aBiomeGenerator;
 
 	myTerrainConfig.TileOffset = FVector(myTerrainConfig.UnitSize * myTerrainConfig.TileXUnits * 0.5f, myTerrainConfig.UnitSize * myTerrainConfig.TileYUnits * 0.5f, 0.0f);
 
@@ -355,9 +372,11 @@ void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
 				tileHandle.myHandle = tile.Key;
 				//tileHandle.myHandle->SetActorLocation(FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * sector.mySector.X, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * sector.mySector.Y, 0.0f));
 
-
-				FTransform waterTransform = FTransform(FRotator(0.0f), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * (sector.mySector.X - 0.5f), myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * (sector.mySector.Y - 0.5f), 0.0f), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f));
-				MyWaterMeshComponent->UpdateInstanceTransform(tile.Value, waterTransform, true, true, true);
+				if (myTerrainConfig.UseInstancedWaterMesh)
+				{
+					FTransform waterTransform = FTransform(FRotator(0.0f), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * (sector.mySector.X - 0.5f), myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * (sector.mySector.Y - 0.5f), 0.0f), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f));
+					MyWaterMeshComponent->UpdateInstanceTransform(tile.Value, waterTransform, true, true, true);
+				}
 
 				tileHandle.myWaterISMIndex = tile.Value;
 				tileHandle.myStatus = ETileStatus::SPAWNED;
@@ -386,7 +405,10 @@ void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
 
 			if(!isExistsAtLowerLOD) {
 				tileHandle.myHandle->RepositionAndHide(10);
-				MyWaterMeshComponent->UpdateInstanceTransform(tileHandle.myWaterISMIndex, FTransform(FRotator(0.0f), tileHandle.myHandle->GetActorLocation(), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f)), true, true, true);
+				if (myTerrainConfig.UseInstancedWaterMesh)
+				{
+					MyWaterMeshComponent->UpdateInstanceTransform(tileHandle.myWaterISMIndex, FTransform(FRotator(0.0f), tileHandle.myHandle->GetActorLocation(), FVector(myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize * 0.01f, myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize * 0.01f, 1.0f)), true, true, true);
+				}
 			}
 
 			CreateTileRefreshJob(job);
@@ -557,13 +579,13 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 			//aData->MyVertexData[(thisX + 1) + ((thisY + 1) * (rowLength))].UV0 = FVector2D(((thisX / rowLength) + 1.0f)* maxUV, ((thisY / rowLength) + 1.0f) * maxUV);
 
 			//TR
-			aData->MyVertexData[thisX + ((thisY + 1) * (rowLength))].UV0 = FVector2D((thisX * maxUV) / rowLength, ((thisY + 1.0f) /rowLength) * maxUV);
+			aData->MyVertexData[thisX + ((thisY + 1) * (rowLength))].UV0 = FVector2D((thisX * maxUV) / (aConfig->TileXUnits + 1), ((thisY + 1.0f) / (aConfig->TileYUnits + 1)) * maxUV);
 			//BR
-			aData->MyVertexData[thisX + (thisY * (rowLength))].UV0 = FVector2D((thisX * maxUV) / rowLength, (thisY * maxUV) / rowLength);
+			aData->MyVertexData[thisX + (thisY * (rowLength))].UV0 = FVector2D((thisX * maxUV) / (aConfig->TileXUnits + 1), (thisY * maxUV) / (aConfig->TileYUnits + 1));
 			//BL
-			aData->MyVertexData[(thisX + 1) + (thisY * (rowLength))].UV0 = FVector2D(((thisX + 1.0f) / rowLength) * maxUV, (thisY / rowLength) * maxUV);
+			aData->MyVertexData[(thisX + 1) + (thisY * (rowLength))].UV0 = FVector2D(((thisX + 1.0f) / (aConfig->TileXUnits + 1)) * maxUV, (thisY / (aConfig->TileYUnits + 1)) * maxUV);
 			//TL
-			aData->MyVertexData[(thisX + 1) + ((thisY + 1) * (rowLength))].UV0 = FVector2D(((thisX + 1.0f) / rowLength)* maxUV, ((thisY + 1.0f) / rowLength) * maxUV);
+			aData->MyVertexData[(thisX + 1) + ((thisY + 1) * (rowLength))].UV0 = FVector2D(((thisX + 1.0f) / (aConfig->TileXUnits + 1))* maxUV, ((thisY + 1.0f) / (aConfig->TileYUnits + 1)) * maxUV);
 
 
 		}

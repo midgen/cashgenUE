@@ -17,6 +17,7 @@ class ACGTile : public AActor
 	TMap<uint8, URuntimeMeshComponent*> MeshComponents;
 	TMap<uint8, UMaterialInstanceDynamic*> MaterialInstances;
 	UMaterialInstance* MaterialInstance;
+	UMaterialInstanceDynamic* myWaterMaterialInstance;
 	UMaterial* Material;
 	TMap<uint8, ELODStatus> LODStatus;
 
@@ -54,6 +55,8 @@ public:
 	void UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
 	void UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshVertexSimple>* aVertices, TArray<int32>* aTriangles, TArray<FColor>& aTextureData);
 	void RepositionAndHide(uint8 aNewLOD);
+
+	bool CreateWaterMesh();
 
 	
 

@@ -135,14 +135,24 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 	if (pTerrainConfig->GenerateSplatMap)
 	{
 		int i = 0;
-		for (int x = 1; x < exX - 2; ++x)
+		for (int x = 0; x < pTerrainConfig->TileXUnits; ++x)
 		{
-			for (int y = 1; y < exY - 2; ++y)
+			for (int y = 0; y < pTerrainConfig->TileYUnits; ++y)
 			{
-				int32 worldX = (((workJob.mySector.X * (exX - 3)) + x) * exUnitSize);
-				int32 worldY = (((workJob.mySector.Y * (exX - 3)) + y) * exUnitSize);
+				int32 worldX = (((workJob.mySector.X * pTerrainConfig->TileXUnits) + x) * exUnitSize);
+				int32 worldY = (((workJob.mySector.Y * pTerrainConfig->TileYUnits) + y) * exUnitSize);
 
-				pMeshData->myTextureData[i].R = (uint8)FMath::GetMappedRangeValueClamped(FVector2D(-1.0f, 1.0f), FVector2D(0.0f, 255.0f), pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY));
+				float noiseValue = pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY);
+
+				pMeshData->myTextureData[i].R = (uint8)FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 1.0f), FVector2D(0.0f, 255.0f), noiseValue);
+
+				pMeshData->myTextureData[i].G = (uint8)FMath::GetMappedRangeValueClamped(FVector2D(-1.0f, 0.0f), FVector2D(0.0f, 255.0f), noiseValue);
+
+				pMeshData->myTextureData[i].B = i;
+
+				pMeshData->myTextureData[i].A = 0;
+
+				
 				i++;
 			}
 		}
