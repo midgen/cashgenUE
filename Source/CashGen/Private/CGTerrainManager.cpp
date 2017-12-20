@@ -578,14 +578,16 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 			////TL
 			//aData->MyVertexData[(thisX + 1) + ((thisY + 1) * (rowLength))].UV0 = FVector2D(((thisX / rowLength) + 1.0f)* maxUV, ((thisY / rowLength) + 1.0f) * maxUV);
 
+
+
 			//TR
-			aData->MyVertexData[thisX + ((thisY + 1) * (rowLength))].UV0 = FVector2D((thisX * maxUV) / (aConfig->TileXUnits + 1), ((thisY + 1.0f) / (aConfig->TileYUnits + 1)) * maxUV);
+			aData->MyVertexData[thisX + ((thisY + 1) * (rowLength))].UV0 = FVector2D(thisX * 1.0f / rowLength, (thisY + 1.0f) / rowLength);
 			//BR
-			aData->MyVertexData[thisX + (thisY * (rowLength))].UV0 = FVector2D((thisX * maxUV) / (aConfig->TileXUnits + 1), (thisY * maxUV) / (aConfig->TileYUnits + 1));
+			aData->MyVertexData[thisX + (thisY * (rowLength))].UV0 = FVector2D(thisX * 1.0f / rowLength, thisY * 1.0f / rowLength);
 			//BL
-			aData->MyVertexData[(thisX + 1) + (thisY * (rowLength))].UV0 = FVector2D(((thisX + 1.0f) / (aConfig->TileXUnits + 1)) * maxUV, (thisY / (aConfig->TileYUnits + 1)) * maxUV);
+			aData->MyVertexData[(thisX + 1) + (thisY * (rowLength))].UV0 = FVector2D((thisX + 1.0f) / rowLength, thisY * 1.0f / rowLength);
 			//TL
-			aData->MyVertexData[(thisX + 1) + ((thisY + 1) * (rowLength))].UV0 = FVector2D(((thisX + 1.0f) / (aConfig->TileXUnits + 1))* maxUV, ((thisY + 1.0f) / (aConfig->TileYUnits + 1)) * maxUV);
+			aData->MyVertexData[(thisX + 1) + ((thisY + 1) * (rowLength))].UV0 = FVector2D((thisX + 1.0f) / rowLength, (thisY + 1.0f) / rowLength);
 
 
 		}
