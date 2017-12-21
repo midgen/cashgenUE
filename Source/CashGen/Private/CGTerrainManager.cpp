@@ -108,7 +108,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 				) - startMs).count();
 
 #ifdef UE_BUILD_DEBUG
-			if (updateJob.LOD == 0)
+			if (Settings->ShowTimings && updateJob.LOD == 0)
 			{
 				GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Heightmap gen " + FString::FromInt(updateJob.HeightmapGenerationDuration) + "ms"));
 				GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, TEXT("Erosion gen " + FString::FromInt(updateJob.ErosionGenerationDuration) + "ms"));
@@ -124,12 +124,6 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 	{
 		myActorIndex = FMath::Min(0, myTrackedActors.Num() - 1);
 	}
-
-#ifdef UE_BUILD_DEBUG
-	
-	GEngine->AddOnScreenDebugMessage(3, 5.f, FColor::Black, TEXT("Tracked Actors " + FString::FromInt(myTrackedActors.Num())));
-	
-#endif
 
 	// Time based sweep of actors to see if any have moved sectors
 	if (myTimeSinceLastSweep > myTerrainConfig.TileSweepTime && myTrackedActors.Num() > 0)

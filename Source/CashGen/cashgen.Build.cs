@@ -13,6 +13,8 @@ public class CashGen : ModuleRules
         PrivateDependencyModuleNames.AddRange(new string[] { "UnrealFastNoisePlugin" });
         PrivateIncludePathModuleNames.AddRange(new string[] { "UnrealFastNoisePlugin" });
 
+        PrivateIncludePathModuleNames.AddRange(new string[] { "Settings", });
+
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         // Uncomment if you are using Slate UI

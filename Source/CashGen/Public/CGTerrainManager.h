@@ -7,6 +7,7 @@
 #include "Struct/CGTileHandle.h"
 #include "Struct/IntVector2.h"
 #include "Struct/CGSector.h"
+#include "CGSettings.h"
 #include "Struct/CGLODMeshData.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "CGTerrainManager.generated.h"
@@ -19,8 +20,12 @@ class ACGTerrainManager : public AActor
 	GENERATED_BODY()
 
 public:
+
 	ACGTerrainManager();
 	~ACGTerrainManager();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UCGSettings* Settings = GetMutableDefault<UCGSettings>();
 
 	/* Event called when initial terrain generation is complete */
 	DECLARE_EVENT(ACGTerrainManager, FTerrainCompleteEvent)
