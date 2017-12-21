@@ -116,17 +116,17 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 	int32 exX = GetNumberOfNoiseSamplePoints();
 	int32 exY = exX;
 
-	int32 exUnitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * pTerrainConfig->LODs[workLOD].ResolutionDivisor;
+	const int32 XYunits = workLOD == 0 ? pTerrainConfig->TileXUnits : pTerrainConfig->TileXUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor;
+	const int32 exUnitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * pTerrainConfig->LODs[workLOD].ResolutionDivisor;
 
 	// Calculate the new noisemap
 	for (int x = 0; x < exX; ++x)
 	{
 		for (int y = 0; y < exY; ++y)
 		{
-			int32 worldX = (((workJob.mySector.X * (exX - 3)) + x) * exUnitSize);
-			int32 worldY = (((workJob.mySector.Y * (exX - 3)) + y) * exUnitSize);
+			int32 worldX = (((workJob.mySector.X * XYunits) + x) * exUnitSize);
+			int32 worldY = (((workJob.mySector.Y * XYunits) + y) * exUnitSize);
 
-			//pMeshData->HeightMap[x + (exX*y)] = FVector(x* exUnitSize, y*exUnitSize, pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY) * pTerrainConfig->Amplitude);
 			pMeshData->HeightMap[x + (exX*y)] = pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY);
 
 		}
@@ -142,8 +142,6 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 			{
 				int32 worldX = (((workJob.mySector.X * pTerrainConfig->TileXUnits) + x) * exUnitSize);
 				int32 worldY = (((workJob.mySector.Y * pTerrainConfig->TileYUnits) + y) * exUnitSize);
-
-				//float noiseValue = pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY);
 
 				float& noiseValue = pMeshData->HeightMap[(x + 1) + (exX*(y + 1))];
 
@@ -521,41 +519,22 @@ void FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32& ver
 	FVector origin = FVector((worldTileX + vertexX) * unitSize, (worldTileY + vertexY) * unitSize, pMeshData->HeightMap[heightMapIndex] * ampl);
 
 	// Get the 4 neighbouring points
-	FVector up, down, left, right;// , upleft, upright, downleft, downright;
+	FVector up, down, left, right;
 
-	//up = pMeshData->HeightMap[heightMapIndex + heightMapRowLength] - pMeshData->HeightMap[heightMapIndex];
 	up = FVector((worldTileX + vertexX) * unitSize, (worldTileY + vertexY + 1) * unitSize, pMeshData->HeightMap[heightMapIndex + heightMapRowLength] * ampl) - origin;
-	//down = pMeshData->HeightMap[heightMapIndex - heightMapRowLength] - pMeshData->HeightMap[heightMapIndex];
 	down = FVector((worldTileX + vertexX) * unitSize, (worldTileY + vertexY - 1) * unitSize, pMeshData->HeightMap[heightMapIndex - heightMapRowLength] * ampl) - origin;
-	//left = pMeshData->HeightMap[heightMapIndex + 1] - pMeshData->HeightMap[heightMapIndex];
 	left = FVector((worldTileX + vertexX + 1) * unitSize, (worldTileY + vertexY) * unitSize, pMeshData->HeightMap[heightMapIndex + 1] * ampl) - origin;
-	//right = pMeshData->HeightMap[heightMapIndex - 1] - pMeshData->HeightMap[heightMapIndex];
 	right = FVector((worldTileX + vertexX - 1) * unitSize, (worldTileY + vertexY) * unitSize, pMeshData->HeightMap[heightMapIndex - 1] * ampl) - origin;
 
-	//upleft = pMeshData->HeightMap[heightMapIndex + heightMapRowLength + 1] - pMeshData->HeightMap[heightMapIndex];
-	//upright = pMeshData->HeightMap[heightMapIndex + heightMapRowLength - 1] - pMeshData->HeightMap[heightMapIndex];
-	//downleft = pMeshData->HeightMap[heightMapIndex - heightMapRowLength + 1] - pMeshData->HeightMap[heightMapIndex];
-	//downright = pMeshData->HeightMap[heightMapIndex - heightMapRowLength - 1] - pMeshData->HeightMap[heightMapIndex];
 
-
-	FVector n1, n2, n3, n4;// , n5, n6, n7, n8;
+	FVector n1, n2, n3, n4;
 
 	n1 = FVector::CrossProduct(left, up);
 	n2 = FVector::CrossProduct(up, right);
 	n3 = FVector::CrossProduct(right, down);
 	n4 = FVector::CrossProduct(down, left);
 
-	//n1 = FVector::CrossProduct(left, upleft);
-	//n2 = FVector::CrossProduct(upleft, up);
-	//n3 = FVector::CrossProduct(up, upright);
-	//n4 = FVector::CrossProduct(upright, right);
-	//n5 = FVector::CrossProduct(right, downright);
-	//n6 = FVector::CrossProduct(downright, down);
-	//n7 = FVector::CrossProduct(down, downleft);
-	//n8 = FVector::CrossProduct(downleft, left);
-
-
-	result = n1 + n2 + n3 + n4;// +n5 + n6 + n7 + n8;
+	result = n1 + n2 + n3 + n4;
 
 	aOutNormal = result.GetSafeNormal();
 
@@ -576,25 +555,21 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int32& aX, const in
 	// LOD adjusted unit size
 	int32 exUnitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * (pTerrainConfig->LODs[workLOD].ResolutionDivisor);
 
-	const int blockX = 0;// (workJob.mySector.X * pTerrainConfig->TileXUnits);
-	const int blockY = 0;// (workJob.mySector.Y * pTerrainConfig->TileYUnits);
+	const int blockX = 0;
+	const int blockY = 0;
 	const float& unitSize = pTerrainConfig->UnitSize;
 	const float& ampl = pTerrainConfig->Amplitude;
 
-	FVector heightMapToWorldOffset = FVector(exUnitSize, exUnitSize, 0.0f);
+	FVector heightMapToWorldOffset = FVector(0.0f, 0.0f, 0.0f);
 
 	// TL
-	//pMeshData->MyVertexData[thisX + (thisY * rowLength)].Position = pMeshData->HeightMap[heightMapX + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
-	pMeshData->MyVertexData[thisX + (thisY * rowLength)].Position = FVector((blockX + thisX) * exUnitSize, (blockY + thisY) * exUnitSize, pMeshData->HeightMap[heightMapX + (heightMapY * heightMapRowLength)] * ampl);//  -heightMapToWorldOffset;
+	pMeshData->MyVertexData[thisX + (thisY * rowLength)].Position = FVector((blockX + thisX) * exUnitSize, (blockY + thisY) * exUnitSize, pMeshData->HeightMap[heightMapX + (heightMapY * heightMapRowLength)] * ampl) -heightMapToWorldOffset;
 	// TR
-	//pMeshData->MyVertexData[thisX + ((thisY + 1) * rowLength)].Position = pMeshData->HeightMap[heightMapX + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
-	pMeshData->MyVertexData[thisX + ((thisY + 1) * rowLength)].Position = FVector((blockX + thisX) * exUnitSize, (blockY + thisY + 1) * exUnitSize, pMeshData->HeightMap[heightMapX + ((heightMapY + 1) * heightMapRowLength)] * ampl);// -heightMapToWorldOffset;
+	pMeshData->MyVertexData[thisX + ((thisY + 1) * rowLength)].Position = FVector((blockX + thisX) * exUnitSize, (blockY + thisY + 1) * exUnitSize, pMeshData->HeightMap[heightMapX + ((heightMapY + 1) * heightMapRowLength)] * ampl) -heightMapToWorldOffset;
 	// BL
-	//pMeshData->MyVertexData[(thisX + 1) + (thisY * rowLength)].Position = pMeshData->HeightMap[(heightMapX + 1) + (heightMapY * heightMapRowLength)] - heightMapToWorldOffset;
-	pMeshData->MyVertexData[(thisX + 1) + (thisY * rowLength)].Position = FVector((blockX + thisX + 1) * exUnitSize, (blockY + thisY) * exUnitSize, pMeshData->HeightMap[(heightMapX + 1) + (heightMapY * heightMapRowLength)] * ampl);// -heightMapToWorldOffset;
+	pMeshData->MyVertexData[(thisX + 1) + (thisY * rowLength)].Position = FVector((blockX + thisX + 1) * exUnitSize, (blockY + thisY) * exUnitSize, pMeshData->HeightMap[(heightMapX + 1) + (heightMapY * heightMapRowLength)] * ampl) -heightMapToWorldOffset;
 	// BR
-	//pMeshData->MyVertexData[(thisX + 1) + ((thisY + 1) * rowLength)].Position = pMeshData->HeightMap[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] - heightMapToWorldOffset;
-	pMeshData->MyVertexData[(thisX + 1) + ((thisY + 1) * rowLength)].Position = FVector((blockX + thisX + 1) * exUnitSize, (blockY + thisY + 1) * exUnitSize, pMeshData->HeightMap[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] * ampl);// -heightMapToWorldOffset;
+	pMeshData->MyVertexData[(thisX + 1) + ((thisY + 1) * rowLength)].Position = FVector((blockX + thisX + 1) * exUnitSize, (blockY + thisY + 1) * exUnitSize, pMeshData->HeightMap[(heightMapX + 1) + ((heightMapY + 1) * heightMapRowLength)] * ampl) -heightMapToWorldOffset;
 }
 
 int32 FCGTerrainGeneratorWorker::GetNumberOfNoiseSamplePoints()
