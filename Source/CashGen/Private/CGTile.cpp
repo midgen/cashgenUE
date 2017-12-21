@@ -239,7 +239,7 @@ bool ACGTile::CreateWaterMesh()
 
 		myWaterMaterialInstance = UMaterialInstanceDynamic::Create(TerrainConfigMaster->WaterMaterialInstance, this);
 
-		MeshComponents[0]->SetMeshSectionVisible(1, true);
+		MeshComponents[0]->SetVisibility(true);
 		MeshComponents[0]->SetMaterial(1, myWaterMaterialInstance);
 
 		
@@ -275,11 +275,12 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshV
 			}
 
 
-			MeshComponents[i]->SetMeshSectionVisible(0,true);
+			//MeshComponents[i]->SetMeshSectionVisible(0,true);
+			MeshComponents[i]->SetVisibility(true);
 		}
 		else if (!aIsInPlaceUpdate)
 		{
-			MeshComponents[i]->SetMeshSectionVisible(0, false);
+			MeshComponents[i]->SetVisibility(false);
 		}
 	}
 
