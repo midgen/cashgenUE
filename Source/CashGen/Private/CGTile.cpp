@@ -1,5 +1,6 @@
 #include "CGTile.h"
 #include "RuntimeMeshGenericVertex.h"
+#include "Components/StaticMeshComponent.h"
 
 DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ RMCUpdate"), STAT_RMCUpdate, STATGROUP_CashGenStat);
 
@@ -51,7 +52,7 @@ bool ACGTile::TickTransition(float DeltaSeconds)
 			else
 			{
 				if (PreviousLOD != 10 && PreviousLOD != CurrentLOD) {
-					MeshComponents[PreviousLOD]->SetMeshSectionVisible(0, false);
+					MeshComponents[PreviousLOD]->SetVisibility(false);
 				}
 
 				LODTransitionOpacity = 1.0f;
@@ -105,6 +106,18 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 
 		SetActorTickEnabled(TerrainConfigMaster->DitheringLODTransitions && aTerrainConfig->LODs.Num() > 1);
 
+		FString waterCompName = "WaterSMC";
+		FTransform waterTransform = FTransform(FRotator::ZeroRotator, FVector(TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize * 0.5f, TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize * 0.5f, 0.0f), FVector(TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize * 0.01f, TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize * 0.01f, 1.0f));
+		MyWaterMeshComponent = NewObject<UStaticMeshComponent>(this, UStaticMeshComponent::StaticClass(), *waterCompName);
+		MyWaterMeshComponent->SetStaticMesh(TerrainConfigMaster->WaterMesh);
+		MyWaterMeshComponent->SetRelativeTransform(waterTransform);
+		MyWaterMeshComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+		MyWaterMeshComponent->RegisterComponent();
+
+		myWaterMaterialInstance = UMaterialInstanceDynamic::Create(TerrainConfigMaster->WaterMaterialInstance, this);
+		MyWaterMeshComponent->SetMaterial(0, myWaterMaterialInstance);
+		
+
 		for (int32 i = 0; i < aTerrainConfig->LODs.Num(); ++i)
 		{
 
@@ -124,19 +137,7 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 
 			LODStatus.Add(i, ELODStatus::NOT_CREATED);
 
-			// Use dynamic material instances and do LOD dithering
-			//if (TerrainConfigMaster->TerrainMaterial != nullptr && TerrainConfigMaster->DitheringLODTransitions && aTerrainConfig->LODs.Num() > 1)
-			//{
-			//	MaterialInstances.Add(i, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterial, this));
-			//	MeshComponents[i]->SetMaterial(0, MaterialInstances[i]);
-			//}
-			// Just use a static material
-		/*	if (TerrainConfigMaster->TerrainMaterialInstance)
-			{
-				Material = TerrainConfigMaster->TerrainMaterialInstance;
-				MeshComponents[i]->SetMaterial(0, Material);
-			}*/
-			// Or just a static material instance
+			// Create material instances
 			if (TerrainConfigMaster->TerrainMaterialInstance && !TerrainConfigMaster->MakeDynamicMaterialInstance)
 			{
 				MaterialInstance = TerrainConfigMaster->TerrainMaterialInstance;
@@ -163,11 +164,6 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 			myRegion->SrcY = 0;
 			myRegion->DestX = 0;
 			myRegion->DestY = 0;
-		}
-
-		if (!TerrainConfigMaster->UseInstancedWaterMesh)
-		{
-			CreateWaterMesh();
 		}
 
 		IsInitalized = true;
@@ -238,8 +234,6 @@ bool ACGTile::CreateWaterMesh()
 		MeshComponents[0]->CreateMeshSection(1, myVertices, myIndices, true, EUpdateFrequency::Infrequent, ESectionUpdateFlags::None);
 
 		myWaterMaterialInstance = UMaterialInstanceDynamic::Create(TerrainConfigMaster->WaterMaterialInstance, this);
-
-		MeshComponents[0]->SetVisibility(true);
 		MeshComponents[0]->SetMaterial(1, myWaterMaterialInstance);
 
 		
@@ -274,8 +268,6 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshV
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}
 
-
-			//MeshComponents[i]->SetMeshSectionVisible(0,true);
 			MeshComponents[i]->SetVisibility(true);
 		}
 		else if (!aIsInPlaceUpdate)

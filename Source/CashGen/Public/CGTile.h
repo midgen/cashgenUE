@@ -7,6 +7,8 @@
 class ACGTerrainManager_Legacy;
 struct FCGTerrainConfig;
 
+class UStaticMeshComponent;
+
 enum ELODStatus { NOT_CREATED, CREATED, TRANSITION };
 
 UCLASS()
@@ -16,6 +18,7 @@ class ACGTile : public AActor
 
 	TMap<uint8, URuntimeMeshComponent*> MeshComponents;
 	TMap<uint8, UMaterialInstanceDynamic*> MaterialInstances;
+	UStaticMeshComponent* MyWaterMeshComponent;
 	UMaterialInstance* MaterialInstance;
 	UMaterialInstanceDynamic* myWaterMaterialInstance;
 	UMaterial* Material;

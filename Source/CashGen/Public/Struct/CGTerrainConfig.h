@@ -86,6 +86,10 @@ struct FCGTerrainConfig
 	/** If checked, will use a single instanced mesh for water, otherwise a procmesh section with dynamic texture will be used */
 	bool UseInstancedWaterMesh = true;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|Water")
+	/** If checked, will use a single instanced mesh for water, otherwise a procmesh section with dynamic texture will be used */
+	UStaticMesh* WaterMesh;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|LODs")
 	TArray<FCGLODConfig> LODs;
 
