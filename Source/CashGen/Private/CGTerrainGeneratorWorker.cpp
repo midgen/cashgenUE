@@ -513,7 +513,7 @@ void FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32& ver
 	const int32 heightMapIndex = vertexX + 1 + ((vertexY + 1) * heightMapRowLength);
 	const float worldTileX = workJob.mySector.X * pTerrainConfig->TileXUnits;
 	const float worldTileY = workJob.mySector.Y * pTerrainConfig->TileYUnits;
-	const float& unitSize = pTerrainConfig->UnitSize;
+	const float& unitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * pTerrainConfig->LODs[workLOD].ResolutionDivisor;
 	const float& ampl = pTerrainConfig->Amplitude;
 
 	FVector origin = FVector((worldTileX + vertexX) * unitSize, (worldTileY + vertexY) * unitSize, pMeshData->HeightMap[heightMapIndex] * ampl);
