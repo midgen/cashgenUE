@@ -124,8 +124,8 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 	{
 		for (int y = 0; y < exY; ++y)
 		{
-			int32 worldX = (((workJob.mySector.X * XYunits) + x) * exUnitSize);
-			int32 worldY = (((workJob.mySector.Y * XYunits) + y) * exUnitSize);
+			int32 worldX = (((workJob.mySector.X * XYunits) + x) * exUnitSize) - exUnitSize;
+			int32 worldY = (((workJob.mySector.Y * XYunits) + y) * exUnitSize) - exUnitSize;
 
 			pMeshData->HeightMap[x + (exX*y)] = pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY);
 
@@ -140,9 +140,6 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 		{
 			for (int y = 0; y < pTerrainConfig->TileYUnits; ++y)
 			{
-				int32 worldX = (((workJob.mySector.X * pTerrainConfig->TileXUnits) + x) * exUnitSize);
-				int32 worldY = (((workJob.mySector.Y * pTerrainConfig->TileYUnits) + y) * exUnitSize);
-
 				float& noiseValue = pMeshData->HeightMap[(x + 1) + (exX*(y + 1))];
 
 				pMeshData->myTextureData[i].R = (uint8)FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 1.0f), FVector2D(0.0f, 255.0f), noiseValue);
