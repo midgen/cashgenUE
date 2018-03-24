@@ -3,6 +3,8 @@ Procedural Terrain Generator for UnrealEngine 4.18
 
 This plugin generates heightmap-based terrain tiles in realtime, and move the tiles around to track a player pawn. 
 
+[![CashGen Demo](http://img.youtube.com/vi/r68mpFKRAbA/0.jpg)](http://www.youtube.com/watch?v=r68mpFKRAbA "Video Title")
+
 Features:
 
 * Multithreaded heightmap, erosion and geometry generation
