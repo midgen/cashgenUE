@@ -128,10 +128,10 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 
 			MeshComponents[i]->BodyInstance.SetResponseToAllChannels(ECR_Block);
 			MeshComponents[i]->BodyInstance.SetResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
-			MeshComponents[i]->bShouldSerializeMeshData = false;
-			MeshComponents[i]->bCastDynamicShadow = TerrainConfigMaster->CastShadows;
-			MeshComponents[i]->bCastStaticShadow = TerrainConfigMaster->CastShadows;
-			MeshComponents[i]->bUseAsyncCooking = TerrainConfigMaster->UseAsyncCollision;
+			//MeshComponents[i]->bShouldSerializeMeshData = false;
+			MeshComponents[i]->bCastDynamicShadow = i==0 ? TerrainConfigMaster->CastShadows : false;
+			MeshComponents[i]->bCastStaticShadow = i == 0 ? TerrainConfigMaster->CastShadows : false;
+			//MeshComponents[i]->bUseAsyncCooking = TerrainConfigMaster->UseAsyncCollision;
 
 			MeshComponents[i]->RegisterComponent();
 
@@ -182,7 +182,7 @@ bool ACGTile::CreateWaterMesh()
 		TArray<FRuntimeMeshVertexSimple> myVertices;
 		FVector normal;
 		normal = FVector(0.0f, 0.0f, 1.0f);
-		FRuntimeMeshTangent tangent;
+		FVector tangentX;
 
 		myVertices.Reserve(4);
 		int32 i = 0;
@@ -191,8 +191,9 @@ bool ACGTile::CreateWaterMesh()
 		myVertices[i].Position.Y = 0.0f;
 		myVertices[i].Position.Z = 0.0f;
 		myVertices[i].UV0 = FVector2D(0.0f, 0.0f);
-		tangent = FRuntimeMeshTangent(FVector(0.0f, 1.0f, 0.0f), false);
-		myVertices[i].SetNormalAndTangent(normal, tangent);
+		tangentX = FVector(0.0f, 1.0f, 0.0f);
+		myVertices[i].Normal = normal;
+		myVertices[i].Tangent.Set(tangentX);
 		++i;
 
 		myVertices.Emplace();
@@ -200,8 +201,9 @@ bool ACGTile::CreateWaterMesh()
 		myVertices[i].Position.Y = TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize;
 		myVertices[i].Position.Z = 0.0f;
 		myVertices[i].UV0 = FVector2D(1.0f, 0.0f);
-		tangent = FRuntimeMeshTangent(FVector(0.0f, 1.0f, 0.0f), false);
-		myVertices[i].SetNormalAndTangent(normal, tangent);
+		tangentX = FVector(0.0f, 1.0f, 0.0f);
+		myVertices[i].Normal = normal;
+		myVertices[i].Tangent.Set(tangentX);
 		++i;
 
 		myVertices.Emplace();
@@ -209,8 +211,9 @@ bool ACGTile::CreateWaterMesh()
 		myVertices[i].Position.Y = TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize;
 		myVertices[i].Position.Z = 0.0f;
 		myVertices[i].UV0 = FVector2D(1.0f, 1.0f);
-		tangent = FRuntimeMeshTangent(FVector(0.0f, 1.0f, 0.0f), false);
-		myVertices[i].SetNormalAndTangent(normal, tangent);
+		tangentX = FVector(0.0f, 1.0f, 0.0f);
+		myVertices[i].Normal = normal;
+		myVertices[i].Tangent.Set(tangentX);
 		++i;
 
 		myVertices.Emplace();
@@ -218,8 +221,9 @@ bool ACGTile::CreateWaterMesh()
 		myVertices[i].Position.Y = 0.0f;
 		myVertices[i].Position.Z = 0.0f;
 		myVertices[i].UV0 = FVector2D(0.0f, 1.0f);
-		tangent = FRuntimeMeshTangent(FVector(0.0f, 1.0f, 0.0f), false);
-		myVertices[i].SetNormalAndTangent(normal, tangent);
+		tangentX = FVector(0.0f, 1.0f, 0.0f);
+		myVertices[i].Normal = normal;
+		myVertices[i].Tangent.Set(tangentX);
 
 		TArray<int32> myIndices;
 		myIndices.Reserve(6);

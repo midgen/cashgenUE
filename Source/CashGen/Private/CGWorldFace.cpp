@@ -22,7 +22,7 @@ void ACGWorldFace::BeginPlay()
 	myMeshComponent = NewObject<URuntimeMeshComponent>(this, URuntimeMeshComponent::StaticClass());//, *compName);
 	myMeshComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	myMeshComponent->BodyInstance.SetResponseToAllChannels(ECR_Block);
-	myMeshComponent->bShouldSerializeMeshData = false;
+	//myMeshComponent->bShouldSerializeMeshData = false;
 	myMeshComponent->RegisterComponent();
 
 }
