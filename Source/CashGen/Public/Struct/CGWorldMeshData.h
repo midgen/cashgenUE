@@ -1,7 +1,7 @@
 #pragma once
-#include "cashgen.h"
+#include "CashGen.h"
 #include "RuntimeMeshComponent.h"
-#include "CGWorldMeshdata.generated.h"
+#include "CGWorldMeshData.generated.h"
 
 /** Defines the data required for a single procedural mesh section */
 USTRUCT()

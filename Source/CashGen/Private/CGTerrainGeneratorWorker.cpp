@@ -334,7 +334,8 @@ void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 
 			uint8 slopeChan = FMath::RoundToInt((1.0f - FMath::Abs(FVector::DotProduct(normal, FVector::UpVector))) * 256) ;
 			pMeshData->MyVertexData[x + (y * rowLength)].Color.R = slopeChan;
-			pMeshData->MyVertexData[x + (y * rowLength)].SetNormalAndTangent(normal, tangent);
+      pMeshData->MyVertexData[x + (y * rowLength)].Normal = normal;
+      pMeshData->MyVertexData[x + (y * rowLength)].SetTangent(tangent);
 		}
 	}
 }

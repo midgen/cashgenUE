@@ -472,10 +472,10 @@ void ACGTerrainManager::AllocateAllMeshDataStructures()
 
 }
 
-/************************************************************************/
-/*  Allocates all the data structures for a single LOD mesh data
-/*		Includes setting up triangles etc.
-/************************************************************************/
+/************************************************************************
+  Allocates all the data structures for a single LOD mesh data
+		Includes setting up triangles etc.
+************************************************************************/
 bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD)
 {
 	int32 numXVerts = aLOD == 0 ? aConfig->TileXUnits + 1 : (aConfig->TileXUnits / myTerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
