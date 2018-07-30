@@ -183,7 +183,7 @@ bool ACGTile::CreateWaterMesh()
 		TArray<FRuntimeMeshVertexSimple> myVertices;
 		FVector normal;
 		normal = FVector(0.0f, 0.0f, 1.0f);
-		FVector tangentX;
+		FVector tangent, tangentX;
 
 		myVertices.Reserve(4);
 		int32 i = 0;
@@ -192,7 +192,7 @@ bool ACGTile::CreateWaterMesh()
 		myVertices[i].Position.Y = 0.0f;
 		myVertices[i].Position.Z = 0.0f;
 		myVertices[i].UV0 = FVector2D(0.0f, 0.0f);
-		tangent = FRuntimeMeshTangent(FVector(0.0f, 1.0f, 0.0f), false);
+		tangent = FVector(0.0f, 1.0f, 0.0f);
 		myVertices[i].Normal = normal;
 		myVertices[i].SetTangent(tangent);
 
