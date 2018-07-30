@@ -1,5 +1,5 @@
 #pragma once
-#include "cashgen.h"
+#include "CashGen.h"
 #include "IntVector2.generated.h"
 
 

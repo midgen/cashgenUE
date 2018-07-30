@@ -65,9 +65,9 @@ bool ACGTile::TickTransition(float DeltaSeconds)
 	return false;
 }
 
-/************************************************************************/
-/*  Move the tile and make it hidden pending a redraw
-/************************************************************************/
+/************************************************************************
+ * Move the tile and make it hidden pending a redraw
+ ************************************************************************/
 void ACGTile::RepositionAndHide(uint8 aNewLOD)
 {
 	SetActorLocation(FVector((TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize * mySector.X) - TerrainConfigMaster->TileOffset.X, (TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize * mySector.Y) - TerrainConfigMaster->TileOffset.Y, 0.0f));
@@ -89,9 +89,9 @@ void ACGTile::Tick(float DeltaSeconds)
 
 }
 
-/************************************************************************/
-/*  Initial setup of the tile, creates components and material instance
-/************************************************************************/
+/************************************************************************
+ * Initial setup of the tile, creates components and material instance
+ ************************************************************************/
 void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset)
 {
 	mySector.X = aOffset.X;
@@ -128,10 +128,11 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 
 			MeshComponents[i]->BodyInstance.SetResponseToAllChannels(ECR_Block);
 			MeshComponents[i]->BodyInstance.SetResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
-			//MeshComponents[i]->bShouldSerializeMeshData = false;
-			MeshComponents[i]->bCastDynamicShadow = i==0 ? TerrainConfigMaster->CastShadows : false;
+			MeshComponents[i]->SetCollisionUseAsyncCooking(TerrainConfigMaster->UseAsyncCollision);
+
+			MeshComponents[i]->bCastDynamicShadow = i == 0 ? TerrainConfigMaster->CastShadows : false;
 			MeshComponents[i]->bCastStaticShadow = i == 0 ? TerrainConfigMaster->CastShadows : false;
-			//MeshComponents[i]->bUseAsyncCooking = TerrainConfigMaster->UseAsyncCollision;
+
 
 			MeshComponents[i]->RegisterComponent();
 
@@ -171,9 +172,9 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 
 }
 
-/************************************************************************/
-/*  Draw a simple quad to use as the water plane
-/************************************************************************/
+/************************************************************************
+ *  Draw a simple quad to use as the water plane
+ ************************************************************************/
 bool ACGTile::CreateWaterMesh()
 {
 
@@ -191,9 +192,10 @@ bool ACGTile::CreateWaterMesh()
 		myVertices[i].Position.Y = 0.0f;
 		myVertices[i].Position.Z = 0.0f;
 		myVertices[i].UV0 = FVector2D(0.0f, 0.0f);
-		tangentX = FVector(0.0f, 1.0f, 0.0f);
+		tangent = FRuntimeMeshTangent(FVector(0.0f, 1.0f, 0.0f), false);
 		myVertices[i].Normal = normal;
-		myVertices[i].Tangent.Set(tangentX);
+		myVertices[i].SetTangent(tangent);
+
 		++i;
 
 		myVertices.Emplace();
@@ -204,6 +206,7 @@ bool ACGTile::CreateWaterMesh()
 		tangentX = FVector(0.0f, 1.0f, 0.0f);
 		myVertices[i].Normal = normal;
 		myVertices[i].Tangent.Set(tangentX);
+
 		++i;
 
 		myVertices.Emplace();
@@ -211,6 +214,7 @@ bool ACGTile::CreateWaterMesh()
 		myVertices[i].Position.Y = TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize;
 		myVertices[i].Position.Z = 0.0f;
 		myVertices[i].UV0 = FVector2D(1.0f, 1.0f);
+
 		tangentX = FVector(0.0f, 1.0f, 0.0f);
 		myVertices[i].Normal = normal;
 		myVertices[i].Tangent.Set(tangentX);
@@ -247,9 +251,9 @@ bool ACGTile::CreateWaterMesh()
 	return false;
 }
 
- /************************************************************************/
- /*  Updates the mesh for a given LOD and starts the transition effects  
- /************************************************************************/
+ /************************************************************************
+  *  Updates the mesh for a given LOD and starts the transition effects  
+  ************************************************************************/
 void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshVertexSimple>*	aVertices,
 	TArray<int32>*	aTriangles, TArray<FColor>& aTextureData)
 {

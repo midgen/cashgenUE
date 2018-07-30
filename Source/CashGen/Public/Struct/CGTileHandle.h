@@ -1,5 +1,5 @@
 #pragma once
-#include "cashgen.h"
+#include "CashGen.h"
 #include "CGTileHandle.generated.h"
 
 class ACGTile;

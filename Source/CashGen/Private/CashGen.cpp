@@ -1,6 +1,6 @@
 // Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 
-#include "cashgen.h"
+#include "CashGen.h"
 #include "ISettingsModule.h"
 #include "ISettingsSection.h"
 #include "CGSettings.h"
