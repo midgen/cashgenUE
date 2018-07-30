@@ -326,16 +326,15 @@ void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 		for (int32 x = 0; x < xUnits + 1; ++x)
 		{
 			FVector normal;
-			FRuntimeMeshTangent tangent;
+			FVector tangent(0.0f, 1.0f, 0.f);
 
-
-
-			GetNormalFromHeightMapForVertex(x, y, normal, tangent);
+			GetNormalFromHeightMapForVertex(x, y, normal);
 
 			uint8 slopeChan = FMath::RoundToInt((1.0f - FMath::Abs(FVector::DotProduct(normal, FVector::UpVector))) * 256) ;
 			pMeshData->MyVertexData[x + (y * rowLength)].Color.R = slopeChan;
       pMeshData->MyVertexData[x + (y * rowLength)].Normal = normal;
       pMeshData->MyVertexData[x + (y * rowLength)].SetTangent(tangent);
+
 		}
 	}
 }
@@ -498,7 +497,7 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 
 }
 
-void FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32& vertexX, const int32& vertexY, FVector& aOutNormal, FRuntimeMeshTangent& aOutTangent)
+void FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32& vertexX, const int32& vertexY, FVector& aOutNormal)//, FVector& aOutTangent)
 {
 	FVector result;
 
@@ -537,7 +536,7 @@ void FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32& ver
 	aOutNormal = result.GetSafeNormal();
 
 	// We can mega cheap out here as we're dealing with a simple flat grid
-	aOutTangent = FRuntimeMeshTangent(left.GetSafeNormal(), false);
+	//aOutTangent = FRuntimeMeshTangent(left.GetSafeNormal(), false);
 }
 
 

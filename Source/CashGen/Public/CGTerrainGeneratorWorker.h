@@ -28,7 +28,7 @@ class FCGTerrainGeneratorWorker : public FRunnable
 	void ProcessSkirtGeometry();
 
 	void erodeHeightMapAtIndex(int32 aX, int32 aY, float aAmount);
-	void GetNormalFromHeightMapForVertex(const int32& vertexX, const int32& vertexY, FVector& aOutNormal, FRuntimeMeshTangent& aOutTangent);
+	void GetNormalFromHeightMapForVertex(const int32& vertexX, const int32& vertexY, FVector& aOutNormal);// , FVector& aOutTangent);
 
 	void UpdateOneBlockGeometry(const int32& aX, const int32& aY, int32& aVertCounter, int32& triCounter);
 
