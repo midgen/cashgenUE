@@ -481,7 +481,7 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 	int32 numXVerts = aLOD == 0 ? aConfig->TileXUnits + 1 : (aConfig->TileXUnits / myTerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
 	int32 numYVerts = aLOD == 0 ? aConfig->TileYUnits + 1 : (aConfig->TileYUnits / myTerrainConfig.LODs[aLOD].ResolutionDivisor) + 1;
 
-	int32 numTotalVertices = numXVerts * numYVerts + (aConfig->TileXUnits * 2) + (aConfig->TileYUnits * 2) + 4;
+	int32 numTotalVertices = numXVerts * numYVerts + ((numXVerts - 1) * 2) + ((numXVerts - 1) * 2);
 
 	aData->MyVertexData.Reserve(numTotalVertices);
 	if (myTerrainConfig.GenerateSplatMap)

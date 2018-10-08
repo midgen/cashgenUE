@@ -123,7 +123,7 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 
 			FString compName = "RMC" + FString::FromInt(i);
 			MeshComponents.Add(i, NewObject<URuntimeMeshComponent>(this, URuntimeMeshComponent::StaticClass(), *compName));
-
+			MeshComponents[i]->SetRelativeTransform(FTransform());
 			MeshComponents[i]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 			MeshComponents[i]->BodyInstance.SetResponseToAllChannels(ECR_Block);
@@ -134,7 +134,7 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 			MeshComponents[i]->bCastStaticShadow = i == 0 ? TerrainConfigMaster->CastShadows : false;
 
 
-			MeshComponents[i]->RegisterComponent();
+
 
 			LODStatus.Add(i, ELODStatus::NOT_CREATED);
 
@@ -269,6 +269,7 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshV
 		if (i == aLOD) {
 			if (LODStatus[i] == ELODStatus::NOT_CREATED) {
 				MeshComponents[i]->CreateMeshSection(0, *aVertices, *aTriangles, TerrainConfigMaster->LODs[aLOD].isCollisionEnabled , EUpdateFrequency::Infrequent, TerrainConfigMaster->LODs[aLOD].isTesselationEnabled ? ESectionUpdateFlags::CalculateTessellationIndices : ESectionUpdateFlags::None);
+				MeshComponents[i]->RegisterComponent();
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}
 			else {
