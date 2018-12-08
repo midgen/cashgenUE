@@ -3,6 +3,9 @@
 #include "CGTile.h"
 #include "CGTileHandle.h"
 #include "CGJob.h"
+#include <chrono>
+
+using namespace std::chrono;
 
 
 DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ ActorSectorSweeps"), STAT_ActorSectorSweeps, STATGROUP_CashGenStat);
