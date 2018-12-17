@@ -17,7 +17,7 @@
 	"Modules": [
 		{
 			"Name": "CashGen",
-			"Type": "Developer",
+			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
 	],
