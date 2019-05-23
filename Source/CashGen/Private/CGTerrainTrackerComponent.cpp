@@ -2,6 +2,8 @@
 #include "CGTerrainTrackerComponent.h"
 #include "CashGen.h"
 #include "CGTerrainManager.h"
+#include "Runtime\Engine\Classes\GameFramework\CharacterMovementComponent.h"
+#include "Runtime\Engine\Classes\Kismet\GameplayStatics.h"
 #include "GameFramework/Character.h"
 
 
@@ -107,7 +109,6 @@ void UCGTerrainTrackerComponent::TickComponent(float DeltaTime, ELevelTick TickT
 			FCollisionQueryParams traceParams;
 
 			traceParams.bTraceComplex = true;
-			traceParams.bTraceAsyncScene = true;
 			traceParams.bReturnPhysicalMaterial = true;
 
 			/*		const FName TraceTag("SpawnTraceTag");
