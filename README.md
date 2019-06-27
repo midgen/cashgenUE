@@ -11,6 +11,8 @@ Features:
 * A simple hydraulic erosion algorithm
 * Multiple tile LODs with per-LOD collision, tesselation and subdivision
 * Dithered LOD transitions (when using a suitable material instance)
+* Slope scalar in vertex colour channel 
+* Depth map texture generation for water material
 
 It has dependencies on :
 
