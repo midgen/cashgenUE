@@ -51,6 +51,7 @@ void ACGTerrainManager::BeginDestroy()
 		{
 			thread->Kill();
 			delete thread;
+			thread = nullptr;
 		}
 	}
 
