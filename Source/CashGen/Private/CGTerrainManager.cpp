@@ -425,15 +425,9 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 	}
 	else
 	{
-		FCGMeshData* dataToUse;
 		// Use the first free data set, there'll always be one, we checked!
-		for (FCGMeshData* data : myFreeMeshData[aJob.LOD])
-		{
-			dataToUse = data;
-			break;
-		}
-		// Add to the in use set
-		myInUseMeshData[aJob.LOD].Add(dataToUse);
+		FCGMeshData* dataToUse = *myFreeMeshData[aJob.LOD].begin();
+		
 		// Remove from the Free set
 		myFreeMeshData[aJob.LOD].Remove(dataToUse);
 
@@ -446,7 +440,6 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 
 void ACGTerrainManager::ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease)
 {
-	myInUseMeshData[aLOD].Remove(aDataToRelease);
 	myFreeMeshData[aLOD].Add(aDataToRelease);
 }
 
@@ -457,7 +450,6 @@ void ACGTerrainManager::AllocateAllMeshDataStructures()
 	{
 		myMeshData.Add(FCGLODMeshData());
 		myFreeMeshData.Add(TSet<FCGMeshData*>());
-		myInUseMeshData.Add(TSet<FCGMeshData*>());
 
 		myMeshData[lod].Data.Reserve(myTerrainConfig.MeshDataPoolSize);
 
