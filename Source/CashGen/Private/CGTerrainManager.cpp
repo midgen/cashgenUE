@@ -1,5 +1,6 @@
 
 #include "CGTerrainManager.h"
+#include "CGTerrainGeneratorWorker.h"
 #include "CGTile.h"
 #include "CGTileHandle.h"
 #include "CGJob.h"
@@ -49,6 +50,8 @@ void ACGTerrainManager::BeginDestroy()
 		if (thread != nullptr)
 		{
 			thread->Kill();
+			delete thread;
+			thread = nullptr;
 		}
 	}
 
