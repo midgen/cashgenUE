@@ -76,13 +76,21 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		FCGJob pendingJob;
 		if (myPendingJobQueue.Peek(pendingJob))
 		{
-			// If there's free data to allocate, dequeue and send to worker thread
-			if (myFreeMeshData[pendingJob.LOD].Num() > 0)
-			{
-				myPendingJobQueue.Dequeue(pendingJob);
-				GetFreeMeshData(pendingJob);
-				myGeometryJobQueues[i].Enqueue(pendingJob);
+			// Skip if there's no free data to allocate
+			if (myFreeMeshData[pendingJob.LOD].Num() == 0) {
+				continue;
 			}
+			
+			// Skip if the worker thread already has a pending job
+			// (this allows better thread utilization in case another worker is free)
+			if (!myGeometryJobQueues[i].IsEmpty()) {
+				continue;
+			}
+			
+			// Dequeue and send to worker thread
+			myPendingJobQueue.Dequeue(pendingJob);
+			GetFreeMeshData(pendingJob);
+			myGeometryJobQueues[i].Enqueue(pendingJob);
 		}
 	}
 
