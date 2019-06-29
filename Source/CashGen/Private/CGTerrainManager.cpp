@@ -200,8 +200,17 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		    myPendingJobQueue.IsEmpty() &&
 			myUpdateJobQueue.IsEmpty())
 	{
-		BroadcastTerrainComplete();
-		myIsTerrainComplete = true;
+		bool hasJobsInProgress = false;
+		for (auto& queue : myGeometryJobQueues) {
+			if (!queue.IsEmpty()) {
+				hasJobsInProgress = true;
+				break;
+			}
+		}
+		if (!hasJobsInProgress) {
+			BroadcastTerrainComplete();
+			myIsTerrainComplete = true;
+		}
 	}
 }
 
