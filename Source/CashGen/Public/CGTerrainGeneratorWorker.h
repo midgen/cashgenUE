@@ -11,7 +11,7 @@ class FCGTerrainGeneratorWorker : public FRunnable
 
 	ACGTerrainManager* pTerrainManager;
 	FCGTerrainConfig* pTerrainConfig;
-	TQueue<FCGJob, EQueueMode::Spsc>* inputQueue;
+	TArray<TCGObjectPool<FCGMeshData>>* pMeshDataPoolsPerLOD;
 	FCGJob workJob;
 	uint8 workLOD;
 
@@ -26,6 +26,7 @@ class FCGTerrainGeneratorWorker : public FRunnable
 	void ProcessPerBlockGeometry();
 	void ProcessPerVertexTasks();
 	void ProcessSkirtGeometry();
+	TCGBorrowedObject<FCGMeshData> BorrowMeshData();
 
 	void erodeHeightMapAtIndex(int32 aX, int32 aY, float aAmount);
 	void GetNormalFromHeightMapForVertex(const int32& vertexX, const int32& vertexY, FVector& aOutNormal);// , FVector& aOutTangent);
@@ -37,8 +38,7 @@ class FCGTerrainGeneratorWorker : public FRunnable
 public:
 
 	FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager,
-		FCGTerrainConfig* aTerrainConfig,
-		TQueue<FCGJob, EQueueMode::Spsc>* anInputQueue);
+		FCGTerrainConfig* aTerrainConfig, TArray<TCGObjectPool<FCGMeshData>>* meshDataPoolPerLOD);
 
 	virtual ~FCGTerrainGeneratorWorker();
 

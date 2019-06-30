@@ -2,6 +2,7 @@
 #include "RuntimeMeshComponent.h"
 #include "Struct/IntVector2.h"
 #include "Struct/CGTileHandle.h"
+#include "CGObjectPool.h"
 #include "CGJob.generated.h"
 
 class ACGTile;
@@ -17,7 +18,7 @@ struct FCGJob
 	
 	FCGTileHandle myTileHandle;
 
-	FCGMeshData* Data;
+	TCGBorrowedObject<FCGMeshData> Data;
 
 	int32 HeightmapGenerationDuration;
 	int32 ErosionGenerationDuration;
