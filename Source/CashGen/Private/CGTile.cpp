@@ -1,6 +1,7 @@
 #include "CGTile.h"
 #include "RuntimeMeshGenericVertex.h"
 #include "Components/StaticMeshComponent.h"
+#include "Struct/CGTerrainConfig.h"
 
 DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ RMCUpdate"), STAT_RMCUpdate, STATGROUP_CashGenStat);
 
