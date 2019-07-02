@@ -23,38 +23,70 @@ public:
 	* If there is no object available in the pool, this will block
 	* until there is one available.
 	*/
-	TCGBorrowedObject<T> Borrow() {
-		std::unique_lock<std::mutex> lock(mutex_);
-		cv_.wait(lock, [&]() {
-			return !freeObjects_.empty();
-		});
-		TCGBorrowedObject<T> result(this, freeObjects_.back());
-		freeObjects_.pop_back();
-		return result;
+	TCGBorrowedObject<T> Borrow(std::function<bool ()> shouldContinueToBlock) {
+		return TCGBorrowedObject<T>(impl_, impl_->Borrow(std::move(shouldContinueToBlock)));
 	}
 
 	/**
 	* Add a new object from the pool. After adding it, it can be borrowed.
 	*/
 	void Add(T* object) {
-		std::lock_guard<std::mutex> lock(mutex_);
-		freeObjects_.push_back(object);
-		cv_.notify_one();
+		impl_->Add(object);
 	}
 
-	TCGObjectPool() = default;
-
-	// copying and moving is forbidden because there might be objects
-	// borrowed from this pool that would then be put back into the wrong pool
+	// Copying and moving is forbidden. Because of Impl, this would
+	// follow reference semantics and could be confusing.
 	TCGObjectPool(const TCGObjectPool&) = delete;
 	TCGObjectPool(TCGObjectPool&&) noexcept = delete;
 	TCGObjectPool& operator=(const TCGObjectPool&) = delete;
 	TCGObjectPool& operator=(TCGObjectPool&&) noexcept = delete;
 
+	TCGObjectPool()
+		: impl_(std::make_shared<Impl>()) {}
+
 private:
-	std::mutex mutex_;
-	std::condition_variable cv_;
-	std::vector<T*> freeObjects_;
+	class Impl final {
+	public:
+		Impl() = default;
+
+		// copying and moving is forbidden because there might be objects
+		// borrowed from this pool that would then be put back into the wrong pool
+		Impl(const Impl&) = delete;
+		Impl(Impl&&) noexcept = delete;
+		Impl& operator=(const Impl&) = delete;
+		Impl& operator=(Impl&&) noexcept = delete;
+
+		void Add(T* object) {
+			std::lock_guard<std::mutex> lock(mutex_);
+			freeObjects_.push_back(object);
+			cv_.notify_one();
+		}
+
+		T* Borrow(std::function<bool()> shouldContinueToBlock) {
+			std::unique_lock<std::mutex> lock(mutex_);
+			do {
+				// Block until an object becomes available.
+				// Every 100ms, we check if shouldContinueToBlock still returns true. If not, we abort.
+				if (cv_.wait_for(lock, std::chrono::milliseconds(100), [&]() { return !freeObjects_.empty(); })) {
+					// We found an object. Borrow and return it.
+					T* result = freeObjects_.back();
+					freeObjects_.pop_back();
+					return result;
+				}
+			} while (shouldContinueToBlock());
+
+			// We didn't find an object and shouldContinueToBlock() returned false. Abort.
+			throw std::runtime_error("Failed to borrow object from pool");
+		}
+	private:
+		std::mutex mutex_;
+		std::condition_variable cv_;
+		std::vector<T*> freeObjects_;
+	};
+
+	friend class TCGBorrowedObject<T>;
+
+	std::shared_ptr<Impl> impl_;
 };
 
 /**
@@ -92,25 +124,27 @@ public:
 	}
 
 	TCGBorrowedObject()
-		: impl_(std::make_shared<BorrowedObjectImpl>(nullptr, nullptr)) {
+		: impl_(std::make_shared<BorrowedObjectImpl>(std::weak_ptr<typename TCGObjectPool<T>::Impl>(), nullptr)) {
 	}
 
 private:
-	explicit TCGBorrowedObject(TCGObjectPool<T>* pool, T* object)
-		: impl_(std::make_shared<BorrowedObjectImpl>(pool, object)) {
+	using ObjectPoolImpl = typename TCGObjectPool<T>::Impl;
+
+	explicit TCGBorrowedObject(std::shared_ptr<ObjectPoolImpl> pool, T* object)
+		: impl_(std::make_shared<BorrowedObjectImpl>(std::move(pool), object)) {
 	}
 
 	class BorrowedObjectImpl final {
 	private:
-		TCGObjectPool<T>* pool_;
+		std::weak_ptr<ObjectPoolImpl> pool_;
 		T* object_;
 	public:
 		T* Get() {
 			return object_;
 		}
 
-		explicit BorrowedObjectImpl(TCGObjectPool<T>* pool, T* object)
-			: pool_(pool), object_(object) {
+		explicit BorrowedObjectImpl(std::weak_ptr<ObjectPoolImpl> pool, T* object)
+			: pool_(std::move(pool)), object_(object) {
 		}
 
 		/**
@@ -118,11 +152,13 @@ private:
 		*/
 		void Release() {
 			if (nullptr != object_) {
-				pool_->Add(object_);
-				pool_ = nullptr;
+				if (auto pool = pool_.lock()) {
+					pool->Add(object_);
+				}
+				pool_.reset();
 				object_ = nullptr;
 			}
-			check(nullptr == pool_ && "Class invariant: If object_ is nullptr, so must be pool_.");
+			check(pool_.expired() && "Class invariant: If object_ is nullptr, so must be pool_.");
 		}
 
 		/**

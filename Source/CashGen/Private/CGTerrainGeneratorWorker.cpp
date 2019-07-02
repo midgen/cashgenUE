@@ -38,7 +38,17 @@ uint32 FCGTerrainGeneratorWorker::Run()
 		{
 			workLOD = workJob.LOD;
 
-			workJob.Data = (*pMeshDataPoolsPerLOD)[workLOD].Borrow();
+			try {
+				workJob.Data = (*pMeshDataPoolsPerLOD)[workLOD].Borrow([&] {return !IsThreadFinished; });
+			} catch (const std::exception&) {
+				if (IsThreadFinished) {
+					// seems borrowing aborted because sIsThreadFinished got true. Let's just return
+					return 1;
+				}
+				// and in any other case, rethrow
+				throw;
+			}
+
 			pMeshData = workJob.Data.Get();
 
 			milliseconds startMs = duration_cast<milliseconds>(
