@@ -60,6 +60,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "CashGen")
 	FCGTerrainConfig myTerrainConfig;
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "CashGen|Events")
+        void OnAfterTileCreated(ACGTile* tile);
 
 protected:
 	void BroadcastTerrainComplete()
