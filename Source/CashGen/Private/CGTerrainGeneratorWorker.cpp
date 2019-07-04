@@ -42,7 +42,7 @@ uint32 FCGTerrainGeneratorWorker::Run()
 				workJob.Data = (*pMeshDataPoolsPerLOD)[workLOD].Borrow([&] {return !IsThreadFinished; });
 			} catch (const std::exception&) {
 				if (IsThreadFinished) {
-					// seems borrowing aborted because sIsThreadFinished got true. Let's just return
+					// seems borrowing aborted because IsThreadFinished got true. Let's just return
 					return 1;
 				}
 				// and in any other case, rethrow
