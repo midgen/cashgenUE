@@ -130,6 +130,9 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 			}
 #endif
 			ReleaseMeshData(updateJob.LOD, updateJob.Data);
+			
+			OnAfterTileCreated(updateJob.myTileHandle.myHandle);
+			
 			myQueuedSectors.Remove(updateJob.mySector);
 		}
 	}
