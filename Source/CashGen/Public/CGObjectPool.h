@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mutex>
-#include <vector>
 #include <condition_variable>
 
 template<class T> class TCGBorrowedObject;
@@ -42,7 +41,7 @@ public:
 	TCGObjectPool& operator=(TCGObjectPool&&) noexcept = delete;
 
 	TCGObjectPool()
-		: impl_(std::make_shared<Impl>()) {}
+		: impl_(MakeShared<Impl, ESPMode::ThreadSafe>()) {}
 
 private:
 	class Impl final {
@@ -57,8 +56,10 @@ private:
 		Impl& operator=(Impl&&) noexcept = delete;
 
 		void Add(T* object) {
+			check(nullptr != object);
+
 			std::lock_guard<std::mutex> lock(mutex_);
-			freeObjects_.push_back(object);
+			freeObjects_.Push(object);
 			cv_.notify_one();
 		}
 
@@ -67,11 +68,9 @@ private:
 			do {
 				// Block until an object becomes available.
 				// Every 100ms, we check if shouldContinueToBlock still returns true. If not, we abort.
-				if (cv_.wait_for(lock, std::chrono::milliseconds(100), [&]() { return !freeObjects_.empty(); })) {
+				if (cv_.wait_for(lock, std::chrono::milliseconds(100), [&]() { return freeObjects_.Num() > 0; })) {
 					// We found an object. Borrow and return it.
-					T* result = freeObjects_.back();
-					freeObjects_.pop_back();
-					return result;
+					return freeObjects_.Pop(false);
 				}
 			} while (shouldContinueToBlock());
 
@@ -81,12 +80,12 @@ private:
 	private:
 		std::mutex mutex_;
 		std::condition_variable cv_;
-		std::vector<T*> freeObjects_;
+		TArray<T*> freeObjects_;
 	};
 
 	friend class TCGBorrowedObject<T>;
 
-	std::shared_ptr<Impl> impl_;
+	TSharedRef<Impl, ESPMode::ThreadSafe> impl_;
 };
 
 /**
@@ -124,26 +123,26 @@ public:
 	}
 
 	TCGBorrowedObject()
-		: impl_(std::make_shared<BorrowedObjectImpl>(std::weak_ptr<typename TCGObjectPool<T>::Impl>(), nullptr)) {
+		: impl_(MakeShared<BorrowedObjectImpl, ESPMode::ThreadSafe>(TWeakPtr<typename TCGObjectPool<T>::Impl, ESPMode::ThreadSafe>(), nullptr)) {
 	}
 
 private:
 	using ObjectPoolImpl = typename TCGObjectPool<T>::Impl;
 
-	explicit TCGBorrowedObject(std::shared_ptr<ObjectPoolImpl> pool, T* object)
-		: impl_(std::make_shared<BorrowedObjectImpl>(std::move(pool), object)) {
+	explicit TCGBorrowedObject(TWeakPtr<ObjectPoolImpl, ESPMode::ThreadSafe> pool, T* object)
+		: impl_(MakeShared<BorrowedObjectImpl, ESPMode::ThreadSafe>(std::move(pool), object)) {
 	}
 
 	class BorrowedObjectImpl final {
 	private:
-		std::weak_ptr<ObjectPoolImpl> pool_;
+		TWeakPtr<ObjectPoolImpl, ESPMode::ThreadSafe> pool_;
 		T* object_;
 	public:
 		T* Get() {
 			return object_;
 		}
 
-		explicit BorrowedObjectImpl(std::weak_ptr<ObjectPoolImpl> pool, T* object)
+		explicit BorrowedObjectImpl(TWeakPtr<ObjectPoolImpl, ESPMode::ThreadSafe> pool, T* object)
 			: pool_(std::move(pool)), object_(object) {
 		}
 
@@ -152,13 +151,13 @@ private:
 		*/
 		void Release() {
 			if (nullptr != object_) {
-				if (auto pool = pool_.lock()) {
+				if (auto pool = pool_.Pin()) {
 					pool->Add(object_);
 				}
-				pool_.reset();
+				pool_ = nullptr;
 				object_ = nullptr;
 			}
-			check(pool_.expired() && "Class invariant: If object_ is nullptr, so must be pool_.");
+			check(!pool_.IsValid() && "Class invariant: If object_ is nullptr, so must be pool_.");
 		}
 
 		/**
@@ -174,14 +173,14 @@ private:
 		BorrowedObjectImpl& operator=(const BorrowedObjectImpl&) = delete;
 
 		BorrowedObjectImpl(BorrowedObjectImpl&& rhs) noexcept
-			: pool_(rhs.pool_), object_(rhs.object_) {
+			: pool_(std::move(rhs.pool_)), object_(rhs.object_) {
 			// make sure the old BorrowedObjectImpl doesn't put anything back into the pool
 			rhs.pool_ = nullptr;
 			rhs.object_ = nullptr;
 		}
 
 		BorrowedObjectImpl& operator=(BorrowedObjectImpl&& rhs) noexcept {
-			pool_ = rhs.pool_;
+			pool_ = std::move(rhs.pool_);
 			object_ = rhs.object_;
 			// make sure the old BorrowedObjectImpl doesn't put anything back into the pool
 			rhs.pool_ = nullptr;
@@ -190,7 +189,7 @@ private:
 	};
 
 	// We use shared_ptr to get refcounting when TCGBorrowedObjects are copied around
-	std::shared_ptr<BorrowedObjectImpl> impl_;
+	TSharedRef<BorrowedObjectImpl, ESPMode::ThreadSafe> impl_;
 
 	friend class TCGObjectPool<T>;
 };
