@@ -87,7 +87,6 @@ private:
 	UPROPERTY()
 	TArray<FCGLODMeshData>		myMeshData;
 	TArray<TSet<FCGMeshData*>>	myFreeMeshData;
-	TArray<TSet<FCGMeshData*>>	myInUseMeshData;
 
 	// Job tracking
 	TQueue<FCGJob, EQueueMode::Spsc>			myPendingJobQueue;

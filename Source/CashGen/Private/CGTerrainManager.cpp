@@ -1,5 +1,6 @@
 
 #include "CGTerrainManager.h"
+#include "CGTerrainGeneratorWorker.h"
 #include "CGTile.h"
 #include "CGTileHandle.h"
 #include "CGJob.h"
@@ -49,6 +50,8 @@ void ACGTerrainManager::BeginDestroy()
 		if (thread != nullptr)
 		{
 			thread->Kill();
+			delete thread;
+			thread = nullptr;
 		}
 	}
 
@@ -73,13 +76,21 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		FCGJob pendingJob;
 		if (myPendingJobQueue.Peek(pendingJob))
 		{
-			// If there's free data to allocate, dequeue and send to worker thread
-			if (myFreeMeshData[pendingJob.LOD].Num() > 0)
-			{
-				myPendingJobQueue.Dequeue(pendingJob);
-				GetFreeMeshData(pendingJob);
-				myGeometryJobQueues[i].Enqueue(pendingJob);
+			// Skip if there's no free data to allocate
+			if (myFreeMeshData[pendingJob.LOD].Num() == 0) {
+				continue;
 			}
+			
+			// Skip if the worker thread already has a pending job
+			// (this allows better thread utilization in case another worker is free)
+			if (!myGeometryJobQueues[i].IsEmpty()) {
+				continue;
+			}
+			
+			// Dequeue and send to worker thread
+			myPendingJobQueue.Dequeue(pendingJob);
+			GetFreeMeshData(pendingJob);
+			myGeometryJobQueues[i].Enqueue(pendingJob);
 		}
 	}
 
@@ -200,8 +211,17 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		    myPendingJobQueue.IsEmpty() &&
 			myUpdateJobQueue.IsEmpty())
 	{
-		BroadcastTerrainComplete();
-		myIsTerrainComplete = true;
+		bool hasJobsInProgress = false;
+		for (auto& queue : myGeometryJobQueues) {
+			if (!queue.IsEmpty()) {
+				hasJobsInProgress = true;
+				break;
+			}
+		}
+		if (!hasJobsInProgress) {
+			BroadcastTerrainComplete();
+			myIsTerrainComplete = true;
+		}
 	}
 }
 
@@ -422,15 +442,9 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 	}
 	else
 	{
-		FCGMeshData* dataToUse;
 		// Use the first free data set, there'll always be one, we checked!
-		for (FCGMeshData* data : myFreeMeshData[aJob.LOD])
-		{
-			dataToUse = data;
-			break;
-		}
-		// Add to the in use set
-		myInUseMeshData[aJob.LOD].Add(dataToUse);
+		FCGMeshData* dataToUse = *myFreeMeshData[aJob.LOD].begin();
+		
 		// Remove from the Free set
 		myFreeMeshData[aJob.LOD].Remove(dataToUse);
 
@@ -443,7 +457,6 @@ bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
 
 void ACGTerrainManager::ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease)
 {
-	myInUseMeshData[aLOD].Remove(aDataToRelease);
 	myFreeMeshData[aLOD].Add(aDataToRelease);
 }
 
@@ -454,7 +467,6 @@ void ACGTerrainManager::AllocateAllMeshDataStructures()
 	{
 		myMeshData.Add(FCGLODMeshData());
 		myFreeMeshData.Add(TSet<FCGMeshData*>());
-		myInUseMeshData.Add(TSet<FCGMeshData*>());
 
 		myMeshData[lod].Data.Reserve(myTerrainConfig.MeshDataPoolSize);
 

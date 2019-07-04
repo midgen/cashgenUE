@@ -1,6 +1,7 @@
 #include "CGTile.h"
 #include "RuntimeMeshGenericVertex.h"
 #include "Components/StaticMeshComponent.h"
+#include "Struct/CGTerrainConfig.h"
 
 DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ RMCUpdate"), STAT_RMCUpdate, STATGROUP_CashGenStat);
 
@@ -293,6 +294,13 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshV
 		MaterialInstances[0]->SetTextureParameterValue("SplatMap", myTexture);
 		myWaterMaterialInstance->SetTextureParameterValue("SplatMap", myTexture);
 	}
+	
+       if (TerrainConfigMaster->LODs[aLOD].isCollisionEnabled) {
+               MyWaterMeshComponent->SetCollisionEnabled(TerrainConfigMaster->WaterCollision);
+       }
+       else {
+               MyWaterMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+       }
 }
 
 UMaterialInstanceDynamic* ACGTile::GetMaterialInstanceDynamic(const uint8 aLOD)
