@@ -156,6 +156,8 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 		if (TerrainConfigMaster->GenerateSplatMap)
 		{
 			myTexture = UTexture2D::CreateTransient(TerrainConfigMaster->TileXUnits, TerrainConfigMaster->TileYUnits, EPixelFormat::PF_B8G8R8A8);
+			myTexture->AddressX = TA_Clamp;
++                       myTexture->AddressY = TA_Clamp;
 
 			myTexture->UpdateResource();
 
