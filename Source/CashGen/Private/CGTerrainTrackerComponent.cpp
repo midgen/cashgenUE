@@ -2,8 +2,8 @@
 #include "CGTerrainTrackerComponent.h"
 #include "CashGen.h"
 #include "CGTerrainManager.h"
-#include "Runtime\Engine\Classes\GameFramework\CharacterMovementComponent.h"
-#include "Runtime\Engine\Classes\Kismet\GameplayStatics.h"
+#include "Runtime/Engine/Classes/GameFramework/CharacterMovementComponent.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 
 
