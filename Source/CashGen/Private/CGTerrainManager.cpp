@@ -103,7 +103,9 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 				GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Red, TEXT("MeshUpdate " + FString::FromInt(updateMS) + "ms"));
 			}
 #endif
+
 			updateJob.Data.Release();
+			OnAfterTileCreated(updateJob.myTileHandle.myHandle);
 			myQueuedSectors.Remove(updateJob.mySector);
 		}
 	}

@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "CGWorldConfig.h"
 #include "CGWorldMeshData.h"
+#include "Runtime/Engine/Classes/Components/SphereComponent.h"
 #include "CGWorld.generated.h"
 
 
