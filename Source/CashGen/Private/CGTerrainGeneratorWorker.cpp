@@ -136,9 +136,9 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 	if (pTerrainConfig->GenerateSplatMap && workLOD == 0)
 	{
 		int i = 0;
-		for (int x = 0; x < pTerrainConfig->TileXUnits; ++x)
+		for (int y = 0; y < pTerrainConfig->TileYUnits; ++y)
 		{
-			for (int y = 0; y < pTerrainConfig->TileYUnits; ++y)
+			for (int x = 0; x < pTerrainConfig->TileXUnits; ++x)
 			{
 				float& noiseValue = pMeshData->HeightMap[(x + 1) + (exX*(y + 1))];
 
