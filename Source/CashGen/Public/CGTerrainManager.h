@@ -8,6 +8,8 @@
 #include "Struct/IntVector2.h"
 #include "Struct/CGSector.h"
 #include "CGSettings.h"
+#include "CGObjectPool.h"
+#include "CGMcQueue.h"
 #include "Struct/CGLODMeshData.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "CGTerrainManager.generated.h"
@@ -45,6 +47,9 @@ public:
 	/* Add a new actor to track and generate terrain tiles around */
 	UFUNCTION(BlueprintCallable, Category = "CashGen")
 	void RemoveActorToTrack(AActor* aActor);
+
+	// Pending job queue, worker threads take jobs from here
+	TCGSpmcQueue<FCGJob> myPendingJobQueue;
 
 	// Update queue, jobs get sent here from the worker thread
 	TQueue<FCGJob, EQueueMode::Mpsc> myUpdateJobQueue;
@@ -88,12 +93,8 @@ private:
 
 	// Geometry data storage
 	UPROPERTY()
-	TArray<FCGLODMeshData>		myMeshData;
-	TArray<TSet<FCGMeshData*>>	myFreeMeshData;
-
-	// Job tracking
-	TQueue<FCGJob, EQueueMode::Spsc>			myPendingJobQueue;
-	TArray<TQueue<FCGJob, EQueueMode::Spsc>>	myGeometryJobQueues;
+	TArray<FCGLODMeshData>				myMeshData;
+	TArray<TCGObjectPool<FCGMeshData>>	myFreeMeshData;
 
 	// Tile/Sector tracking
 	TArray<ACGTile*>	myFreeTiles;
@@ -108,8 +109,6 @@ private:
 
 	bool myIsTerrainComplete = false;
 
-	bool GetFreeMeshData(FCGJob& aJob);
-	void ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease);
 	void AllocateAllMeshDataStructures();
 	bool AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerrainConfig* aConfig, const uint8 aLOD);
 

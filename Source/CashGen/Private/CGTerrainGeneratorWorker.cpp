@@ -11,11 +11,11 @@ DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ Normals"), STAT_Normals, STATGROUP_CashGe
 DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ Erosion"), STAT_Erosion, STATGROUP_CashGenStat);
 
 
-FCGTerrainGeneratorWorker::FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager, FCGTerrainConfig* aTerrainConfig, TQueue<FCGJob, EQueueMode::Spsc>* anInputQueue)
+FCGTerrainGeneratorWorker::FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager, FCGTerrainConfig* aTerrainConfig, TArray<TCGObjectPool<FCGMeshData>>* meshDataPoolsPerLOD)
 {
 	pTerrainManager = aTerrainManager;
 	pTerrainConfig = aTerrainConfig;
-	inputQueue = anInputQueue;
+	pMeshDataPoolsPerLOD = meshDataPoolsPerLOD;
 }
 
 FCGTerrainGeneratorWorker::~FCGTerrainGeneratorWorker()
@@ -34,11 +34,22 @@ uint32 FCGTerrainGeneratorWorker::Run()
 	// Here's the loop
 	while (!IsThreadFinished)
 	{
-		if (inputQueue->Dequeue(workJob))
+		if (pTerrainManager->myPendingJobQueue.Dequeue(workJob))
 		{
-			pMeshData = workJob.Data;
-
 			workLOD = workJob.LOD;
+
+			try {
+				workJob.Data = (*pMeshDataPoolsPerLOD)[workLOD].Borrow([&] {return !IsThreadFinished; });
+			} catch (const std::exception&) {
+				if (IsThreadFinished) {
+					// seems borrowing aborted because IsThreadFinished got true. Let's just return
+					return 1;
+				}
+				// and in any other case, rethrow
+				throw;
+			}
+
+			pMeshData = workJob.Data.Get();
 
 			milliseconds startMs = duration_cast<milliseconds>(
 				system_clock::now().time_since_epoch()

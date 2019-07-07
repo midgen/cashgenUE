@@ -34,10 +34,8 @@ void ACGTerrainManager::BeginPlay()
 
 	for (int i = 0; i < myTerrainConfig.NumberOfThreads; i++)
 	{
-		myGeometryJobQueues.Emplace();
-
 		myWorkerThreads.Add(FRunnableThread::Create
-		(new FCGTerrainGeneratorWorker(this, &myTerrainConfig, &myGeometryJobQueues[i]),
+		(new FCGTerrainGeneratorWorker(this, &myTerrainConfig, &myFreeMeshData),
 			*threadName,
 			0, EThreadPriority::TPri_Normal, FPlatformAffinity::GetNoAffinityMask()));
 	}
@@ -68,30 +66,6 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 	if (myTerrainConfig.NumberOfThreads > FPlatformMisc::NumberOfCores())
 	{
 		myTerrainConfig.NumberOfThreads = FPlatformMisc::NumberOfCores();
-	}
-
-	// Check for pending jobs
-	for (int i = 0; i < myTerrainConfig.NumberOfThreads; i++)
-	{
-		FCGJob pendingJob;
-		if (myPendingJobQueue.Peek(pendingJob))
-		{
-			// Skip if there's no free data to allocate
-			if (myFreeMeshData[pendingJob.LOD].Num() == 0) {
-				continue;
-			}
-			
-			// Skip if the worker thread already has a pending job
-			// (this allows better thread utilization in case another worker is free)
-			if (!myGeometryJobQueues[i].IsEmpty()) {
-				continue;
-			}
-			
-			// Dequeue and send to worker thread
-			myPendingJobQueue.Dequeue(pendingJob);
-			GetFreeMeshData(pendingJob);
-			myGeometryJobQueues[i].Enqueue(pendingJob);
-		}
 	}
 
 	// Now check for Update jobs
@@ -129,10 +103,9 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 				GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Red, TEXT("MeshUpdate " + FString::FromInt(updateMS) + "ms"));
 			}
 #endif
-			ReleaseMeshData(updateJob.LOD, updateJob.Data);
-			
+
+			updateJob.Data.Release();
 			OnAfterTileCreated(updateJob.myTileHandle.myHandle);
-			
 			myQueuedSectors.Remove(updateJob.mySector);
 		}
 	}
@@ -214,17 +187,8 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		    myPendingJobQueue.IsEmpty() &&
 			myUpdateJobQueue.IsEmpty())
 	{
-		bool hasJobsInProgress = false;
-		for (auto& queue : myGeometryJobQueues) {
-			if (!queue.IsEmpty()) {
-				hasJobsInProgress = true;
-				break;
-			}
-		}
-		if (!hasJobsInProgress) {
-			BroadcastTerrainComplete();
-			myIsTerrainComplete = true;
-		}
+		BroadcastTerrainComplete();
+		myIsTerrainComplete = true;
 	}
 }
 
@@ -369,8 +333,8 @@ void ACGTerrainManager::CreateTileRefreshJob(FCGJob aJob)
 {
 	if (aJob.LOD != 10)
 	{
-		myPendingJobQueue.Enqueue(aJob);
 		myQueuedSectors.Add(aJob.mySector);
+		myPendingJobQueue.Enqueue(std::move(aJob));
 	}
 
 }
@@ -431,36 +395,9 @@ void ACGTerrainManager::ProcessTilesForActor(const AActor* anActor)
 				}
 			}
 
-			CreateTileRefreshJob(job);
+			CreateTileRefreshJob(std::move(job));
 		}
 	}
-}
-
-bool ACGTerrainManager::GetFreeMeshData(FCGJob& aJob)
-{
-	// No free mesh data
-	if (myFreeMeshData[aJob.LOD].Num() < 1)
-	{
-		return false;
-	}
-	else
-	{
-		// Use the first free data set, there'll always be one, we checked!
-		FCGMeshData* dataToUse = *myFreeMeshData[aJob.LOD].begin();
-		
-		// Remove from the Free set
-		myFreeMeshData[aJob.LOD].Remove(dataToUse);
-
-		aJob.Data = dataToUse;
-		return true;
-	}
-
-	return false;
-}
-
-void ACGTerrainManager::ReleaseMeshData(uint8 aLOD, FCGMeshData* aDataToRelease)
-{
-	myFreeMeshData[aLOD].Add(aDataToRelease);
 }
 
 /** Allocates data structures and pointers for mesh data **/
@@ -469,7 +406,7 @@ void ACGTerrainManager::AllocateAllMeshDataStructures()
 	for (uint8 lod = 0; lod < myTerrainConfig.LODs.Num(); ++lod)
 	{
 		myMeshData.Add(FCGLODMeshData());
-		myFreeMeshData.Add(TSet<FCGMeshData*>());
+		myFreeMeshData.Emplace();
 
 		myMeshData[lod].Data.Reserve(myTerrainConfig.MeshDataPoolSize);
 
