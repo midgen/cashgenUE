@@ -120,9 +120,9 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 	const int32 exUnitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * pTerrainConfig->LODs[workLOD].ResolutionDivisor;
 
 	// Calculate the new noisemap
-	for (int x = 0; x < exX; ++x)
+	for (int y = 0; y < exY; ++y)
 	{
-		for (int y = 0; y < exY; ++y)
+		for (int x = 0; x < exX; ++x)
 		{
 			int32 worldX = (((workJob.mySector.X * XYunits) + x) * exUnitSize) - exUnitSize;
 			int32 worldY = (((workJob.mySector.Y * XYunits) + y) * exUnitSize) - exUnitSize;
@@ -161,9 +161,9 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 	{
 		exX -= 2;
 		exY -= 2;
-		for (int x = 0; x < exX; ++x)
+		for (int y = 0; y < exY; ++y)
 		{
-			for (int y = 0; y < exY; ++y)
+			for (int x = 0; x < exX; ++x)
 			{
 				int32 worldX = (((workJob.mySector.X * (exX - 1)) + x) * exUnitSize);
 				int32 worldY = (((workJob.mySector.Y * (exX - 1)) + y) * exUnitSize);
