@@ -11,7 +11,7 @@ class ACGWorldFace;
 struct FCGWorldFaceJob;
 
 UCLASS()
-class ACGWorld : public AActor
+class CASHGEN_API ACGWorld : public AActor
 {
 	GENERATED_BODY()
 
