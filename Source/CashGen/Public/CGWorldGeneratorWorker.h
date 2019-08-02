@@ -7,7 +7,7 @@
 struct FCGWorldConfig;
 class ACGWorld;
 
-class FCGWorldGeneratorWorker : public FRunnable
+class CASHGEN_API FCGWorldGeneratorWorker : public FRunnable
 {
 	ACGWorld* pWorld;
 	TQueue<FCGWorldFaceJob, EQueueMode::Spsc>* inputQueue;
