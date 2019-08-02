@@ -15,7 +15,7 @@
 class ACGTile;
 
 UCLASS(BlueprintType, Blueprintable)
-class ACGTerrainManager : public AActor
+class CASHGEN_API ACGTerrainManager : public AActor
 {
 	GENERATED_BODY()
 
