@@ -7,7 +7,7 @@
 * Implements the settings for the CashGen Plugin
 */
 UCLASS(config = CashGen, BlueprintType)
-class UCGSettings : public UObject
+class CASHGEN_API UCGSettings : public UObject
 {
 	GENERATED_BODY()
 

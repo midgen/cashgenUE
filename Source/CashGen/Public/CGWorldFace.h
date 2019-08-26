@@ -9,7 +9,7 @@ class ACGWorldFace;
 class ACGWorld;
 
 UCLASS()
-class ACGWorldFace : public AActor
+class CASHGEN_API ACGWorldFace : public AActor
 {
 	GENERATED_BODY()
 

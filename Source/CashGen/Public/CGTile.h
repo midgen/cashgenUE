@@ -13,7 +13,7 @@ class UStaticMeshComponent;
 enum ELODStatus { NOT_CREATED, CREATED, TRANSITION };
 
 UCLASS()
-class ACGTile : public AActor
+class CASHGEN_API ACGTile : public AActor
 {
 	GENERATED_BODY()
 

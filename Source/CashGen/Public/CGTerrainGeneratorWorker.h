@@ -6,7 +6,7 @@
 
 struct FCGJob;
 
-class FCGTerrainGeneratorWorker : public FRunnable
+class CASHGEN_API FCGTerrainGeneratorWorker : public FRunnable
 {
 
 	ACGTerrainManager* pTerrainManager;

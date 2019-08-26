@@ -8,7 +8,7 @@
 
 DECLARE_STATS_GROUP(TEXT("CashGen"), STATGROUP_CashGenStat, STATCAT_Advanced);
 
-class FCashGen : public IModuleInterface
+class CASHGEN_API FCashGen : public IModuleInterface
 {
 public:
 
