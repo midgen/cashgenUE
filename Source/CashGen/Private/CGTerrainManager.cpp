@@ -80,8 +80,12 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 
 			updateJob.myTileHandle.myHandle->UpdateMesh(updateJob.LOD,
 				updateJob.IsInPlaceUpdate,
-				&updateJob.Data->MyVertexData,
-				&updateJob.Data->MyTriangles,
+				updateJob.Data->MyPositions,
+				updateJob.Data->MyNormals,
+				updateJob.Data->MyTangents,
+				updateJob.Data->MyUV0,
+				updateJob.Data->MyColours,
+				updateJob.Data->MyTriangles,
 				updateJob.Data->myTextureData);
 
 			if (myTerrainConfig.UseInstancedWaterMesh)
@@ -438,18 +442,22 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 
 	int32 numTotalVertices = numXVerts * numYVerts + ((numXVerts - 1) * 2) + ((numXVerts - 1) * 2);
 
-	aData->MyVertexData.Reserve(numTotalVertices);
+	aData->MyPositions.Reserve(numTotalVertices);
+	aData->MyNormals.Reserve(numTotalVertices);
+	aData->MyTangents.Reserve(numTotalVertices);
+	aData->MyColours.Reserve(numTotalVertices);
+	aData->MyUV0.Reserve(numTotalVertices);
 	if (myTerrainConfig.GenerateSplatMap)
 	{
 		aData->myTextureData.Reserve(aConfig->TileXUnits * aConfig->TileYUnits);
 	}
 	
-
 	// Generate the per vertex data sets
-	for (int32 i = 0; i < (numTotalVertices); ++i)
-	{
-		aData->MyVertexData.Emplace();
-	}
+	aData->MyPositions.AddDefaulted(numTotalVertices);
+	aData->MyNormals.AddDefaulted(numTotalVertices);
+	aData->MyTangents.AddDefaulted(numTotalVertices);
+	aData->MyColours.AddDefaulted(numTotalVertices);
+	aData->MyUV0.AddDefaulted(numTotalVertices);
 
 	if (myTerrainConfig.GenerateSplatMap)
 	{
@@ -530,13 +538,13 @@ bool ACGTerrainManager::AllocateDataStructuresForLOD(FCGMeshData* aData, FCGTerr
 
 
 			//TR
-			aData->MyVertexData[thisX + ((thisY + 1) * (rowLength))].UV0 = FVector2D(thisX * 1.0f / rowLength, (thisY + 1.0f) / rowLength);
+			aData->MyUV0[thisX + ((thisY + 1) * (rowLength))] = FVector2D(thisX * 1.0f / rowLength, (thisY + 1.0f) / rowLength);
 			//BR
-			aData->MyVertexData[thisX + (thisY * (rowLength))].UV0 = FVector2D(thisX * 1.0f / rowLength, thisY * 1.0f / rowLength);
+			aData->MyUV0[thisX + (thisY * (rowLength))] = FVector2D(thisX * 1.0f / rowLength, thisY * 1.0f / rowLength);
 			//BL
-			aData->MyVertexData[(thisX + 1) + (thisY * (rowLength))].UV0 = FVector2D((thisX + 1.0f) / rowLength, thisY * 1.0f / rowLength);
+			aData->MyUV0[(thisX + 1) + (thisY * (rowLength))] = FVector2D((thisX + 1.0f) / rowLength, thisY * 1.0f / rowLength);
 			//TL
-			aData->MyVertexData[(thisX + 1) + ((thisY + 1) * (rowLength))].UV0 = FVector2D((thisX + 1.0f) / rowLength, (thisY + 1.0f) / rowLength);
+			aData->MyUV0[(thisX + 1) + ((thisY + 1) * (rowLength))] = FVector2D((thisX + 1.0f) / rowLength, (thisY + 1.0f) / rowLength);
 
 
 		}

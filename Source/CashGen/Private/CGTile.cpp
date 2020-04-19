@@ -1,10 +1,10 @@
 #include "CGTile.h"
-#include "RuntimeMeshGenericVertex.h"
 #include "Components/StaticMeshComponent.h"
 #include "Struct/CGTerrainConfig.h"
 
-DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ RMCUpdate"), STAT_RMCUpdate, STATGROUP_CashGenStat);
+#include <ProceduralMeshComponent/Public/ProceduralMeshComponent.h>
 
+DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ RMCUpdate"), STAT_RMCUpdate, STATGROUP_CashGenStat);
 
 ACGTile::ACGTile()
 {
@@ -17,9 +17,6 @@ ACGTile::ACGTile()
 	PreviousLOD = 10;
 
 	mySector = FIntVector2(0, 0);
-
-
-	
 }
 
 ACGTile::~ACGTile()
@@ -52,7 +49,8 @@ bool ACGTile::TickTransition(float DeltaSeconds)
 			}
 			else
 			{
-				if (PreviousLOD != 10 && PreviousLOD != CurrentLOD) {
+				if (PreviousLOD != 10 && PreviousLOD != CurrentLOD)
+				{
 					MeshComponents[PreviousLOD]->SetVisibility(false);
 				}
 
@@ -60,7 +58,6 @@ bool ACGTile::TickTransition(float DeltaSeconds)
 				lod.Value = ELODStatus::CREATED;
 				return true;
 			}
-
 		}
 	}
 	return false;
@@ -78,8 +75,6 @@ void ACGTile::RepositionAndHide(uint8 aNewLOD)
 	CurrentLOD = aNewLOD;
 }
 
-
-
 void ACGTile::BeginPlay()
 {
 	Super::BeginPlay();
@@ -87,7 +82,6 @@ void ACGTile::BeginPlay()
 
 void ACGTile::Tick(float DeltaSeconds)
 {
-
 }
 
 /************************************************************************
@@ -117,25 +111,20 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 
 		myWaterMaterialInstance = UMaterialInstanceDynamic::Create(TerrainConfigMaster->WaterMaterialInstance, this);
 		MyWaterMeshComponent->SetMaterial(0, myWaterMaterialInstance);
-		
 
 		for (int32 i = 0; i < aTerrainConfig->LODs.Num(); ++i)
 		{
 
 			FString compName = "RMC" + FString::FromInt(i);
-			MeshComponents.Add(i, NewObject<URuntimeMeshComponent>(this, URuntimeMeshComponent::StaticClass(), *compName));
+			MeshComponents.Add(i, NewObject<UProceduralMeshComponent>(this, UProceduralMeshComponent::StaticClass(), *compName));
 			MeshComponents[i]->SetRelativeTransform(FTransform());
 			MeshComponents[i]->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 			MeshComponents[i]->BodyInstance.SetResponseToAllChannels(ECR_Block);
 			MeshComponents[i]->BodyInstance.SetResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
-			MeshComponents[i]->SetCollisionUseAsyncCooking(TerrainConfigMaster->UseAsyncCollision);
 
 			MeshComponents[i]->bCastDynamicShadow = i == 0 ? TerrainConfigMaster->CastShadows : false;
 			MeshComponents[i]->bCastStaticShadow = i == 0 ? TerrainConfigMaster->CastShadows : false;
-
-
-
 
 			LODStatus.Add(i, ELODStatus::NOT_CREATED);
 
@@ -150,14 +139,13 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 				MaterialInstances.Add(i, UMaterialInstanceDynamic::Create(TerrainConfigMaster->TerrainMaterialInstance, this));
 				MeshComponents[i]->SetMaterial(0, MaterialInstances[i]);
 			}
-
 		}
 
 		if (TerrainConfigMaster->GenerateSplatMap)
 		{
 			myTexture = UTexture2D::CreateTransient(TerrainConfigMaster->TileXUnits, TerrainConfigMaster->TileYUnits, EPixelFormat::PF_B8G8R8A8);
 			myTexture->AddressX = TA_Clamp;
-            myTexture->AddressY = TA_Clamp;
+			myTexture->AddressY = TA_Clamp;
 
 			myTexture->UpdateResource();
 
@@ -172,7 +160,6 @@ void ACGTile::UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConf
 
 		IsInitalized = true;
 	}
-
 }
 
 /************************************************************************
@@ -183,54 +170,72 @@ bool ACGTile::CreateWaterMesh()
 
 	if (MeshComponents.Num() > 0)
 	{
-		TArray<FRuntimeMeshVertexSimple> myVertices;
+		TArray<FVector> myPositions;
+		TArray<FVector> myNormals;
+		TArray<FProcMeshTangent> myTangents;
+		TArray<FVector2D> myUV0;
 		FVector normal;
 		normal = FVector(0.0f, 0.0f, 1.0f);
-		FVector tangent, tangentX;
+		FProcMeshTangent tangent, tangentX;
 
-		myVertices.Reserve(4);
+		myPositions.Reserve(4);
+		myNormals.Reserve(4);
+		myUV0.Reserve(4);
+
 		int32 i = 0;
-		myVertices.Emplace();
-		myVertices[i].Position.X = 0.0f;
-		myVertices[i].Position.Y = 0.0f;
-		myVertices[i].Position.Z = 0.0f;
-		myVertices[i].UV0 = FVector2D(0.0f, 0.0f);
-		tangent = FVector(0.0f, 1.0f, 0.0f);
-		myVertices[i].Normal = normal;
-		myVertices[i].SetTangent(tangent);
+		myPositions.Emplace();
+		myNormals.Emplace();
+		myTangents.Emplace();
+		myUV0.Emplace();
+		myPositions[i].X = 0.0f;
+		myPositions[i].Y = 0.0f;
+		myPositions[i].Z = 0.0f;
+		myUV0[i] = FVector2D(0.0f, 0.0f);
+		tangent = FProcMeshTangent(0.0f, 1.0f, 0.0f);
+		myNormals[i] = normal;
+		myTangents[i] = tangent;
 
 		++i;
 
-		myVertices.Emplace();
-		myVertices[i].Position.X = 0.0f;
-		myVertices[i].Position.Y = TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize;
-		myVertices[i].Position.Z = 0.0f;
-		myVertices[i].UV0 = FVector2D(1.0f, 0.0f);
-		tangentX = FVector(0.0f, 1.0f, 0.0f);
-		myVertices[i].Normal = normal;
-		myVertices[i].Tangent.Set(tangentX);
+		myPositions.Emplace();
+		myNormals.Emplace();
+		myTangents.Emplace();
+		myUV0.Emplace();
+		myPositions[i].X = 0.0f;
+		myPositions[i].Y = TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize;
+		myPositions[i].Z = 0.0f;
+		myUV0[i] = FVector2D(1.0f, 0.0f);
+		tangentX = FProcMeshTangent(0.0f, 1.0f, 0.0f);
+		myNormals[i] = normal;
+		myTangents[i] = tangentX;
 
 		++i;
 
-		myVertices.Emplace();
-		myVertices[i].Position.X = TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize;
-		myVertices[i].Position.Y = TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize;
-		myVertices[i].Position.Z = 0.0f;
-		myVertices[i].UV0 = FVector2D(1.0f, 1.0f);
+		myPositions.Emplace();
+		myNormals.Emplace();
+		myTangents.Emplace();
+		myUV0.Emplace();
+		myPositions[i].X = TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize;
+		myPositions[i].Y = TerrainConfigMaster->TileYUnits * TerrainConfigMaster->UnitSize;
+		myPositions[i].Z = 0.0f;
+		myUV0[i] = FVector2D(1.0f, 1.0f);
 
-		tangentX = FVector(0.0f, 1.0f, 0.0f);
-		myVertices[i].Normal = normal;
-		myVertices[i].Tangent.Set(tangentX);
+		tangentX = FProcMeshTangent(0.0f, 1.0f, 0.0f);
+		myNormals[i] = normal;
+		myTangents[i] = tangentX;
 		++i;
 
-		myVertices.Emplace();
-		myVertices[i].Position.X = TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize;
-		myVertices[i].Position.Y = 0.0f;
-		myVertices[i].Position.Z = 0.0f;
-		myVertices[i].UV0 = FVector2D(0.0f, 1.0f);
-		tangentX = FVector(0.0f, 1.0f, 0.0f);
-		myVertices[i].Normal = normal;
-		myVertices[i].Tangent.Set(tangentX);
+		myPositions.Emplace();
+		myNormals.Emplace();
+		myTangents.Emplace();
+		myUV0.Emplace();
+		myPositions[i].X = TerrainConfigMaster->TileXUnits * TerrainConfigMaster->UnitSize;
+		myPositions[i].Y = 0.0f;
+		myPositions[i].Z = 0.0f;
+		myUV0[i] = FVector2D(0.0f, 1.0f);
+		tangentX = FProcMeshTangent(0.0f, 1.0f, 0.0f);
+		myNormals[i] = normal;
+		myTangents[i] = tangentX;
 
 		TArray<int32> myIndices;
 		myIndices.Reserve(6);
@@ -241,24 +246,21 @@ bool ACGTile::CreateWaterMesh()
 		myIndices.Emplace(3);
 		myIndices.Emplace(0);
 
-		
-		MeshComponents[0]->CreateMeshSection(1, myVertices, myIndices, true, EUpdateFrequency::Infrequent, ESectionUpdateFlags::None);
+		MeshComponents[0]->CreateMeshSection(1, myPositions, myIndices, myNormals, myUV0, TArray<FColor>(), myTangents, true);
 
 		myWaterMaterialInstance = UMaterialInstanceDynamic::Create(TerrainConfigMaster->WaterMaterialInstance, this);
 		MeshComponents[0]->SetMaterial(1, myWaterMaterialInstance);
-
-		
 
 		return true;
 	}
 	return false;
 }
 
- /************************************************************************
+/************************************************************************
   *  Updates the mesh for a given LOD and starts the transition effects  
   ************************************************************************/
-void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshVertexSimple>*	aVertices,
-	TArray<int32>*	aTriangles, TArray<FColor>& aTextureData)
+void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate,
+	TArray<FVector>& aPositions, TArray<FVector>& aNormals, TArray<FProcMeshTangent>& aTangents, TArray<FVector2D>& aUV0s, TArray<FColor>& aColours, TArray<int32>& aTriangles, TArray<FColor>& aTextureData)
 {
 	SCOPE_CYCLE_COUNTER(STAT_RMCUpdate);
 	SetActorHiddenInGame(false);
@@ -269,14 +271,17 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshV
 
 	for (int32 i = 0; i < TerrainConfigMaster->LODs.Num(); ++i)
 	{
-		if (i == aLOD) {
-			if (LODStatus[i] == ELODStatus::NOT_CREATED) {
-				MeshComponents[i]->CreateMeshSection(0, *aVertices, *aTriangles, TerrainConfigMaster->LODs[aLOD].isCollisionEnabled , EUpdateFrequency::Infrequent, TerrainConfigMaster->LODs[aLOD].isTesselationEnabled ? ESectionUpdateFlags::CalculateTessellationIndices : ESectionUpdateFlags::None);
+		if (i == aLOD)
+		{
+			if (LODStatus[i] == ELODStatus::NOT_CREATED)
+			{
+				MeshComponents[i]->CreateMeshSection(0, aPositions, aTriangles, aNormals, aUV0s, aColours, aTangents, TerrainConfigMaster->LODs[aLOD].isCollisionEnabled);
 				MeshComponents[i]->RegisterComponent();
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}
-			else {
-				MeshComponents[i]->UpdateMeshSection(0, *aVertices, *aTriangles, TerrainConfigMaster->LODs[aLOD].isTesselationEnabled ? ESectionUpdateFlags::CalculateTessellationIndices : ESectionUpdateFlags::None);
+			else
+			{
+				MeshComponents[i]->UpdateMeshSection(0, aPositions, aNormals, aUV0s, aColours, aTangents);
 				LODStatus.Add(i, ELODStatus::TRANSITION);
 			}
 
@@ -290,19 +295,21 @@ void ACGTile::UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FRuntimeMeshV
 
 	if (aLOD == 0 && TerrainConfigMaster->GenerateSplatMap && TerrainConfigMaster->MakeDynamicMaterialInstance && MaterialInstances.Num() > 0)
 	{
-		
-		myTexture->UpdateTextureRegions(0, 1, myRegion, 4* TerrainConfigMaster->TileXUnits, 4, (uint8*)aTextureData.GetData());
-		
+
+		myTexture->UpdateTextureRegions(0, 1, myRegion, 4 * TerrainConfigMaster->TileXUnits, 4, (uint8*)aTextureData.GetData());
+
 		MaterialInstances[0]->SetTextureParameterValue("SplatMap", myTexture);
 		myWaterMaterialInstance->SetTextureParameterValue("SplatMap", myTexture);
 	}
-	
-       if (TerrainConfigMaster->LODs[aLOD].isCollisionEnabled) {
-               MyWaterMeshComponent->SetCollisionEnabled(TerrainConfigMaster->WaterCollision);
-       }
-       else {
-               MyWaterMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-       }
+
+	if (TerrainConfigMaster->LODs[aLOD].isCollisionEnabled)
+	{
+		MyWaterMeshComponent->SetCollisionEnabled(TerrainConfigMaster->WaterCollision);
+	}
+	else
+	{
+		MyWaterMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 UMaterialInstanceDynamic* ACGTile::GetMaterialInstanceDynamic(const uint8 aLOD)
@@ -313,5 +320,4 @@ UMaterialInstanceDynamic* ACGTile::GetMaterialInstanceDynamic(const uint8 aLOD)
 	}
 
 	return nullptr;
-	
 }

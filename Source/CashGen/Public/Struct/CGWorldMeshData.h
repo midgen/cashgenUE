@@ -1,36 +1,39 @@
-#pragma once
-#include "CashGen.h"
-#include "RuntimeMeshComponent.h"
-#include "CGWorldMeshData.generated.h"
-
-/** Defines the data required for a single procedural mesh section */
-USTRUCT()
-struct FCGWorldMeshData
-{
-	GENERATED_USTRUCT_BODY()
-	TArray<FRuntimeMeshVertexSimple> Vertices;
-	UPROPERTY()
-	TArray<int32> Indices;
-
-public:
-	void Allocate(const uint16& aSubDivisions) 
-	{ 
-		Vertices.Empty();
-
-		Indices.Empty();
-
-		int32 numTris = (3)* (FMath::Pow(4, aSubDivisions));
-
-		Vertices.Reserve(numTris);
-		for (int i = 0; i < numTris; i++)
-		{
-			Vertices.Emplace();
-		}
-		
-		Indices.Reserve(numTris);
-		for (int i = 0; i < numTris; i++)
-		{
-			Indices.Add(0);
-		}
-	}
-};
+//#pragma once
+//
+//#include <ProceduralMeshComponent/Public/ProceduralMeshComponent.h>
+//
+//#include "CGWorldMeshData.generated.h"
+//
+///** Defines the data required for a single procedural mesh section */
+//USTRUCT()
+//struct FCGWorldMeshData
+//{
+//	GENERATED_BODY()
+//
+//	TArray<FVector> myPositions;
+//	TArray<FVector> myNormals;
+//	TArray<FProcMeshTangent> myTangents;
+//	UPROPERTY()
+//	TArray<int32> myIndices;
+//
+//public:
+//	void Allocate(const uint16& aSubDivisions) 
+//	{ 
+//		myPositions.Empty();
+//		myNormals.Empty();
+//		myTangents.Empty();
+//
+//		myIndices.Empty();
+//
+//		int32 numTris = (3)* (FMath::Pow(4, aSubDivisions));
+//
+//		myPositions.Reserve(numTris);
+//		myNormals.Reserve(numTris);
+//		myTangents.Reserve(numTris);
+//		
+//		myPositions.AddDefaulted(numTris);
+//		myNormals.AddDefaulted(numTris);
+//		myTangents.AddDefaulted(numTris);
+//		myIndices.AddDefaulted(numTris);
+//	}
+//};
