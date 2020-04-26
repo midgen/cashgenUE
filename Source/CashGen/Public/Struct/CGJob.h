@@ -13,6 +13,14 @@ struct FCGJob
 {
 	GENERATED_BODY()
 
+	FCGJob()
+		: mySector(0,0)
+		, HeightmapGenerationDuration(0)
+		, ErosionGenerationDuration(0)
+		, LOD(0)
+		, IsInPlaceUpdate(false)
+	{
+	}
 
 	FIntVector2 mySector;
 	FCGTileHandle myTileHandle;

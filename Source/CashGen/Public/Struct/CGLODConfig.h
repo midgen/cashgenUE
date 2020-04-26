@@ -1,11 +1,19 @@
-
 #pragma once
+
 #include "CGLODConfig.generated.h"
 
 USTRUCT(BlueprintType)
 struct FCGLODConfig
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
+
+	FCGLODConfig()
+		: SectorRadius(0)
+		, ResolutionDivisor(0)
+		, isCollisionEnabled(true)
+	{
+	}
+
 	/** Radius in sectors to spawn terrain around an actor */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int SectorRadius;
@@ -15,8 +23,4 @@ struct FCGLODConfig
 	/** Cook collision */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool isCollisionEnabled;
-	/** Calculate tesselation indices */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool isTesselationEnabled;
-
 };

@@ -1,38 +1,33 @@
 #pragma once
-#include "Struct/IntVector2.h"
-#include "CGSector.generated.h"
 
+#include "CashGen/Public/Struct/IntVector2.h"
+
+#include "CGSector.generated.h"
 
 USTRUCT(BlueprintType)
 struct FCGSector
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
-	FIntVector2 mySector;
-	uint8 myLOD;
+public:
 
 	FCGSector(const int32 aX, const int32 aY, const uint8 aLOD)
+		: mySector(aX, aY)
+		, myLOD(aLOD)
 	{
-		mySector.X = aX;
-		mySector.Y = aY;
-		myLOD = aLOD;
 	}
 
 	FCGSector(const FIntVector2 aIntVector, const uint8 aLOD = 0)
+		: mySector(aIntVector)
+		, myLOD(aLOD)
 	{
-		mySector.X = aIntVector.X;
-		mySector.Y = aIntVector.Y;
-		myLOD = aLOD;
 	}
-
 
 	FCGSector()
+		: mySector(0, 0)
+		, myLOD(0)
 	{
-		mySector.X = 0;
-		mySector.Y = 0;
-		myLOD = 0;
 	}
-
 
 	FORCEINLINE bool operator==(const FCGSector& Src) const
 	{
@@ -49,4 +44,6 @@ struct FCGSector
 		return FCrc::MemCrc32(&point.mySector, sizeof(FIntVector2));
 	}
 
+	FIntVector2 mySector;
+	uint8 myLOD;
 };

@@ -7,17 +7,15 @@
 
 #include <chrono>
 
-using namespace std::chrono;
-
 DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ HeightMap"), STAT_HeightMap, STATGROUP_CashGenStat);
 DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ Normals"), STAT_Normals, STATGROUP_CashGenStat);
 DECLARE_CYCLE_STAT(TEXT("CashGenStat ~ Erosion"), STAT_Erosion, STATGROUP_CashGenStat);
 
-FCGTerrainGeneratorWorker::FCGTerrainGeneratorWorker(ACGTerrainManager* aTerrainManager, FCGTerrainConfig* aTerrainConfig, TArray<TCGObjectPool<FCGMeshData>>* meshDataPoolsPerLOD)
+FCGTerrainGeneratorWorker::FCGTerrainGeneratorWorker(ACGTerrainManager& aTerrainManager, FCGTerrainConfig& aTerrainConfig, TArray<TCGObjectPool<FCGMeshData>>& meshDataPoolPerLOD) 
+	: pTerrainManager(aTerrainManager)
+	, pTerrainConfig(aTerrainConfig)
+	, pMeshDataPoolsPerLOD(meshDataPoolPerLOD)
 {
-	pTerrainManager = aTerrainManager;
-	pTerrainConfig = aTerrainConfig;
-	pMeshDataPoolsPerLOD = meshDataPoolsPerLOD;
 }
 
 FCGTerrainGeneratorWorker::~FCGTerrainGeneratorWorker()
@@ -35,13 +33,13 @@ uint32 FCGTerrainGeneratorWorker::Run()
 	// Here's the loop
 	while (!IsThreadFinished)
 	{
-		if (pTerrainManager->myPendingJobQueue.Dequeue(workJob))
+		if (pTerrainManager.myPendingJobQueue.Dequeue(workJob))
 		{
 			workLOD = workJob.LOD;
 
 			try
 			{
-				workJob.Data = (*pMeshDataPoolsPerLOD)[workLOD].Borrow([&] { return !IsThreadFinished; });
+				workJob.Data = pMeshDataPoolsPerLOD[workLOD].Borrow([&] { return !IsThreadFinished; });
 			}
 			catch (const std::exception&)
 			{
@@ -56,34 +54,34 @@ uint32 FCGTerrainGeneratorWorker::Run()
 
 			pMeshData = workJob.Data.Get();
 
-			milliseconds startMs = duration_cast<milliseconds>(
-				system_clock::now().time_since_epoch());
+			std::chrono::milliseconds startMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::system_clock::now().time_since_epoch());
 
 			prepMaps();
 			ProcessTerrainMap();
 
-			workJob.HeightmapGenerationDuration = (duration_cast<milliseconds>(
-													   system_clock::now().time_since_epoch()) -
+			workJob.HeightmapGenerationDuration = (std::chrono::duration_cast<std::chrono::milliseconds>(
+													   std::chrono::system_clock::now().time_since_epoch()) -
 												   startMs)
 													  .count();
 
-			startMs = duration_cast<milliseconds>(
-				system_clock::now().time_since_epoch());
+			startMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::system_clock::now().time_since_epoch());
 
 			if (workLOD == 0)
 			{
 				{
 					SCOPE_CYCLE_COUNTER(STAT_Erosion);
 
-					for (int32 i = 0; i < pTerrainConfig->DropletAmount; ++i)
+					for (int32 i = 0; i < pTerrainConfig.DropletAmount; ++i)
 					{
 						ProcessSingleDropletErosion();
 					}
 				}
 			}
 
-			workJob.ErosionGenerationDuration = (duration_cast<milliseconds>(
-													 system_clock::now().time_since_epoch()) -
+			workJob.ErosionGenerationDuration = (std::chrono::duration_cast<std::chrono::milliseconds>(
+													 std::chrono::system_clock::now().time_since_epoch()) -
 												 startMs)
 													.count();
 
@@ -91,7 +89,7 @@ uint32 FCGTerrainGeneratorWorker::Run()
 			ProcessPerVertexTasks();
 			ProcessSkirtGeometry();
 
-			pTerrainManager->myUpdateJobQueue.Enqueue(workJob);
+			pTerrainManager.myUpdateJobQueue.Enqueue(workJob);
 		}
 		// Otherwise, take a nap
 		else
@@ -131,8 +129,8 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 	int32 exX = GetNumberOfNoiseSamplePoints();
 	int32 exY = exX;
 
-	const int32 XYunits = workLOD == 0 ? pTerrainConfig->TileXUnits : pTerrainConfig->TileXUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor;
-	const int32 exUnitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * pTerrainConfig->LODs[workLOD].ResolutionDivisor;
+	const int32 XYunits = workLOD == 0 ? pTerrainConfig.TileXUnits : pTerrainConfig.TileXUnits / pTerrainConfig.LODs[workLOD].ResolutionDivisor;
+	const int32 exUnitSize = workLOD == 0 ? pTerrainConfig.UnitSize : pTerrainConfig.UnitSize * pTerrainConfig.LODs[workLOD].ResolutionDivisor;
 
 	// Calculate the new noisemap
 	for (int y = 0; y < exY; ++y)
@@ -142,17 +140,17 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 			int32 worldX = (((workJob.mySector.X * XYunits) + x) * exUnitSize) - exUnitSize;
 			int32 worldY = (((workJob.mySector.Y * XYunits) + y) * exUnitSize) - exUnitSize;
 
-			pMeshData->HeightMap[x + (exX * y)] = pTerrainConfig->NoiseGenerator->GetNoise2D(worldX, worldY);
+			pMeshData->HeightMap[x + (exX * y)] = pTerrainConfig.NoiseGenerator->GetNoise2D(worldX, worldY);
 		}
 	}
 	// Put heightmap into Red channel
 
-	if (pTerrainConfig->GenerateSplatMap && workLOD == 0)
+	if (pTerrainConfig.GenerateSplatMap && workLOD == 0)
 	{
 		int i = 0;
-		for (int y = 0; y < pTerrainConfig->TileYUnits; ++y)
+		for (int y = 0; y < pTerrainConfig.TileYUnits; ++y)
 		{
-			for (int x = 0; x < pTerrainConfig->TileXUnits; ++x)
+			for (int x = 0; x < pTerrainConfig.TileXUnits; ++x)
 			{
 				float& noiseValue = pMeshData->HeightMap[(x + 1) + (exX * (y + 1))];
 
@@ -170,7 +168,7 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 	}
 
 	// Then put the biome map into the Green vertex colour channel
-	if (pTerrainConfig->BiomeBlendGenerator)
+	if (pTerrainConfig.BiomeBlendGenerator)
 	{
 		exX -= 2;
 		exY -= 2;
@@ -180,7 +178,7 @@ void FCGTerrainGeneratorWorker::ProcessTerrainMap()
 			{
 				int32 worldX = (((workJob.mySector.X * (exX - 1)) + x) * exUnitSize);
 				int32 worldY = (((workJob.mySector.Y * (exX - 1)) + y) * exUnitSize);
-				float val = pTerrainConfig->BiomeBlendGenerator->GetNoise2D(worldX, worldY);
+				float val = pTerrainConfig.BiomeBlendGenerator->GetNoise2D(worldX, worldY);
 
 				pMeshData->MyColours[x + (exX * y)].G = FMath::Clamp(FMath::RoundToInt(((val + 1.0f) / 2.0f) * 256), 0, 255);
 			}
@@ -305,8 +303,8 @@ void FCGTerrainGeneratorWorker::ProcessPerBlockGeometry()
 	int32 vertCounter = 0;
 	int32 triCounter = 0;
 
-	int32 xUnits = workLOD == 0 ? pTerrainConfig->TileXUnits : (pTerrainConfig->TileXUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
-	int32 yUnits = workLOD == 0 ? pTerrainConfig->TileYUnits : (pTerrainConfig->TileYUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
+	int32 xUnits = workLOD == 0 ? pTerrainConfig.TileXUnits : (pTerrainConfig.TileXUnits / pTerrainConfig.LODs[workLOD].ResolutionDivisor);
+	int32 yUnits = workLOD == 0 ? pTerrainConfig.TileYUnits : (pTerrainConfig.TileYUnits / pTerrainConfig.LODs[workLOD].ResolutionDivisor);
 
 	// Generate the mesh data for each block
 	for (int32 y = 0; y < yUnits; ++y)
@@ -321,10 +319,10 @@ void FCGTerrainGeneratorWorker::ProcessPerBlockGeometry()
 void FCGTerrainGeneratorWorker::ProcessPerVertexTasks()
 {
 	SCOPE_CYCLE_COUNTER(STAT_Normals);
-	int32 xUnits = workLOD == 0 ? pTerrainConfig->TileXUnits : (pTerrainConfig->TileXUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
-	int32 yUnits = workLOD == 0 ? pTerrainConfig->TileYUnits : (pTerrainConfig->TileYUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor);
+	int32 xUnits = workLOD == 0 ? pTerrainConfig.TileXUnits : (pTerrainConfig.TileXUnits / pTerrainConfig.LODs[workLOD].ResolutionDivisor);
+	int32 yUnits = workLOD == 0 ? pTerrainConfig.TileYUnits : (pTerrainConfig.TileYUnits / pTerrainConfig.LODs[workLOD].ResolutionDivisor);
 
-	int32 rowLength = workLOD == 0 ? pTerrainConfig->TileXUnits + 1 : (pTerrainConfig->TileXUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
+	int32 rowLength = workLOD == 0 ? pTerrainConfig.TileXUnits + 1 : (pTerrainConfig.TileXUnits / (pTerrainConfig.LODs[workLOD].ResolutionDivisor) + 1);
 
 	for (int32 y = 0; y < yUnits + 1; ++y)
 	{
@@ -348,8 +346,8 @@ void FCGTerrainGeneratorWorker::ProcessSkirtGeometry()
 {
 	// Going to do this the simple way, keep code easy to understand!
 
-	int32 numXVerts = workLOD == 0 ? pTerrainConfig->TileXUnits + 1 : (pTerrainConfig->TileXUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1;
-	int32 numYVerts = workLOD == 0 ? pTerrainConfig->TileYUnits + 1 : (pTerrainConfig->TileYUnits / pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1;
+	int32 numXVerts = workLOD == 0 ? pTerrainConfig.TileXUnits + 1 : (pTerrainConfig.TileXUnits / pTerrainConfig.LODs[workLOD].ResolutionDivisor) + 1;
+	int32 numYVerts = workLOD == 0 ? pTerrainConfig.TileYUnits + 1 : (pTerrainConfig.TileYUnits / pTerrainConfig.LODs[workLOD].ResolutionDivisor) + 1;
 
 	int32 startIndex = numXVerts * numYVerts;
 	int32 triStartIndex = ((numXVerts - 1) * (numYVerts - 1) * 6);
@@ -500,15 +498,15 @@ void FCGTerrainGeneratorWorker::GetNormalFromHeightMapForVertex(const int32& ver
 
 	FVector tangentVec, bitangentVec;
 
-	const int32 rowLength = workLOD == 0 ? pTerrainConfig->TileXUnits + 1 : (pTerrainConfig->TileXUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
+	const int32 rowLength = workLOD == 0 ? pTerrainConfig.TileXUnits + 1 : (pTerrainConfig.TileXUnits / (pTerrainConfig.LODs[workLOD].ResolutionDivisor) + 1);
 	const int32 heightMapRowLength = rowLength + 2;
 
 	// the heightmapIndex for this vertex index
 	const int32 heightMapIndex = vertexX + 1 + ((vertexY + 1) * heightMapRowLength);
-	const float worldTileX = workJob.mySector.X * pTerrainConfig->TileXUnits;
-	const float worldTileY = workJob.mySector.Y * pTerrainConfig->TileYUnits;
-	const float& unitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * pTerrainConfig->LODs[workLOD].ResolutionDivisor;
-	const float& ampl = pTerrainConfig->Amplitude;
+	const float worldTileX = workJob.mySector.X * pTerrainConfig.TileXUnits;
+	const float worldTileY = workJob.mySector.Y * pTerrainConfig.TileYUnits;
+	const float& unitSize = workLOD == 0 ? pTerrainConfig.UnitSize : pTerrainConfig.UnitSize * pTerrainConfig.LODs[workLOD].ResolutionDivisor;
+	const float& ampl = pTerrainConfig.Amplitude;
 
 	FVector origin = FVector((worldTileX + vertexX) * unitSize, (worldTileY + vertexY) * unitSize, pMeshData->HeightMap[heightMapIndex] * ampl);
 
@@ -542,15 +540,15 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int32& aX, const in
 	int32 heightMapX = thisX + 1;
 	int32 heightMapY = thisY + 1;
 	// LOD adjusted dimensions
-	int32 rowLength = workLOD == 0 ? pTerrainConfig->TileXUnits + 1 : (pTerrainConfig->TileXUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor) + 1);
+	int32 rowLength = workLOD == 0 ? pTerrainConfig.TileXUnits + 1 : (pTerrainConfig.TileXUnits / (pTerrainConfig.LODs[workLOD].ResolutionDivisor) + 1);
 	int32 heightMapRowLength = rowLength + 2;
 	// LOD adjusted unit size
-	int32 exUnitSize = workLOD == 0 ? pTerrainConfig->UnitSize : pTerrainConfig->UnitSize * (pTerrainConfig->LODs[workLOD].ResolutionDivisor);
+	int32 exUnitSize = workLOD == 0 ? pTerrainConfig.UnitSize : pTerrainConfig.UnitSize * (pTerrainConfig.LODs[workLOD].ResolutionDivisor);
 
 	const int blockX = 0;
 	const int blockY = 0;
-	const float& unitSize = pTerrainConfig->UnitSize;
-	const float& ampl = pTerrainConfig->Amplitude;
+	const float& unitSize = pTerrainConfig.UnitSize;
+	const float& ampl = pTerrainConfig.Amplitude;
 
 	FVector heightMapToWorldOffset = FVector(0.0f, 0.0f, 0.0f);
 
@@ -566,5 +564,5 @@ void FCGTerrainGeneratorWorker::UpdateOneBlockGeometry(const int32& aX, const in
 
 int32 FCGTerrainGeneratorWorker::GetNumberOfNoiseSamplePoints()
 {
-	return workLOD == 0 ? pTerrainConfig->TileXUnits + 3 : (pTerrainConfig->TileXUnits / (pTerrainConfig->LODs[workLOD].ResolutionDivisor)) + 3;
+	return workLOD == 0 ? pTerrainConfig.TileXUnits + 3 : (pTerrainConfig.TileXUnits / (pTerrainConfig.LODs[workLOD].ResolutionDivisor)) + 3;
 }
