@@ -16,14 +16,12 @@ Features:
 
 It has dependencies on :
 
-* UE4RuntimeMeshComponent by Koderz, an enhanced procedural mesh component
 * UnrealFastNoise by myself, a modular noise generation plugin 
 
 1. Create a new C++ project
-2. Checkout UE4RuntimeMeshComponent into your engine or project plugins folder ( https://github.com/Koderz/UE4RuntimeMeshComponent )
-3. Checkout UnrealFastNoisePlugin into your engine or project plugins folder ( https://github.com/midgen/UnrealFastNoise )
-4. Checkout this repository into your engine or project plugins folder
-5. Add "CashGen", "UnrealFastNoisePlugin" to your project Build.cs (required to package project)
+2. Checkout UnrealFastNoisePlugin into your engine or project plugins folder ( https://github.com/midgen/UnrealFastNoise )
+3. Checkout this repository into your engine or project plugins folder
+4. Add "CashGen", "UnrealFastNoisePlugin" to your project Build.cs (required to package project)
 ```csharp
 PrivateDependencyModuleNames.AddRange(new string[] { "CashGen", "UnrealFastNoisePlugin" });
 PublicDependencyModuleNames.AddRange(new string[] { "CashGen", "UnrealFastNoisePlugin" });
