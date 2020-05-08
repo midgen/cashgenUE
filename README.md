@@ -24,7 +24,6 @@ It has dependencies on :
 4. Add "CashGen", "UnrealFastNoisePlugin" to your project Build.cs (required to package project)
 ```csharp
 PrivateDependencyModuleNames.AddRange(new string[] { "CashGen", "UnrealFastNoisePlugin" });
-PublicDependencyModuleNames.AddRange(new string[] { "CashGen", "UnrealFastNoisePlugin" });
 ```
 6. Create a new Blueprint based on CGTerrainManager
 7. OnBeginPlay in the blueprint, call SetupTerrain() and fill out all required parameters
