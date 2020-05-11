@@ -27,7 +27,7 @@ public:
 	ACGTerrainManager();
 	~ACGTerrainManager();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CashGen")
 	UCGSettings* Settings = GetMutableDefault<UCGSettings>();
 
 	/* Event called when initial terrain generation is complete */
@@ -59,7 +59,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	void BeginDestroy() override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "CashGen")
 	UHierarchicalInstancedStaticMeshComponent* MyWaterMeshComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "CashGen")

@@ -9,7 +9,7 @@ struct FCGLODMeshData
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen")
 	TArray<FCGMeshData> Data;
 
 };
