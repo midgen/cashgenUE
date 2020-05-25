@@ -97,7 +97,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 								 .count();
 
 #ifdef UE_BUILD_DEBUG
-			if (Settings->ShowTimings && updateJob.LOD == 0)
+			if (Settings && Settings->ShowTimings && updateJob.LOD == 0)
 			{
 				GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, TEXT("Heightmap gen " + FString::FromInt(updateJob.HeightmapGenerationDuration) + "ms"));
 				GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, TEXT("Erosion gen " + FString::FromInt(updateJob.ErosionGenerationDuration) + "ms"));
@@ -309,6 +309,11 @@ void ACGTerrainManager::SetupTerrainGenerator(UUFNNoiseGenerator* aHeightmapGene
 
 void ACGTerrainManager::AddActorToTrack(AActor* aPawn)
 {
+	if (!aPawn)
+	{
+		return;
+	}
+
 	myTrackedActors.Add(aPawn);
 	FIntVector2 pawnSector = GetSector(aPawn->GetActorLocation());
 	myActorLocationMap.Add(aPawn, pawnSector);
@@ -318,6 +323,11 @@ void ACGTerrainManager::AddActorToTrack(AActor* aPawn)
 
 void ACGTerrainManager::RemoveActorToTrack(AActor* aPawn)
 {
+	if (!aPawn)
+	{
+		return;
+	}
+
 	myTrackedActors.Remove(aPawn);
 
 	myActorLocationMap.Remove(aPawn);
