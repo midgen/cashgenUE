@@ -75,8 +75,7 @@ private:
 				}
 			} while (shouldContinueToBlock());
 
-			// We didn't find an object and shouldContinueToBlock() returned false. Abort.
-			throw std::runtime_error("Failed to borrow object from pool");
+			return nullptr;
 		}
 	private:
 		std::mutex mutex_;

@@ -22,9 +22,9 @@ struct FCGTerrainConfig
 
 	/** Noise Generator configuration struct */
 	UPROPERTY()
-	UUFNNoiseGenerator* NoiseGenerator;
+	UUFNNoiseGenerator* NoiseGenerator = nullptr;
 	UPROPERTY()
-	UUFNNoiseGenerator* BiomeBlendGenerator;
+	UUFNNoiseGenerator* BiomeBlendGenerator = nullptr;
 	/** Use ASync collision cooking for terrain mesh (Recommended) */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|System")
 	bool UseAsyncCollision = true;
@@ -36,9 +36,9 @@ struct FCGTerrainConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|System")
 	uint8 MeshUpdatesPerFrame = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|System")
-	FTimespan TileReleaseDelay;
+	FTimespan TileReleaseDelay = 5.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|System")
-	float TileSweepTime;
+	float TileSweepTime = 1.0f;
 	/** Number of blocks along a zone's X axis */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|Scale")
 	int32 TileXUnits = 32;
@@ -75,7 +75,7 @@ struct FCGTerrainConfig
 	//UMaterial* TerrainMaterial;
 	/** Material for the water mesh (will be instanced)*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|Rendering")
-	UMaterialInstance* WaterMaterialInstance;
+	UMaterialInstance* WaterMaterialInstance = nullptr;
 	/** Cast Shadows */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|Rendering")
 	bool CastShadows = false;
@@ -87,17 +87,17 @@ struct FCGTerrainConfig
 	bool DitheringLODTransitions = false;
 	/** If no TerrainMaterial and LOD transitions disabled, just use the same static instance for all LODs **/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|Rendering")
-	UMaterialInstance* TerrainMaterialInstance;
+	UMaterialInstance* TerrainMaterialInstance = nullptr;
 	/** Make a dynamic material instance */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|Water")
-	bool MakeDynamicMaterialInstance;
+	bool MakeDynamicMaterialInstance = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|Water")
 	/** If checked, will use a single instanced mesh for water, otherwise a procmesh section with dynamic texture will be used */
 	bool UseInstancedWaterMesh = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|Water")
 	/** If checked, will use a single instanced mesh for water, otherwise a procmesh section with dynamic texture will be used */
-	UStaticMesh* WaterMesh;
+	UStaticMesh* WaterMesh = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|Water")
 	TEnumAsByte<ECollisionEnabled::Type> WaterCollision = ECollisionEnabled::Type::QueryAndPhysics;
@@ -105,5 +105,5 @@ struct FCGTerrainConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CashGen|LODs")
 	TArray<FCGLODConfig> LODs;
 
-	FVector TileOffset;
+	FVector TileOffset = FVector::ZeroVector;
 };

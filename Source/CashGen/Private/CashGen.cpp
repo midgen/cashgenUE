@@ -1,9 +1,10 @@
 // Copyright 1998-2015 Epic Games, Inc. All Rights Reserved.
 
-#include "CashGen.h"
-#include "ISettingsModule.h"
-#include "ISettingsSection.h"
-#include "CGSettings.h"
+#include "CashGen/Public/CashGen.h"
+#include "CashGen/Public/CGSettings.h"
+#include <Developer/Settings/Public/ISettingsModule.h>
+#include <Developer/Settings/Public/ISettingsSection.h>
+
 //#include "cashgenPrivatePCH.h"
 
 #define LOCTEXT_NAMESPACE "FCashGen"
