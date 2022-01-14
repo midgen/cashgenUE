@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CashGen/Public/Struct/IntVector2.h"
+#include "CashGen/Public/Struct/CGIntVector2.h"
 
 #include "CGSector.generated.h"
 
@@ -17,7 +17,7 @@ public:
 	{
 	}
 
-	FCGSector(const FIntVector2 aIntVector, const uint8 aLOD = 0)
+	FCGSector(const FCGIntVector2 aIntVector, const uint8 aLOD = 0)
 		: mySector(aIntVector)
 		, myLOD(aLOD)
 	{
@@ -41,9 +41,9 @@ public:
 
 	friend FORCEINLINE uint32 GetTypeHash(const FCGSector& point)
 	{
-		return FCrc::MemCrc32(&point.mySector, sizeof(FIntVector2));
+		return FCrc::MemCrc32(&point.mySector, sizeof(FCGIntVector2));
 	}
 
-	FIntVector2 mySector;
+	FCGIntVector2 mySector;
 	uint8 myLOD;
 };

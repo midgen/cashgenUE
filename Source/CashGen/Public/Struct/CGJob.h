@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CashGen/Public/Struct/IntVector2.h"
+#include "CashGen/Public/Struct/CGIntVector2.h"
 #include "CashGen/Public/Struct/CGTileHandle.h"
 #include "CashGen/Public/CGObjectPool.h"
 
@@ -22,7 +22,7 @@ struct FCGJob
 	{
 	}
 
-	FIntVector2 mySector;
+	FCGIntVector2 mySector;
 	FCGTileHandle myTileHandle;
 	TCGBorrowedObject<FCGMeshData> Data;
 	int32 HeightmapGenerationDuration;

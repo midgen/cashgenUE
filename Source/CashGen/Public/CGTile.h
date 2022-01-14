@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Cashgen/Public/Struct/IntVector2.h"
+#include "Cashgen/Public/Struct/CGIntVector2.h"
 
 #include <Runtime/Engine/Classes/Components/SphereComponent.h>
 #include <ProceduralMeshComponent/Public/ProceduralMeshComponent.h>
@@ -40,7 +40,7 @@ class CASHGEN_API ACGTile : public AActor
 
 	bool IsInitalized = false;
 
-	FIntVector2 mySector;
+	FCGIntVector2 mySector;
 
 	FVector WorldOffset;
 	FCGTerrainConfig* TerrainConfigMaster;
@@ -62,7 +62,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
-	void UpdateSettings(FIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
+	void UpdateSettings(FCGIntVector2 aOffset, FCGTerrainConfig* aTerrainConfig, FVector aWorldOffset);
 	void UpdateMesh(uint8 aLOD, bool aIsInPlaceUpdate, TArray<FVector>& aPosition, TArray<FVector>& aNormals, TArray<FProcMeshTangent>& aTangents, TArray<FVector2D>& aUV0s, TArray<FColor>& aColours, TArray<int32>& aTriangles, TArray<FColor>& aTextureData);
 	void RepositionAndHide(uint8 aNewLOD);
 

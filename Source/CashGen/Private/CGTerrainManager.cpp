@@ -122,8 +122,8 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 		SCOPE_CYCLE_COUNTER(STAT_ActorSectorSweeps);
 
 		// Compare current location to previous
-		FIntVector2 oldSector = myActorLocationMap[myTrackedActors[myActorIndex]];
-		FIntVector2 newSector = GetSector(myTrackedActors[myActorIndex]->GetActorLocation());
+		FCGIntVector2 oldSector = myActorLocationMap[myTrackedActors[myActorIndex]];
+		FCGIntVector2 newSector = GetSector(myTrackedActors[myActorIndex]->GetActorLocation());
 		if (oldSector != newSector)
 		{
 			// Take care of spawning new sectors if necessary
@@ -157,7 +157,7 @@ void ACGTerrainManager::Tick(float DeltaSeconds)
 	// But the cost is negligible compared to the mesh updates/collision cooking we're doing sooooooo
 	// Better than all the tiles ticking themselves
 
-	TArray<FIntVector2> TilesToDelete;
+	TArray<FCGIntVector2> TilesToDelete;
 
 	{
 		SCOPE_CYCLE_COUNTER(STAT_SectorExpirySweeps);
@@ -227,15 +227,14 @@ void ACGTerrainManager::FreeTile(ACGTile* aTile, const int32& waterMeshIndex)
 	myFreeTiles.Push(aTile);
 }
 
-void ACGTerrainManager::SetActorSector(const AActor* aActor, const FIntVector2& aNewSector)
+void ACGTerrainManager::SetActorSector(const AActor* aActor, const FCGIntVector2& aNewSector)
 {
 	myActorLocationMap[aActor] = aNewSector;
 }
 
-FIntVector2 ACGTerrainManager::GetSector(const FVector& aLocation)
+FCGIntVector2 ACGTerrainManager::GetSector(const FVector& aLocation)
 {
-	FIntVector2 sector;
-	;
+	FCGIntVector2 sector;
 
 	sector.X = FMath::RoundToInt(aLocation.X / (myTerrainConfig.TileXUnits * myTerrainConfig.UnitSize));
 	sector.Y = FMath::RoundToInt(aLocation.Y / (myTerrainConfig.TileYUnits * myTerrainConfig.UnitSize));
@@ -247,7 +246,7 @@ TArray<FCGSector> ACGTerrainManager::GetRelevantSectorsForActor(const AActor* aA
 {
 	TArray<FCGSector> result;
 
-	FIntVector2 rootSector = GetSector(aActor->GetActorLocation());
+	FCGIntVector2 rootSector = GetSector(aActor->GetActorLocation());
 
 	if (myTerrainConfig.LODs.Num() < 1)
 	{
@@ -265,7 +264,7 @@ TArray<FCGSector> ACGTerrainManager::GetRelevantSectorsForActor(const AActor* aA
 		for (int y = 0; y < sweepRange * 2; y++)
 		{
 			FCGSector newSector = FCGSector(rootSector.X - sweepRange + x, rootSector.Y - sweepRange + y, 0);
-			FIntVector2 diff = newSector.mySector - rootSector;
+			FCGIntVector2 diff = newSector.mySector - rootSector;
 			int thisRange = (diff.X * diff.X + diff.Y * diff.Y);
 			int lod = GetLODForRange(thisRange);
 			if (newSector != rootSector && lod > -1)
@@ -310,7 +309,7 @@ void ACGTerrainManager::SetupTerrainGenerator(UUFNNoiseGenerator* aHeightmapGene
 void ACGTerrainManager::AddActorToTrack(AActor* aPawn)
 {
 	myTrackedActors.Add(aPawn);
-	FIntVector2 pawnSector = GetSector(aPawn->GetActorLocation());
+	FCGIntVector2 pawnSector = GetSector(aPawn->GetActorLocation());
 	myActorLocationMap.Add(aPawn, pawnSector);
 
 	ProcessTilesForActor(aPawn);
